@@ -60,54 +60,44 @@
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
   };
-
-
-  // ----- BREAK elements -----
+  // ----- BREAK / TECH elements -----
   const elBreak = {
-    tables: document.getElementById("breakTables"),
-    last: document.getElementById("breakLast"),
-    next: document.getElementById("breakNext"),
-    program: document.getElementById("breakProgram"),
-    notice: document.getElementById("breakNotice"),
-    btName: document.getElementById("btName"),
-    btSlug: document.getElementById("btSlug"),
-    btClock: document.getElementById("btClock"),
+    btName: $("btName"),
+    btSlug: $("btSlug"),
+    btClock: $("btClock"),
+    tables: $("breakTables"),
+    last: $("breakLast"),
+    next: $("breakNext"),
+    program: $("breakProgram"),
+    notice: $("breakNotice"),
   };
 
-  // ----- TECHNICAL elements -----
   const elTech = {
-    root: document.getElementById("root") || document.getElementById("techRoot"),
-    title: document.getElementById("title") || document.getElementById("techTitle"),
-    subtitle: document.getElementById("subtitle") || document.getElementById("techSubtitle"),
-    clock: document.getElementById("clock") || document.getElementById("techClock"),
+    title: $("techTitle"),
+    subtitle: $("techSubtitle"),
+    clock: $("techClock"),
   };
+
+  function fmtTime(d = new Date()) {
+    try {
+      return new Intl.DateTimeFormat("pl-PL", { hour: "2-digit", minute: "2-digit", second: "2-digit" }).format(d);
+    } catch (e) {
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      const ss = String(d.getSeconds()).padStart(2, "0");
+      return `${hh}:${mm}:${ss}`;
+    }
+  }
+
+  function safeText(el, v) {
+    if (!el) return;
+    el.textContent = v == null ? "" : String(v);
+  }
 
 
   function teamName(state, id) {
     const t = (state.teams || []).find((x) => x.id === id);
     return t ? t.name : "—";
-  }
-
-
-  function fmtTime(d) {
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
-    return `${hh}:${mm}:${ss}`;
-  }
-
-  function matchLabel(st, m) {
-    const ta = teamName(st, m.teamAId);
-    const tb = teamName(st, m.teamBId);
-    return `${ta} vs ${tb}`;
-  }
-
-  function matchScoreNow(m) {
-    const pm = ENG.emptyMatchPatch(m);
-    const idx = ENG.currentSetIndex(pm);
-    const s = pm.sets[idx];
-    const sum = ENG.scoreSummary(pm);
-    return { a: s.a, b: s.b, setsA: sum.setsA, setsB: sum.setsB };
   }
 
   function renderTicker(state) {
@@ -198,48 +188,84 @@
     if (elGame.bScore) elGame.bScore.textContent = String(s.b);
   }
 
-  // ----- BREAK / TECHNICAL / SPONSORS -----
-  // We keep these scenes alive (so scene switching works), but we don't change their existing rendering here.
 
-  function renderBreak(state) {
-    const st = state || {};
-    // Header
-    if (elBreak.btName) elBreak.btName.textContent = String(st.meta?.name || "VolleyballPro");
-    if (elBreak.btSlug) elBreak.btSlug.textContent = String(slug || "");
-    if (elBreak.btClock) elBreak.btClock.textContent = fmtTime(new Date());
+  function computeGroupStandings(st, group) {
+    const teams = (st.teams || []).filter(t => t.group === group || !t.group); // tolerate missing team.group
+    const rows = new Map();
+    for (const t of st.teams || []) {
+      rows.set(t.id, { id: t.id, name: t.name, w:0, l:0, sw:0, sl:0, pf:0, pa:0 });
+    }
 
-    // Tables (group standings from confirmed group matches)
+    const confirmed = (st.matches || [])
+      .map(m => ENG.emptyMatchPatch(m))
+      .filter(m => m.stage === "group" && (m.group || "") === group && m.status === "confirmed");
+
+    for (const m of confirmed) {
+      const sum = ENG.scoreSummary(m);
+      const a = rows.get(m.teamAId);
+      const b = rows.get(m.teamBId);
+      if (!a || !b) continue;
+
+      a.sw += sum.setsA; a.sl += sum.setsB;
+      b.sw += sum.setsB; b.sl += sum.setsA;
+
+      const sets = m.sets || [];
+      for (const s of sets) {
+        a.pf += (s?.a||0); a.pa += (s?.b||0);
+        b.pf += (s?.b||0); b.pa += (s?.a||0);
+      }
+
+      if (sum.setsA > sum.setsB) { a.w += 1; b.l += 1; }
+      else if (sum.setsB > sum.setsA) { b.w += 1; a.l += 1; }
+    }
+
+    const list = [...rows.values()].filter(r => {
+      // include only teams that appear in group matches or have group tag
+      if (!group) return true
+      const team = (st.teams || []).find(t => t.id === r.id);
+      return (team?.group || "") === group || confirmed.some(m => m.teamAId===r.id || m.teamBId===r.id);
+    });
+
+    list.sort((x,y) => {
+      if (y.w !== x.w) return y.w - x.w;
+      const xr = (x.sl===0? x.sw : x.sw/x.sl);
+      const yr = (y.sl===0? y.sw : y.sw/y.sl);
+      if (yr !== xr) return yr - xr;
+      const xpr = (x.pa===0? x.pf : x.pf/x.pa);
+      const ypr = (y.pa===0? y.pf : y.pf/y.pa);
+      if (ypr !== xpr) return ypr - xpr;
+      return x.name.localeCompare(y.name, "pl");
+    });
+
+    return list;
+  }
+
+  // ----- BREAK / TECHNICAL / SPONSORS ----
+
+  function renderBreak(st) {
+    safeText(elBreak.btName, st.meta?.tournamentName || "VolleyballPro");
+    safeText(elBreak.btSlug, slug ? `TURNIEJ: ${String(slug).toUpperCase()}` : "");
+    safeText(elBreak.btClock, fmtTime(new Date()));
+
+    // Tables: group stage only, confirmed
     if (elBreak.tables) {
-      const groups = ENG.computeStandings(st) || {};
-      const keys = Object.keys(groups).filter(k => k !== "").sort((a,b)=>String(a).localeCompare(String(b),"pl"));
-      if (!keys.length) {
-        elBreak.tables.innerHTML = `<div class="muted">Brak danych do tabel (dodaj mecze grupowe i ustaw status confirmed).</div>`;
+      const groups = [...new Set((st.matches || []).map(m => m.group).filter(Boolean))].sort();
+      if (!groups.length) {
+        elBreak.tables.innerHTML = `<div class="muted">Brak tabel (brak meczów grupowych)</div>`;
       } else {
-        elBreak.tables.innerHTML = keys.map((g) => {
-          const rows = groups[g] || [];
-          const body = rows.map((r, i) => `
-            <tr>
-              <td class="pos">${i+1}</td>
-              <td class="name">${UI ? UI.esc(r.name) : r.name}</td>
-              <td>${r.played}</td>
-              <td>${r.wins}</td>
-              <td>${r.losses}</td>
-              <td>${r.tablePoints}</td>
-              <td>${r.setsWon}:${r.setsLost}</td>
-              <td>${r.pointsWon}:${r.pointsLost}</td>
-            </tr>
+        elBreak.tables.innerHTML = groups.map(g => {
+          const rows = computeGroupStandings(st, g);
+          const top = rows.slice(0, 6);
+          const body = top.map(r => `
+            <div class="row">
+              <div class="name">${U.esc(r.name)}</div>
+              <div class="stat">${r.w}-${r.l}</div>
+            </div>
           `).join("");
           return `
-            <div class="breakGroup">
-              <div class="breakGroupTitle">GRUPA ${UI ? UI.esc(String(g)) : String(g)}</div>
-              <table class="breakTable">
-                <thead>
-                  <tr>
-                    <th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>P</th><th>PKT</th><th>Sety</th><th>Punkty</th>
-                  </tr>
-                </thead>
-                <tbody>${body}</tbody>
-              </table>
+            <div class="groupTable">
+              <div class="gHead">GRUPA ${U.esc(String(g).toUpperCase())}</div>
+              <div class="gBody">${body || `<div class="muted">Brak wyników</div>`}</div>
             </div>
           `;
         }).join("");
@@ -248,58 +274,76 @@
 
     // Last results (latest confirmed)
     if (elBreak.last) {
-      const confirmed = (st.matches || []).filter(m => m.status === "confirmed");
+      const confirmed = (st.matches || []).map(m => ENG.emptyMatchPatch(m)).filter(m => m.status === "confirmed");
       confirmed.sort((a,b) => {
-        const ta = Date.parse(a.updated_at || a.updatedAt || a.created_at || a.createdAt || 0) || 0;
-        const tb = Date.parse(b.updated_at || b.updatedAt || b.created_at || b.createdAt || 0) || 0;
+        const ta = new Date(a.updatedAt || a.updated_at || a.endedAt || 0).getTime();
+        const tb = new Date(b.updatedAt || b.updated_at || b.endedAt || 0).getTime();
         return tb - ta;
       });
-      const items = confirmed.slice(0, 4).map(m => {
-        const s = matchScoreNow(m);
-        return `<div class="breakItem"><span>${matchLabel(st,m)}</span><b>${s.setsA}:${s.setsB}</b></div>`;
+      const items = confirmed.slice(0, 5).map(m => {
+        const ta = teamName(st, m.teamAId);
+        const tb = teamName(st, m.teamBId);
+        const sum = ENG.scoreSummary(m);
+        return `<div class="item"><span>${U.esc(ta)} vs ${U.esc(tb)}</span><b>${sum.setsA}:${sum.setsB}</b></div>`;
       }).join("");
-      elBreak.last.innerHTML = items || `<div class="muted">Brak zakończonych meczów.</div>`;
+      elBreak.last.innerHTML = items || `<div class="muted">Brak wyników</div>`;
     }
 
     // Next matches (pending)
     if (elBreak.next) {
-      const pending = (st.matches || []).filter(m => m.status === "pending");
-      const items = pending.slice(0, 4).map(m => `<div class="breakItem"><span>${matchLabel(st,m)}</span><b>—</b></div>`).join("");
-      elBreak.next.innerHTML = items || `<div class="muted">Brak zaplanowanych meczów.</div>`;
+      const pending = (st.matches || []).map(m => ENG.emptyMatchPatch(m)).filter(m => m.status === "pending");
+      pending.sort((a,b) => {
+        const ta = new Date(a.scheduledAt || a.createdAt || 0).getTime();
+        const tb = new Date(b.scheduledAt || b.createdAt || 0).getTime();
+        return ta - tb;
+      });
+      const items = pending.slice(0, 5).map(m => {
+        const ta = teamName(st, m.teamAId);
+        const tb = teamName(st, m.teamBId);
+        const stageLabel = UI.stageLabel ? UI.stageLabel(m.stage) : m.stage;
+        const grp = (m.stage==="group" && m.group) ? ` • Grupa ${String(m.group).toUpperCase()}` : "";
+        return `<div class="item"><span>${U.esc(ta)} vs ${U.esc(tb)}</span><span class="muted">${U.esc(stageLabel)}${grp}</span></div>`;
+      }).join("");
+      elBreak.next.innerHTML = items || `<div class="muted">Brak zaplanowanych meczów</div>`;
     }
 
     // Program match
     if (elBreak.program) {
-      const pid = st.meta?.programMatchId;
-      const m = (st.matches || []).find(x => x.id === pid);
-      if (!m) {
-        elBreak.program.innerHTML = `<div class="muted">Nie wybrano meczu na transmisję.</div>`;
+      const pmId = st.meta?.programMatchId || null;
+      const pm0 = (st.matches || []).find(m => m.id === pmId) || null;
+      if (!pm0) {
+        elBreak.program.innerHTML = `<div class="muted">Nie wybrano meczu na transmisji</div>`;
       } else {
-        const sc = matchScoreNow(m);
+        const pm = ENG.emptyMatchPatch(pm0);
+        const ta = teamName(st, pm.teamAId);
+        const tb = teamName(st, pm.teamBId);
+        const sum = ENG.scoreSummary(pm);
+        const idx = ENG.currentSetIndex(pm);
+        const s = pm.sets[idx];
         elBreak.program.innerHTML = `
-          <div class="breakItem"><span>${matchLabel(st,m)}</span><b>${sc.setsA}:${sc.setsB} • ${sc.a}:${sc.b}</b></div>
+          <div class="item">
+            <span><b>${U.esc(ta)}</b> vs <b>${U.esc(tb)}</b></span>
+            <b>${sum.setsA}:${sum.setsB} • ${s.a}:${s.b}</b>
+          </div>
         `;
       }
     }
   }
 
-  function renderTechnical(state) {
-    // Keep clock ticking even if no state
-    if (elTech.clock) elTech.clock.textContent = fmtTime(new Date());
-    // Optional: show tournament name
-    const name = state?.meta?.name || "VolleyballPro";
-    if (elTech.subtitle && !elTech.subtitle.textContent) {
-      elTech.subtitle.textContent = "Trwają przygotowania do kolejnego meczu";
-    }
-    if (elTech.title && !elTech.title.textContent) {
-      elTech.title.textContent = "ZARAZ WRACAMY";
-    }
-    // No further updates needed.
+  function renderTechnical(st) {
+    if (!elTech.clock) return;
+    safeText(elTech.clock, fmtTime(new Date()));
+    // optionally pull from state
+    if (elTech.title) safeText(elTech.title, st.meta?.techTitle || "ZARAZ WRACAMY");
+    if (elTech.subtitle) safeText(elTech.subtitle, st.meta?.techSubtitle || "Trwają przygotowania do kolejnego meczu");
   }
 
-  function renderOtherScenes(_state) {
-    // no-op: your existing break/technical/sponsors UI remains in HTML/CSS/other scripts (if any)
+  function renderOtherScenes(st) {
+    // Keep clocks ticking regardless of active scene
+    renderTechnical(st);
+    if (activeScene === "break") renderBreak(st);
   }
+
 
   // ----- Start -----
   async function start() {
@@ -316,24 +360,13 @@
       const st = current?.state || {};
       const scene = st.meta?.scene || "game";
       setActiveScene(scene);
-      if (scene === "game") renderGame(st);
-      else if (scene === "break") renderBreak(st);
-      else if (scene === "technical") renderTechnical(st);
-      else if (scene === "sponsors") { /* no-op */ }
+      renderGame(st);
       renderOtherScenes(st);
     };
 
     renderAll();
-
-
-    // Clock tick for Break/Technical even if state doesn't change
-    setInterval(() => {
-      const st2 = current?.state || {};
-      const scene2 = st2.meta?.scene || "game";
-      if (scene2 === "break") renderBreak(st2);
-      if (scene2 === "technical") renderTechnical(st2);
-    }, 1000);
-
+    // Tick clocks (break/technical) even when state doesn't change
+    setInterval(renderAll, 1000);
 
     STORE.subscribeState(slug, (snap) => {
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
