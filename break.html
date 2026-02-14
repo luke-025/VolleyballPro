@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
@@ -10,4 +10,45 @@
   <script src="/js/util.js"></script>
   <script src="/js/engine.js"></script>
   <script src="/js/state.js"></script>
-<title>VolleyballPro • Break</title></head><body><div class='container'><div class='card'><div style='font-weight:900'>Break</div><div class='notice'>W kolejnym etapie: tabela + wyniki.</div></div></div></body></html>
+  <script src="/js/break.js"></script>
+  <title>VolleyballPro • Przerwa</title>
+</head>
+<body class="overlayBody">
+  <div class="overlay breakOverlay" id="breakRoot">
+    <div class="breakTop">
+      <div class="breakTitle">
+        <div class="breakKicker">PRZERWA</div>
+        <div class="breakTournament" id="btName">VolleyballPro</div>
+      </div>
+      <div class="breakMeta">
+        <div class="breakPill" id="btSlug"></div>
+        <div class="breakClock" id="btClock"></div>
+      </div>
+    </div>
+
+    <div class="breakGrid">
+      <div class="breakLeft card">
+        <div class="breakSectionTitle">Tabele grup</div>
+        <div id="breakTables" class="breakTables"></div>
+      </div>
+
+      <div class="breakRight">
+        <div class="card breakPanel">
+          <div class="breakSectionTitle">Ostatnie wyniki</div>
+          <div id="breakLast" class="breakList"></div>
+        </div>
+        <div class="card breakPanel">
+          <div class="breakSectionTitle">Następne mecze</div>
+          <div id="breakNext" class="breakList"></div>
+        </div>
+        <div class="card breakPanel">
+          <div class="breakSectionTitle">Mecz na transmisji</div>
+          <div id="breakProgram" class="breakProgram"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlayNotice" id="breakNotice" style="display:none"></div>
+  </div>
+</body>
+</html>
