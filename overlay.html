@@ -9,6 +9,17 @@
     html, body { height:100%; margin:0; padding:0; overflow:hidden; background:transparent; }
     body { background: transparent; }
 
+    /* === SAFE AREA === */
+    :root{
+      --safe-l: max(44px, env(safe-area-inset-left));
+      --safe-t: max(44px, env(safe-area-inset-top));
+      --safe-r: max(44px, env(safe-area-inset-right));
+      --safe-b: max(44px, env(safe-area-inset-bottom));
+    }
+    .gameHUD{ left: var(--safe-l); top: var(--safe-t); }
+    .ticker{ padding-left: var(--safe-l); padding-right: var(--safe-r); padding-bottom: max(18px, var(--safe-b)); }
+
+
     .overlayViewport{ position:fixed; inset:0; width:100vw; height:100vh; overflow:hidden; display:flex; align-items:center; justify-content:center; }
     .overlayStage{ width:1920px; height:1080px; transform-origin:center center; position:relative; overflow:hidden; background:transparent; font-family: var(--sans); }
 
@@ -48,11 +59,11 @@
 
     /* Safer margins + smaller HUD */
     .gameHUD{ left:44px; top:44px; gap:12px; }
-    .teamPill{ width: 520px; height: 76px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
-    .teamName{ font-size: 30px; }
+    .teamPill{ width: 500px; height: 72px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
+    .teamName{ font-size: 28px; }
     .setsBox{ width: 92px; }
     .setsVal{ font-size: 20px; }
-    .pointsPill{ width: 104px; height: 76px; border-radius: 18px; font-size: 30px; }
+    .pointsPill{ width: 98px; height: 72px; border-radius: 18px; font-size: 28px; }
 
     /* Static ticker: up to 2 matches; colored score */
     .tickerItems{
@@ -185,7 +196,7 @@
     /* Smaller HUD */
     .gameHUD{ left:46px; top:46px; gap:14px; }
     .teamPill{ width: 500px; height: 78px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
-    .teamName{ font-size: 30px; }
+    .teamName{ font-size: 28px; }
     .setsBox{ width: 90px; }
     .setsVal{ font-size: 20px; }
     .pointsPill{ width: 104px; height: 78px; border-radius: 18px; font-size: 34px; }
