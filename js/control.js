@@ -76,6 +76,8 @@
       const sum = ENG.scoreSummary(m);
       const isProgram = state.meta?.programMatchId === m.id;
       const claimed = m.claimedBy ? "🔒" : "";
+      const canConfirm = m.status === "finished";
+      const canReopen = (m.status === "finished" || m.status === "confirmed");
       const row = document.createElement("div");
       row.className = "matchRow";
       row.innerHTML = `
@@ -85,7 +87,8 @@
         </div>
         <div class="btnGroup">
           <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"PROGRAM":"Ustaw PROGRAM"}</button>
-          <button class="btn btn-ghost" data-live="${m.id}">Live</button>
+          ${canConfirm ? `<button class="btn btn-primary" data-confirm="${m.id}">Zatwierdź</button>` : ""}
+          ${canReopen ? `<button class="btn btn-ghost" data-reopen="${m.id}">Cofnij do live</button>` : `<button class="btn btn-ghost" data-live="${m.id}">Live</button>`}
           <button class="btn btn-ghost" data-unclaim="${m.id}">Odblokuj</button>
           <button class="btn btn-danger" data-del-match="${m.id}">Usuń</button>
         </div>
@@ -270,6 +273,8 @@
     const liveId = btn.getAttribute("data-live");
     const unclaimId = btn.getAttribute("data-unclaim");
     const delId = btn.getAttribute("data-del-match");
+    const confirmId = btn.getAttribute("data-confirm");
+    const reopenId = btn.getAttribute("data-reopen");
 
     try {
       if (programId) {
@@ -285,6 +290,33 @@
           return st;
         });
         UI.toast("Ustawiono live", "success");
+      } else if (confirmId) {
+        if (!UI.confirmDialog("Zatwierdzić wynik?", "Po zatwierdzeniu mecz wpłynie na tabelę (tylko etap Grupa).")) return;
+        await STORE.mutate(slug, pin, (st) => {
+          const idx = (st.matches||[]).findIndex(m => m.id === confirmId);
+          if (idx === -1) return st;
+          const mm = ENG.emptyMatchPatch(st.matches[idx]);
+          st.matches[idx] = ENG.confirmMatch(mm);
+          st.matches[idx].claimedBy = null;
+          st.matches[idx].claimedAt = null;
+          return st;
+        });
+        UI.toast("Wynik zatwierdzony", "success");
+      } else if (reopenId) {
+        if (!UI.confirmDialog("Cofnąć mecz do live?", "Pozwoli to ponownie edytować punkty z telefonu.")) return;
+        await STORE.mutate(slug, pin, (st) => {
+          const idx = (st.matches||[]).findIndex(m => m.id === reopenId);
+          if (idx === -1) return st;
+          const mm = ENG.emptyMatchPatch(st.matches[idx]);
+          mm.status = "live";
+          mm.winner = null;
+          mm.updatedAt = new Date().toISOString();
+          mm.claimedBy = null;
+          mm.claimedAt = null;
+          st.matches[idx] = mm;
+          return st;
+        });
+        UI.toast("Cofnięto do live", "success");
       } else if (unclaimId) {
         await STORE.mutate(slug, pin, (st) => {
           st.matches = (st.matches||[]).map(m => m.id===unclaimId ? ({...m, claimedBy:null, claimedAt:null}) : m);

@@ -38,6 +38,7 @@
     btnBMinus: document.getElementById("btnBMinus"),
     btnResetSet: document.getElementById("btnResetSet"),
     btnConfirm: document.getElementById("btnConfirm"),
+    liveHint: document.getElementById("liveHint"),
   };
 
   els.slug.textContent = slug;
@@ -134,8 +135,19 @@
     els.btnBMinus.disabled = finished || s.b <= 0;
     els.btnResetSet.disabled = finished;
 
-    // confirm button only when finished
-    els.btnConfirm.style.display = (m.status === "finished") ? "" : "none";
+    // Option A: results are confirmed only in Control, not on the phone.
+    els.btnConfirm.style.display = "none";
+
+    // Hint for operator
+    if (els.liveHint) {
+      if (m.status === "finished") {
+        els.liveHint.innerHTML = "<b>Mecz zakończony.</b> Wynik czeka na zatwierdzenie w panelu Control.";
+      } else if (m.status === "confirmed") {
+        els.liveHint.innerHTML = "<b>Wynik zatwierdzony.</b> Mecz jest już w tabeli (jeśli był grupowy).";
+      } else {
+        els.liveHint.textContent = "";
+      }
+    }
   }
 
   async function ensureTournamentAndSubscribe() {
@@ -253,34 +265,7 @@
   els.btnBMinus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"b",-1)));
   els.btnResetSet.addEventListener("click", ()=> mutateMatch(m => ENG.resetCurrentSet(m)));
 
-  // confirm finished match (only group affects standings)
-  els.btnConfirm.addEventListener("click", async () => {
-    const m0 = getMatchById(activeMatchId);
-    if (!m0) return;
-    const m = ENG.emptyMatchPatch(m0);
-    const pin = requirePin(); if (!pin) return;
-
-    const ok = UI.confirmDialog("Zatwierdzić wynik?", "Dla meczów grupowych zatwierdzenie aktualizuje tabelę.");
-    if (!ok) return;
-
-    try {
-      await STORE.mutate(slug, pin, (st) => {
-        const idx = st.matches.findIndex(x=>x.id===activeMatchId);
-        if (idx === -1) return st;
-        const mm = ENG.emptyMatchPatch(st.matches[idx]);
-        if (mm.claimedBy !== deviceId) throw new Error("Brak kontroli nad meczem");
-        st.matches[idx] = ENG.confirmMatch(mm);
-        // release after confirm
-        st.matches[idx].claimedBy = null;
-        st.matches[idx].claimedAt = null;
-        return st;
-      });
-      activeMatchId = null;
-      UI.toast("Zatwierdzono", "success");
-    } catch (e) {
-      UI.toast("Błąd: " + (e.message||e), "error");
-    }
-  });
+  // NOTE: confirmation happens in Control (Option A)
 
   // keyboard shortcuts: Q/W A +/-, O/P B +/-
   window.addEventListener("keydown", (e) => {

@@ -1,3 +1,4 @@
+
 /* css/main.css - broadcast look */
 :root{
   --bg:#070A12;
@@ -16,12 +17,6 @@
 }
 
 *{box-sizing:border-box}
-
-html{
-  margin:0;
-  padding:0;
-}
-
 body{
   margin:0;
   font-family:var(--sans);
@@ -30,7 +25,6 @@ body{
               var(--bg);
   color:var(--text);
 }
-
 a{color:var(--accent)}
 code{font-family:var(--mono); color:var(--accent)}
 .container{max-width:1100px; margin:0 auto; padding:20px}
@@ -133,19 +127,12 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 
 /* Overlay */
 .overlay{
-  width:1920px;
-  height:1080px;
-
-  /* ✅ klucz: fixed usuwa mikro-scroll, bo overlay nie „powiększa” strony */
-  position:fixed;
-  left:0;
-  top:0;
-
+  width:1920px; height:1080px;
+  position:relative;
   overflow:hidden;
   background: transparent;
   font-family:var(--sans);
 }
-
 .scorebar{
   position:absolute; left:60px; bottom:60px;
   display:flex; align-items:stretch;
@@ -198,3 +185,4 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   border-radius: 16px;
   color: var(--muted);
 }
+

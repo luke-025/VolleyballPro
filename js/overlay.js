@@ -51,7 +51,13 @@
     el.aScore.textContent = s.a;
     el.bScore.textContent = s.b;
     el.sets.textContent = `${sum.setsA}:${sum.setsB}`;
-    el.setInfo.textContent = `Set ${idx+1}/3`;
+    if (pm.status === "finished") {
+      el.setInfo.textContent = `KONIEC • czeka na zatwierdzenie`;
+    } else if (pm.status === "confirmed") {
+      el.setInfo.textContent = `KONIEC`;
+    } else {
+      el.setInfo.textContent = `Set ${idx+1}/3`;
+    }
   }
 
   async function start() {
