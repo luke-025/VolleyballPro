@@ -13,6 +13,7 @@
       while (m.sets.length < 3) m.sets.push({a:0,b:0});
     }
     if (!m.status) m.status = "pending";
+    if (!Array.isArray(m.events)) m.events = [];
     if (!m.stage) m.stage = "group";
     m.winner = m.winner ?? null;
     m.claimedBy = m.claimedBy ?? null;
@@ -77,34 +78,29 @@
     const m = emptyMatchPatch(match);
     if (m.status === "finished" || m.status === "confirmed") return m;
 
-    // events: point-by-point log, used for PRO stats (streaks, momentum, etc.)
-    if (!Array.isArray(m.events)) m.events = [];
-
     const idx = currentSetIndex(m);
     const s = m.sets[idx];
 
-    const before = +s[side] || 0;
-    const after = Math.max(0, before + (+delta || 0));
-    s[side] = after;
+    // apply delta
+    s[side] = Math.max(0, (+s[side] || 0) + delta);
 
-    // Only touch events if score actually changed
-    if (after !== before) {
-      if (delta > 0) {
-        m.events.push({ ts: Date.now(), set: idx, side });
-      } else if (delta < 0) {
-        // Remove last matching event (same set + side) to keep log consistent
-        for (let i = m.events.length - 1; i >= 0; i--) {
-          const e = m.events[i];
-          if (e && e.set === idx && e.side === side) {
-            m.events.splice(i, 1);
-            break;
-          }
+    // point-by-point event log (for PRO stats)
+    // We only log +/-1 changes (court uses step 1). For safety, we treat any positive delta as one event.
+    if (!Array.isArray(m.events)) m.events = [];
+
+    if (delta > 0) {
+      m.events.push({ ts: Date.now(), set: idx, side });
+    } else if (delta < 0) {
+      // remove the last matching event for this side in this set (best-effort undo)
+      for (let i = m.events.length - 1; i >= 0; i--) {
+        const e = m.events[i];
+        if (e && e.set === idx && e.side === side) {
+          m.events.splice(i, 1);
+          break;
         }
       }
     }
 
-    // auto-finish set? (we don't store explicit set-finish flags; rules infer from points)
-    // if either side reached min and 2-pt lead, set is finished; match may be finished too
     return tryAutoFinish(m);
   }
 
@@ -113,9 +109,6 @@
     if (m.status === "finished" || m.status === "confirmed") return m;
     const idx = currentSetIndex(m);
     m.sets[idx] = { a:0, b:0 };
-    if (Array.isArray(m.events)) {
-      m.events = m.events.filter(e => !(e && e.set === idx));
-    }
     return tryAutoFinish(m);
   }
 
@@ -371,29 +364,74 @@
   }
 
   
-  function computeStreaks(match) {
+  // ===== PRO stats (based on match.events) =====
+  function getEvents(match) {
     const m = emptyMatchPatch(match);
-    const events = Array.isArray(m.events) ? m.events : [];
+    return Array.isArray(m.events) ? m.events.slice().sort((a,b)=> (+a.ts||0) - (+b.ts||0)) : [];
+  }
 
+  function computeStreaks(match) {
+    const ev = getEvents(match);
     let bestA = 0, bestB = 0;
     let currentSide = null;
     let currentLen = 0;
 
-    for (const e of events) {
-      const side = e && e.side;
-      if (side !== "a" && side !== "b") continue;
-
-      if (side === currentSide) currentLen++;
-      else { currentSide = side; currentLen = 1; }
-
+    for (const e of ev) {
+      if (!e || (e.side !== "a" && e.side !== "b")) continue;
+      if (e.side === currentSide) currentLen += 1;
+      else { currentSide = e.side; currentLen = 1; }
       if (currentSide === "a") bestA = Math.max(bestA, currentLen);
-      else if (currentSide === "b") bestB = Math.max(bestB, currentLen);
+      else bestB = Math.max(bestB, currentLen);
     }
 
     return { bestA, bestB, currentSide, currentLen };
   }
 
+  function computeMaxLead(match) {
+    const ev = getEvents(match);
+    // group by set
+    const bySet = [[],[],[]];
+    for (const e of ev) {
+      const si = +e.set;
+      if (si >= 0 && si < 3) bySet[si].push(e);
+    }
+
+    let best = { side: null, value: 0, set: null };
+    for (let si = 0; si < 3; si++) {
+      let a = 0, b = 0;
+      for (const e of bySet[si]) {
+        if (e.side === "a") a++;
+        else if (e.side === "b") b++;
+        const diff = a - b;
+        const abs = Math.abs(diff);
+        if (abs > best.value) {
+          best = { side: diff >= 0 ? "a" : "b", value: abs, set: si };
+        }
+      }
+    }
+    return best; // {side:'a'|'b'|null, value:number, set:number|null}
+  }
+
+  function lastPlayedSetIndex(match) {
+    const m = emptyMatchPatch(match);
+    // choose last set with any points
+    for (let i = 2; i >= 0; i--) {
+      const s = m.sets[i];
+      if ((+s.a||0) > 0 || (+s.b||0) > 0) return i;
+    }
+    return currentSetIndex(m);
+  }
+
+  function computeLastPointsTimeline(match, setIndex, limit) {
+    const m = emptyMatchPatch(match);
+    const ev = getEvents(m).filter(e => +e.set === +setIndex && (e.side === "a" || e.side === "b"));
+    const N = limit || 10;
+    const last = ev.slice(-N);
+    // oldest -> newest
+    return last.map(e => e.side);
+  }
 window.VPEngine = {
+
     emptyMatchPatch,
     addPoint,
     resetCurrentSet,
@@ -403,7 +441,10 @@ window.VPEngine = {
     currentSetIndex,
     computeStandings,
     generatePlayoffs,
-    applyPlayoffsProgression,
-    computeStreaks
+    applyPlayoffsProgression
+    computeStreaks,
+    computeMaxLead,
+    computeLastPointsTimeline,
+    lastPlayedSetIndex,
   };
 })();

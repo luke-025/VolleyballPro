@@ -56,6 +56,65 @@
     badge: $("badge"),
     notice: $("gameNotice"),
   };
+  // ----- Momentum (current streak) -----
+  function ensureMomentumDom() {
+    if ($("momentumWrap")) return;
+    const scorebar = document.querySelector(".scene-game .scorebar");
+    if (!scorebar) return;
+    const wrap = document.createElement("div");
+    wrap.id = "momentumWrap";
+    wrap.style.position = "absolute";
+    wrap.style.left = "50%";
+    wrap.style.bottom = "12px";
+    wrap.style.transform = "translateX(-50%)";
+    wrap.style.width = "420px";
+    wrap.style.height = "10px";
+    wrap.style.borderRadius = "999px";
+    wrap.style.background = "rgba(255,255,255,.10)";
+    wrap.style.overflow = "hidden";
+    wrap.style.boxShadow = "0 10px 30px rgba(0,0,0,.25)";
+    wrap.style.display = "none";
+
+    const fill = document.createElement("div");
+    fill.id = "momentumFill";
+    fill.style.height = "100%";
+    fill.style.width = "50%";
+    fill.style.transformOrigin = "left center";
+    fill.style.transition = "transform 220ms ease, width 220ms ease, opacity 220ms ease";
+    fill.style.opacity = "0.95";
+    fill.style.background = "rgba(255,255,255,.65)";
+    wrap.appendChild(fill);
+
+    scorebar.appendChild(wrap);
+  }
+
+  function renderMomentum(match) {
+    ensureMomentumDom();
+    const wrap = $("momentumWrap");
+    const fill = $("momentumFill");
+    if (!wrap || !fill || !ENG.computeStreaks) return;
+
+    const st = ENG.computeStreaks(match);
+    const len = +st.currentLen || 0;
+    const side = st.currentSide;
+
+    // show only for meaningful streak
+    if (!side || len < 3) {
+      wrap.style.display = "none";
+      return;
+    }
+
+    // len 3..10 -> strength 0.15..0.5
+    const strength = Math.min(0.5, 0.15 + (Math.min(len, 10) - 3) * 0.05);
+    // center is neutral 50%; move towards side
+    const center = 0.5;
+    const pos = side === "a" ? (center - strength) : (center + strength);
+    // fill indicates side dominance by shifting fill window
+    fill.style.width = "30%";
+    fill.style.transform = `translateX(${(pos - 0.15) * 100}%)`;
+    wrap.style.display = "block";
+  }
+
 
   function renderGame(state) {
     const st = state || {};
@@ -81,8 +140,6 @@
     const s = pm.sets[idx];
     const sum = ENG.scoreSummary(pm);
 
-    const streak = (ENG.computeStreaks ? ENG.computeStreaks(pm) : null);
-
     elGame.badge.textContent = UI.stageLabel(pm.stage) + (pm.stage === "group" && pm.group ? (" • Grupa " + pm.group) : "");
     elGame.aName.textContent = ta?.name || "Drużyna A";
     elGame.bName.textContent = tb?.name || "Drużyna B";
@@ -92,12 +149,9 @@
 
     if (pm.status === "finished") elGame.setInfo.textContent = `KONIEC • czeka na zatwierdzenie`;
     else if (pm.status === "confirmed") elGame.setInfo.textContent = `KONIEC`;
-    else {
-      elGame.setInfo.textContent = `Set ${idx + 1}/3`;
-      if (streak && streak.currentLen >= 3) {
-        elGame.setInfo.textContent += ` • SERIA ${String(streak.currentSide||"").toUpperCase()} ${streak.currentLen}`;
-      }
-    }
+    else elGame.setInfo.textContent = `Set ${idx + 1}/3`;
+
+    renderMomentum(pm);
   }
 
   // ----- BREAK render (compact; uses engine standings) -----
