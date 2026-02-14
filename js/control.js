@@ -56,7 +56,32 @@
   };
 
   // ---------------- Operator filters (UI) ----------------
-  const filterState = {
+  
+  function downloadJson(filename, obj) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  }
+
+  function getQueue(meta) {
+    const q = meta?.queue;
+    return Array.isArray(q) ? q : [];
+  }
+
+  function setQueue(queue) {
+    return STORE.mutate(slug, (st) => {
+      st.meta = st.meta || {};
+      st.meta.queue = queue;
+    });
+  }
+
+const filterState = {
     q: "",
     status: "all", // all|live|pending|finished|confirmed
     stage: "all",  // all|group|playoffs (non-group)
@@ -72,7 +97,7 @@
 
     const wrap = document.createElement("div");
     wrap.id = "opFilters";
-    wrap.className = "card inner";
+    wrap.className = "controlFilters";
     wrap.style.marginTop = "10px";
     wrap.innerHTML = `
       <h3>Operator — filtry</h3>
@@ -112,7 +137,37 @@
           </select>
         </div>
       </div>
-      <div class="muted small">Tip: kliknięcie „Ustaw PROGRAM” ustawia też scenę na <b>Game</b>.</div>
+      
+      <div class="opActions" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn btn-ghost" data-scene="game">SCENA: GAME</button>
+        <button class="btn btn-ghost" data-scene="break">SCENA: PRZERWA</button>
+        <button class="btn btn-ghost" data-scene="technical">SCENA: TECH</button>
+        <button class="btn btn-ghost" data-scene="sponsors">SCENA: SPONSORZY</button>
+        <button class="btn btn-ghost" id="btnLockToggle">BLOKADA: —</button>
+        <button class="btn btn-ghost" id="btnExportState">EXPORT JSON</button>
+      </div>
+
+      <div class="opQueue" style="margin-top:12px;">
+        <div class="muted small" style="margin-bottom:6px;">Kolejka spotkań (ręcznie)</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+          <div style="min-width:140px;">
+            <label>Boisko</label>
+            <select id="qCourt">
+              <option value="">—</option>
+            </select>
+          </div>
+          <div style="min-width:260px; flex:1;">
+            <label>Mecz</label>
+            <select id="qMatch">
+              <option value="">—</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="qAdd">Dodaj do kolejki</button>
+        </div>
+        <div id="qList" style="margin-top:10px;"></div>
+      </div>
+
+<div class="muted small">Tip: kliknięcie „Ustaw PROGRAM” ustawia też scenę na <b>Game</b>.</div>
     `;
 
     host.insertBefore(wrap, els.matchesList);
@@ -340,7 +395,7 @@ function render() {
           <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} ${(m.court?("• Boisko "+m.court):"")} • status: <b>${m.status}</b>${(m.court&&String(m.court).trim()!=="")?` • boisko: <b>${m.court}</b>`:""} • sety: ${sum.setsA}:${sum.setsB}${(m.status==="finished"||m.status==="confirmed") ? (` • przebieg: <b>${formatSetPreview(m)}</b>`) : ""}</div>
         </div>
         <div class="btnGroup">
-          <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"PROGRAM":"Ustaw PROGRAM"}</button>
+          <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"NA TRANSMISJI":"TRANSMISJA"}</button>
           ${canConfirm ? `<button class="btn btn-primary" data-confirm="${m.id}">Zatwierdź</button>` : ""}
           ${canReopen ? `<button class="btn btn-ghost" data-reopen="${m.id}">Cofnij do live</button>` : `<button class="btn btn-ghost" data-live="${m.id}">Live</button>`}
           <button class="btn btn-ghost" data-court="${m.id}">Boisko</button>
