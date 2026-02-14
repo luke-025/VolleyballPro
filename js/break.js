@@ -4,6 +4,7 @@
 
 (function () {
   const UI = window.VP_UI;
+  const esc = (s)=>String(s??"").replace(/[&<>"\']/g,(c)=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","\'":"&#39;" }[c]));
   const ENG = window.VPEngine;
   const STORE = window.VPState;
 
@@ -21,16 +22,7 @@
     notice: $("breakNotice"),
   };
 
-    function esc(s){
-    return String(s||"")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-function fmtTime(d) {
+  function fmtTime(d) {
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
     const ss = String(d.getSeconds()).padStart(2, "0");
