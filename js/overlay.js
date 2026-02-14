@@ -66,9 +66,13 @@
     if (!pill || !txt) return;
 
     if (n && n >= 3) {
-      pill.hidden = false;
+      pill.classList.remove("idle");
       txt.textContent = `SERIA ${n}`;
     } else {
+      pill.classList.add("idle");
+      txt.textContent = `SERIA`;
+    }
+  } else {
       pill.hidden = true;
     }
   }
