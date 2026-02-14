@@ -37,6 +37,9 @@
     matchTeamA: document.getElementById("matchTeamA"),
     matchTeamB: document.getElementById("matchTeamB"),
     btnAddMatch: document.getElementById("btnAddMatch"),
+    btnGeneratePlayoffs: document.getElementById("btnGeneratePlayoffs"),
+    btnOpenPlayoffs: document.getElementById("btnOpenPlayoffs"),
+    playoffsInfo: document.getElementById("playoffsInfo"),
     matchesList: document.getElementById("matchesList"),
 
     programBox: document.getElementById("programBox"),
@@ -164,6 +167,18 @@ function render() {
     const groupsSet = new Set((state.teams||[]).map(t=> (t.group||"").trim()).filter(Boolean));
     const list = Array.from(groupsSet).sort((a,b)=>a.localeCompare(b,"pl"));
     els.matchGroup.innerHTML = `<option value="">—</option>` + list.map(g=>`<option value="${g}">${g}</option>`).join("");
+    // playoffs info
+    if (els.playoffsInfo) {
+      if (state.playoffs?.generated) {
+        const gAt = state.playoffs.generatedAt ? new Date(state.playoffs.generatedAt).toLocaleString("pl") : "—";
+        const br = state.playoffs.bracket || {};
+        const qfN = (br.qf||[]).length;
+        const sfN = (br.sf||[]).length;
+        els.playoffsInfo.textContent = `Wygenerowano: ${gAt} • QF: ${qfN} • SF: ${sfN} • Finał: ${br.final ? "tak" : "nie"}`;
+      } else {
+        els.playoffsInfo.textContent = "Playoff nie został jeszcze wygenerowany.";
+      }
+    }
   }
 
   async function ensureTournament() {
@@ -357,6 +372,40 @@ function render() {
     const isGroup = els.matchStage.value === "group";
     document.getElementById("matchGroupWrap").style.display = isGroup ? "" : "none";
   });
+
+
+  // Playoffs
+  if (els.btnOpenPlayoffs) {
+    els.btnOpenPlayoffs.href = `playoffs.html?t=${encodeURIComponent(slug)}`;
+  }
+  if (els.btnGeneratePlayoffs) {
+    els.btnGeneratePlayoffs.addEventListener("click", async () => {
+      const pin = requirePin(); if (!pin) return;
+      const already = current?.state?.playoffs?.generated;
+      if (already) {
+        const ok = confirm("Playoff już istnieje. Wygenerować ponownie? (nadpisze istniejącą drabinkę)");
+        if (!ok) return;
+      }
+      try {
+        await STORE.mutate(slug, pin, (state) => {
+          // remove old playoff matches if regenerate
+          let st = JSON.parse(JSON.stringify(state||{}));
+          const old = st.playoffs?.bracket;
+          if (already && old) {
+            const removeIds = new Set([...(old.qf||[]), ...(old.sf||[]), old.final, old.third].filter(Boolean));
+            st.matches = (st.matches||[]).filter(m => !removeIds.has(m.id));
+          }
+          st = ENG.generatePlayoffs(st, { force: true });
+          st = ENG.applyPlayoffsProgression(st);
+          return st;
+        });
+        UI.toast("Wygenerowano playoff", "success");
+      } catch (e) {
+        console.error(e);
+        UI.toast("Nie udało się wygenerować playoff: " + (e.message||e), "error");
+      }
+    });
+  }
 
   // init stage options
   els.matchStage.innerHTML = UI.STAGES.map(s=>`<option value="${s.key}">${s.label}</option>`).join("");

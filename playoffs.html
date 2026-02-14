@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/util.js"></script>
+  <script src="/js/engine.js"></script>
+  <script src="/js/state.js"></script>
+  <title>VolleyballPro • Playoff</title>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Playoff</h1>
+        <div class="muted">Turniej: <b id="slug"></b> • drabinka</div>
+      </div>
+      <a class="btn btn-ghost" id="back" href="/control.html">Wróć do Control</a>
+    </div>
+
+    <div class="card">
+      <h2>Drabinka</h2>
+      <div id="info" class="muted">—</div>
+      <div id="bracket" class="grid" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="/js/playoffs.js"></script>
+</body>
+</html>

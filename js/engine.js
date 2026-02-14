@@ -193,6 +193,156 @@
     return groups;
   }
 
+  
+  function ensureMatchId(m) {
+    if (!m.id) m.id = crypto.randomUUID();
+    return m.id;
+  }
+
+  function winnerTeamId(match) {
+    const sum = scoreSummary(match);
+    if (sum.setsA >= 2) return match.teamAId || null;
+    if (sum.setsB >= 2) return match.teamBId || null;
+    return null;
+  }
+
+  // Generate basic playoffs bracket from group standings:
+  // - takes top2 from each group (stage='group', status='confirmed')
+  // - if 4 groups -> QF; if 2 groups -> SF
+  // - creates SF, Final, 3rd place placeholders (teams filled when prior rounds confirmed)
+  function generatePlayoffs(state, opts = {}) {
+    const st = clone(state || {});
+    if (!st.playoffs) st.playoffs = {};
+    if (st.playoffs.generated && !opts.force) {
+      return st;
+    }
+
+    const groups = computeStandings(st);
+    const groupKeys = Object.keys(groups).sort((a,b)=>a.localeCompare(b, "pl"));
+    const seeds = [];
+    for (const g of groupKeys) {
+      const arr = groups[g] || [];
+      if (arr[0]?.teamId) seeds.push({ key: `${g}1`, teamId: arr[0].teamId, group:g, place:1 });
+      if (arr[1]?.teamId) seeds.push({ key: `${g}2`, teamId: arr[1].teamId, group:g, place:2 });
+    }
+
+    // need at least 4 teams
+    if (seeds.length < 4) {
+      return st;
+    }
+
+    function mkMatch(stage, teamAId, teamBId, label) {
+      const m = emptyMatchPatch({
+        id: crypto.randomUUID(),
+        stage,
+        group: null,
+        label: label || "",
+        teamAId: teamAId || null,
+        teamBId: teamBId || null,
+        sets: [{a:0,b:0},{a:0,b:0},{a:0,b:0}],
+        status: "pending",
+        winner: null,
+        claimedBy: null,
+        claimedAt: null,
+        updatedAt: new Date().toISOString()
+      });
+      return m;
+    }
+
+    const byGroup = {};
+    for (const s of seeds) {
+      byGroup[s.group] = byGroup[s.group] || {};
+      byGroup[s.group][s.place] = s.teamId;
+    }
+
+    const matchesToAdd = [];
+    const bracket = { qf: [], sf: [], final: null, third: null };
+    const gk = Object.keys(byGroup).sort((a,b)=>a.localeCompare(b, "pl"));
+
+    // Decide starting round
+    const startRound = (gk.length >= 4) ? "quarterfinal" : "semifinal";
+
+    if (startRound === "quarterfinal") {
+      for (let i=0; i<gk.length; i+=2) {
+        const g1 = gk[i], g2 = gk[i+1];
+        if (!g2) break;
+        const m1 = mkMatch("quarterfinal", byGroup[g1]?.[1], byGroup[g2]?.[2], `${g1}1 vs ${g2}2`);
+        const m2 = mkMatch("quarterfinal", byGroup[g2]?.[1], byGroup[g1]?.[2], `${g2}1 vs ${g1}2`);
+        matchesToAdd.push(m1, m2);
+        bracket.qf.push(m1.id, m2.id);
+      }
+      // SF placeholders
+      const sf1 = mkMatch("semifinal", null, null, "Półfinał 1");
+      const sf2 = mkMatch("semifinal", null, null, "Półfinał 2");
+      matchesToAdd.push(sf1, sf2);
+      bracket.sf.push(sf1.id, sf2.id);
+    } else {
+      // directly semifinals from two groups
+      const g1 = gk[0], g2 = gk[1];
+      const sf1 = mkMatch("semifinal", byGroup[g1]?.[1], byGroup[g2]?.[2], `${g1}1 vs ${g2}2`);
+      const sf2 = mkMatch("semifinal", byGroup[g2]?.[1], byGroup[g1]?.[2], `${g2}1 vs ${g1}2`);
+      matchesToAdd.push(sf1, sf2);
+      bracket.sf.push(sf1.id, sf2.id);
+    }
+
+    const fin = mkMatch("final", null, null, "Finał");
+    const third = mkMatch("thirdplace", null, null, "Mecz o 3 miejsce");
+    matchesToAdd.push(fin, third);
+    bracket.final = fin.id;
+    bracket.third = third.id;
+
+    st.matches = Array.isArray(st.matches) ? st.matches.slice() : [];
+    st.matches.push(...matchesToAdd);
+
+    st.playoffs = {
+      generated: true,
+      generatedAt: new Date().toISOString(),
+      seeds: seeds,
+      bracket
+    };
+
+    return st;
+  }
+
+  function applyPlayoffsProgression(state) {
+    const st = clone(state || {});
+    if (!st.playoffs?.generated) return st;
+    const idToMatch = new Map((st.matches||[]).map(m => [m.id, m]));
+    const br = st.playoffs.bracket || {};
+    function setTeams(matchId, aId, bId) {
+      const m = idToMatch.get(matchId);
+      if (!m) return;
+      if (!m.teamAId) m.teamAId = aId || null;
+      if (!m.teamBId) m.teamBId = bId || null;
+      m.updatedAt = new Date().toISOString();
+    }
+    // determine winners/losers for qf -> sf
+    if (Array.isArray(br.qf) && br.qf.length >= 2 && Array.isArray(br.sf) && br.sf.length >= 2) {
+      const qf = br.qf.map(id => idToMatch.get(id)).filter(Boolean);
+      const winners = qf.map(winnerTeamId);
+      if (winners.length >= 4) {
+        // Pair winners in order: (0,1)->sf1, (2,3)->sf2
+        setTeams(br.sf[0], winners[0], winners[1]);
+        setTeams(br.sf[1], winners[2], winners[3]);
+      }
+    }
+    // sf -> final/third
+    if (Array.isArray(br.sf) && br.sf.length >= 2 && br.final && br.third) {
+      const sf1 = idToMatch.get(br.sf[0]);
+      const sf2 = idToMatch.get(br.sf[1]);
+      const w1 = sf1 ? winnerTeamId(sf1) : null;
+      const w2 = sf2 ? winnerTeamId(sf2) : null;
+      const l1 = sf1 ? ((w1 && sf1.teamAId && sf1.teamBId) ? (w1 === sf1.teamAId ? sf1.teamBId : sf1.teamAId) : null) : null;
+      const l2 = sf2 ? ((w2 && sf2.teamAId && sf2.teamBId) ? (w2 === sf2.teamAId ? sf2.teamBId : sf2.teamAId) : null) : null;
+      if (w1 && w2) setTeams(br.final, w1, w2);
+      if (l1 && l2) setTeams(br.third, l1, l2);
+    }
+    // Write back
+    st.matches = (st.matches||[]).map(m => idToMatch.get(m.id) || m);
+    st.playoffs.bracket = br;
+    return st;
+  }
+
   window.VPEngine = {
     emptyMatchPatch,
     addPoint,
@@ -201,6 +351,8 @@
     confirmMatch,
     scoreSummary,
     currentSetIndex,
-    computeStandings
+    computeStandings,
+    generatePlayoffs,
+    applyPlayoffsProgression
   };
 })();

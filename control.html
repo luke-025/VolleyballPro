@@ -1,133 +1,135 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VolleyballPro • Control</title>
-  <link rel="stylesheet" href="css/main.css" />
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>VolleyballPro • Control</title>
+<link href="css/main.css" rel="stylesheet"/>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="brand">
-        <h1>Control</h1>
-        <div class="muted">Turniej: <b id="slug"></b> • panel organizatora</div>
-      </div>
-      <div class="badge">PIN wymagany do zmian</div>
-    </div>
+<div class="container">
+<div class="header">
+<div class="brand">
+<h1>Control</h1>
+<div class="muted">Turniej: <b id="slug"></b> • panel organizatora</div>
+</div>
+<div class="badge">PIN wymagany do zmian</div>
+</div>
+<div class="card">
+<h2>Połączenie</h2>
+<div class="muted" id="status">—</div>
+<div class="formRow" style="margin-top:10px">
+<div>
+<label>Nazwa turnieju (tylko przy tworzeniu)</label>
+<input id="inpName" placeholder="np. Liga 2026"/>
+</div>
+<div>
+<label>PIN (do zapisu zmian)</label>
+<input id="inpPin" placeholder="min 3 znaki"/>
+</div>
+</div>
+<div class="btnGroup" style="margin-top:10px">
+<button class="btn btn-primary" disabled="" id="btnCreate">Utwórz turniej</button>
+<button class="btn" id="btnSetPin">Zapisz PIN na tę sesję</button>
+</div>
+<div class="card inner" style="margin-top:12px">
+<h3>Zmień PIN</h3>
+<div class="formRow">
+<div>
+<label>Stary PIN</label>
+<input id="inpOldPin" placeholder="stary PIN"/>
+</div>
+<div>
+<label>Nowy PIN</label>
+<input id="inpNewPin" placeholder="nowy PIN"/>
+</div>
+</div>
+<div class="btnGroup" style="margin-top:10px">
+<button class="btn" id="btnChangePin">Zmień PIN</button>
+</div>
+</div>
+</div>
+<div class="grid" style="margin-top:14px">
+<div class="card">
+<h2>Drużyny</h2>
+<div class="formRow">
+<div>
+<label>Nazwa drużyny</label>
+<input id="teamName" placeholder="np. Orły"/>
+</div>
+<div>
+<label>Grupa (dowolna, np. A)</label>
+<input id="teamGroup" placeholder="A"/>
+</div>
+</div>
+<div class="btnGroup" style="margin-top:10px">
+<button class="btn btn-primary" id="btnAddTeam">Dodaj drużynę</button>
+</div>
+<div id="teamsList" style="margin-top:10px"></div>
+</div>
+<div class="card">
+<h2>Mecze</h2>
+<div class="formRow">
+<div>
+<label>Etap</label>
+<select id="matchStage"></select>
+</div>
+<div id="matchGroupWrap">
+<label>Grupa (dla etapu Grupa)</label>
+<select id="matchGroup"></select>
+</div>
+</div>
+<div class="formRow" style="margin-top:10px">
+<div>
+<label>Drużyna A</label>
+<select id="matchTeamA"></select>
+</div>
+<div>
+<label>Drużyna B</label>
+<select id="matchTeamB"></select>
+</div>
+</div>
+<div class="btnGroup" style="margin-top:10px">
+<button class="btn btn-primary" id="btnAddMatch">Dodaj mecz</button>
+</div>
+<div class="card inner" style="margin-top:12px">
+<h3>PROGRAM (na overlay)</h3>
+<div class="muted" id="programBox">—</div>
+</div>
+<div id="matchesList" style="margin-top:10px"></div>
+</div>
+</div>
 
-    <div class="card">
-      <h2>Połączenie</h2>
-      <div id="status" class="muted">—</div>
-      <div class="formRow" style="margin-top:10px">
-        <div>
-          <label>Nazwa turnieju (tylko przy tworzeniu)</label>
-          <input id="inpName" placeholder="np. Liga 2026" />
-        </div>
-        <div>
-          <label>PIN (do zapisu zmian)</label>
-          <input id="inpPin" placeholder="min 3 znaki" />
-        </div>
-      </div>
-      <div class="btnGroup" style="margin-top:10px">
-        <button class="btn btn-primary" id="btnCreate" disabled>Utwórz turniej</button>
-        <button class="btn" id="btnSetPin">Zapisz PIN na tę sesję</button>
-      </div>
-
-      <div class="card inner" style="margin-top:12px">
-        <h3>Zmień PIN</h3>
-        <div class="formRow">
-          <div>
-            <label>Stary PIN</label>
-            <input id="inpOldPin" placeholder="stary PIN" />
-          </div>
-          <div>
-            <label>Nowy PIN</label>
-            <input id="inpNewPin" placeholder="nowy PIN" />
-          </div>
-        </div>
-        <div class="btnGroup" style="margin-top:10px">
-          <button class="btn" id="btnChangePin">Zmień PIN</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:14px">
-      <div class="card">
-        <h2>Drużyny</h2>
-        <div class="formRow">
-          <div>
-            <label>Nazwa drużyny</label>
-            <input id="teamName" placeholder="np. Orły" />
-          </div>
-          <div>
-            <label>Grupa (dowolna, np. A)</label>
-            <input id="teamGroup" placeholder="A" />
-          </div>
-        </div>
-        <div class="btnGroup" style="margin-top:10px">
-          <button class="btn btn-primary" id="btnAddTeam">Dodaj drużynę</button>
-        </div>
-        <div id="teamsList" style="margin-top:10px"></div>
-      </div>
-
-      <div class="card">
-        <h2>Mecze</h2>
-        <div class="formRow">
-          <div>
-            <label>Etap</label>
-            <select id="matchStage"></select>
-          </div>
-          <div id="matchGroupWrap">
-            <label>Grupa (dla etapu Grupa)</label>
-            <select id="matchGroup"></select>
-          </div>
-        </div>
-        <div class="formRow" style="margin-top:10px">
-          <div>
-            <label>Drużyna A</label>
-            <select id="matchTeamA"></select>
-          </div>
-          <div>
-            <label>Drużyna B</label>
-            <select id="matchTeamB"></select>
-          </div>
-        </div>
-        <div class="btnGroup" style="margin-top:10px">
-          <button class="btn btn-primary" id="btnAddMatch">Dodaj mecz</button>
-        </div>
-
-        <div class="card inner" style="margin-top:12px">
-          <h3>PROGRAM (na overlay)</h3>
-          <div id="programBox" class="muted">—</div>
-        </div>
-
-        <div id="matchesList" style="margin-top:10px"></div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:14px">
-      <h2>Tabele grupowe (liczone tylko z etapu „Grupa” i statusu „confirmed”)</h2>
-      <div id="standingsBox"></div>
-    </div>
-
-    <div class="card" style="margin-top:14px">
-      <h2>Linki</h2>
-      <div class="muted small">
+<div class="card">
+<h2>Playoff</h2>
+<div class="muted">Generuj drabinkę na podstawie tabel grupowych (tylko mecze „Grupa” + „confirmed”).</div>
+<div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
+<button class="btn btn-primary" id="btnGeneratePlayoffs">Generuj playoff</button>
+<a class="btn btn-ghost" href="playoffs.html" id="btnOpenPlayoffs">Otwórz drabinkę</a>
+</div>
+<div class="muted" id="playoffsInfo" style="margin-top:10px">—</div>
+</div>
+<div class="card" style="margin-top:14px">
+<h2>Tabele grupowe (liczone tylko z etapu „Grupa” i statusu „confirmed”)</h2>
+<div id="standingsBox"></div>
+</div>
+<div class="card" style="margin-top:14px">
+<h2>Linki</h2>
+<div class="muted small">
         Control: <code>/control.html?t=<span class="muted">%slug%</span></code><br/>
         Court: <code>/court.html?t=<span class="muted">%slug%</span></code><br/>
         Overlay (OBS): <code>/overlay.html?t=<span class="muted">%slug%</span></code> (bez PIN)
       </div>
-    </div>
-  </div>
-
-  <!-- Supabase JS CDN -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/supabase.js"></script>
-  <script src="js/ui-shared.js"></script>
-  <script src="js/engine.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/control.js"></script>
+</div>
+</div>
+<!-- Supabase JS CDN -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/ui-shared.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/state.js"></script>
+<script src="js/control.js"></script>
 </body>
 </html>
