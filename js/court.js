@@ -202,9 +202,22 @@
     }
     current = await STORE.fetchState(slug);
     els.status.textContent = "Połączono.";
+    const urlCourtHint = getCourtFromUrl();
+    if (urlCourtHint) {
+      UI.toast("Tryb boiska: " + urlCourtHint, "info");
+    }
     ensureCourtFilterUI();
     renderFilters();
     populateCourtOptions();
+
+    // Apply court filter from URL (?court=1 or ?c=1)
+    const urlCourt = getCourtFromUrl();
+    if (urlCourt && els.court) {
+      const exists = [...els.court.options].some(o => (o.value||"") === urlCourt);
+      if (exists) els.court.value = urlCourt;
+      // If court doesn't exist yet, keep showing all.
+    }
+
     // show/hide group
     updateGroupVisibility();
     renderMatchList();
@@ -214,6 +227,11 @@
     unsub = STORE.subscribeState(slug, (snap) => {
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
       populateCourtOptions();
+      const urlCourt2 = getCourtFromUrl();
+      if (urlCourt2 && els.court && !(els.court.value||"")) {
+        const exists2 = [...els.court.options].some(o => (o.value||"") === urlCourt2);
+        if (exists2) els.court.value = urlCourt2;
+      }
       renderFilters();
       updateGroupVisibility();
       renderMatchList();
