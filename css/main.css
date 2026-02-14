@@ -367,3 +367,122 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   border: 1px solid rgba(255,255,255,.06);
   font-size: 14px;
 }
+
+
+/* =========================================================
+   BREAK layout polish (header + panels + 4-group grid)
+   Scoped to Break overlay/page only
+   ========================================================= */
+
+.breakOverlay{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 42px 48px;
+}
+
+/* Top header: show only one line */
+.breakOverlay .breakTop{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.breakOverlay .breakTop .breakTitle,
+.breakOverlay .breakTop .breakMeta{
+  display:none !important;
+}
+
+/* One clean title line */
+.breakOverlay .breakTop::before{
+  content: "Przerwa. Aktualne tabele";
+  display:inline-flex;
+  align-items:center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  font-weight: 800;
+  letter-spacing: .6px;
+  color: rgba(255,255,255,.92);
+  box-shadow: 0 16px 45px rgba(0,0,0,.40);
+}
+
+/* Main grid: left = tables, right = panels */
+.breakOverlay .breakGrid{
+  display:grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 18px;
+  align-items:start;
+}
+
+/* Left card */
+.breakOverlay .breakLeft.card{
+  padding: 18px;
+}
+
+/* Group blocks inside left card: 2 columns (A–D) */
+.breakOverlay .breakTables{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Each group becomes its own mini-card */
+.breakOverlay .breakGroup{
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 16px;
+  padding: 12px 12px 10px;
+  overflow:hidden;
+}
+
+/* Make table fit inside mini-cards */
+.breakOverlay .breakGroup .breakTable{
+  border-radius: 12px;
+}
+
+/* Right column panels */
+.breakOverlay .breakRight{
+  display:flex;
+  flex-direction:column;
+  gap: 14px;
+}
+
+.breakOverlay .card.breakPanel{
+  padding: 14px 16px;
+}
+
+/* Section titles a bit smaller */
+.breakOverlay .breakSectionTitle{
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: .75;
+  margin-bottom: 10px;
+}
+
+/* Items: shorter cards, better spacing */
+.breakOverlay .breakItem{
+  padding: 10px 12px;
+  border-radius: 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+}
+
+.breakOverlay .breakItem b{
+  font-size: 14px;
+  font-weight: 900;
+  opacity: .95;
+}
+
+/* Avoid too-tall "Brak..." messages */
+.breakOverlay .muted{
+  font-size: 13px;
+  opacity: .65;
+  line-height: 1.25;
+}
