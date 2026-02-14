@@ -1,354 +1,120 @@
-/* css/main.css - broadcast look */
-:root{
-  --bg:#070A12;
-  --card:#0D1324;
-  --card2:#0B1020;
-  --text:#EAF0FF;
-  --muted:#9AA7C7;
-  --accent:#6AE4FF;
-  --accent2:#A56EFF;
-  --danger:#FF4D6D;
-  --ok:#2DFF9E;
-  --shadow: 0 10px 30px rgba(0,0,0,.35);
-  --radius:18px;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-}
 
-*{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:var(--sans);
-  background: radial-gradient(1200px 700px at 20% 0%, rgba(106,228,255,.15), transparent 60%),
-              radial-gradient(900px 600px at 80% 20%, rgba(165,110,255,.13), transparent 55%),
-              var(--bg);
-  color:var(--text);
-}
-a{color:var(--accent)}
-code{font-family:var(--mono); color:var(--accent)}
-.container{max-width:1100px; margin:0 auto; padding:20px}
-.header{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px}
-.brand{display:flex; flex-direction:column}
-.brand h1{margin:0; font-size:20px; letter-spacing:.4px}
-.brand .muted{color:var(--muted); font-size:12px}
-.badge{padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted); font-size:12px}
+/* ===============================
+   BREAK TABLES – TV CLEAN v4
+   Stable layout, no grid changes
+================================= */
 
-.grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
-@media (max-width: 900px){ .grid{grid-template-columns:1fr} }
-
-.card{
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-  border:1px solid rgba(255,255,255,.10);
-  border-radius: var(--radius);
-  padding:14px;
-  box-shadow: var(--shadow);
-}
-.card.inner{padding:12px; margin:10px 0}
-.card h2{margin:0 0 10px 0; font-size:16px}
-.card h3{margin:0 0 10px 0; font-size:14px}
-.card h4{margin:0 0 10px 0; font-size:13px; color:var(--muted); font-weight:600}
-
-.row{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid rgba(255,255,255,.08)}
-.row:first-child{border-top:none}
-.grow{flex:1}
-.small{font-size:12px}
-.muted{color:var(--muted)}
-.right{text-align:right}
-
-input, select{
-  width:100%;
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.25);
-  color: var(--text);
-  outline:none;
-}
-label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
-
-.formRow{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
-@media (max-width: 650px){ .formRow{grid-template-columns:1fr} }
-
-.btn{
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.15);
-  background: rgba(255,255,255,.06);
-  color:var(--text);
-  cursor:pointer;
-  font-weight:600;
-}
-.btn:hover{filter:brightness(1.08)}
-.btn:disabled{opacity:.5; cursor:not-allowed}
-.btn-primary{
-  background: linear-gradient(90deg, rgba(106,228,255,.25), rgba(165,110,255,.22));
-  border-color: rgba(106,228,255,.35);
-}
-.btn-ghost{background: transparent}
-.btn-danger{background: rgba(255,77,109,.12); border-color: rgba(255,77,109,.35); color: #FFD7DE}
-.btnGroup{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
-
-.matchRow{
-  display:flex; gap:12px; align-items:center;
-  padding:10px 0; border-top:1px solid rgba(255,255,255,.08)
-}
-.matchRow:first-child{border-top:none}
-.matchTitle{font-size:14px}
-
-.scoreMono{font-family:var(--mono); font-size:18px}
-.tbl{width:100%; border-collapse:collapse; font-size:12px}
-.tbl th, .tbl td{padding:7px 8px; border-bottom:1px solid rgba(255,255,255,.08)}
-.tbl th{color:var(--muted); font-weight:700}
-
-.toast{
-  position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-  background: rgba(10,14,28,.88);
-  border:1px solid rgba(255,255,255,.14);
-  padding:10px 12px; border-radius:999px;
-  opacity:0; transition: opacity .25s, transform .25s;
-  box-shadow: var(--shadow);
-  font-size:13px;
-}
-.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
-.toast-warn{border-color: rgba(255,185,79,.35)}
-.toast-error{border-color: rgba(255,77,109,.35)}
-.toast-success{border-color: rgba(45,255,158,.35)}
-
-.kbd{
-  font-family:var(--mono);
-  border:1px solid rgba(255,255,255,.2);
-  border-bottom-width:2px;
-  padding:2px 6px;
-  border-radius:8px;
-  color:var(--muted);
+/* --- LEFT HEADER CLEANUP --- */
+.breakHeader small{
   font-size:12px;
+  letter-spacing:2px;
+  opacity:.6;
+  text-transform:uppercase;
 }
 
-/* Overlay */
-.overlay{
-  width:1920px; height:1080px;
-  position:relative;
-  overflow:hidden;
-  background: transparent;
-  font-family:var(--sans);
+.breakHeader h1{
+  font-size:28px;
+  font-weight:700;
+  opacity:.9;
+  margin:4px 0 2px;
 }
-.scorebar{
-  position:absolute; left:60px; bottom:60px;
-  display:flex; align-items:stretch;
-  border-radius:24px;
-  overflow:hidden;
-  box-shadow: 0 18px 50px rgba(0,0,0,.45);
-  border:1px solid rgba(255,255,255,.16);
+
+.breakMeta{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-top:6px;
 }
-.scoreCol{
-  background: rgba(8,12,24,.78);
-  backdrop-filter: blur(10px);
-  padding:16px 18px;
-  display:flex; flex-direction:column; justify-content:center;
-  min-width: 420px;
+
+.breakMetaBadge{
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.06);
+  font-size:12px;
+  letter-spacing:1px;
 }
-.scoreCol.right{min-width: 420px}
-.teamName{font-size:30px; font-weight:800; letter-spacing:.3px}
-.teamSub{color:var(--muted); font-size:14px; margin-top:2px}
-.scoreBox{
-  background: linear-gradient(180deg, rgba(106,228,255,.22), rgba(165,110,255,.18));
-  min-width:140px;
-  display:flex; align-items:center; justify-content:center;
-  font-family:var(--mono);
-  font-size:64px; font-weight:900;
+
+/* --- GROUP CARD --- */
+.breakGroupCard{
+  background:rgba(10,14,28,.55);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px 16px;
+  backdrop-filter:blur(12px);
 }
-.midBox{
-  background: rgba(8,12,24,.70);
-  padding:12px 14px;
-  display:flex; flex-direction:column; justify-content:center;
-  min-width: 220px;
-  gap:6px;
+
+/* --- GROUP TITLE --- */
+.breakGroupTitle{
+  font-size:12px;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  opacity:.7;
+  margin-bottom:8px;
 }
-.midTop{display:flex; justify-content:space-between; align-items:center}
-.midBadge{
-  display:inline-flex; align-items:center; gap:8px;
-  color:var(--muted);
+
+/* --- TABLE --- */
+.breakTable{
+  width:100%;
+  border-collapse:collapse;
   font-size:14px;
 }
-.midSets{
-  font-family:var(--mono);
-  font-size:28px;
-  font-weight:900;
-}
-.midSetInfo{color:var(--muted); font-size:14px}
-.overlayNotice{
-  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  background: rgba(8,12,24,.75);
-  border:1px solid rgba(255,255,255,.16);
-  padding:14px 16px;
-  border-radius: 16px;
-  color: var(--muted);
-}
-
-/* ===== Break: group tables (TV) ===== */
-.breakTables{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 10px;
-}
-
-/* If there is only 1 group, let it span full width */
-.breakTables > .breakGroup:only-child{
-  grid-column: 1 / -1;
-}
-
-.breakGroup{
-  background: rgba(8,12,24,.35);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 16px;
-  padding: 12px 12px 10px;
-  box-shadow: 0 18px 50px rgba(0,0,0,.28);
-  backdrop-filter: blur(10px);
-}
-
-.breakGroupTitle{
-  font-weight: 900;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  font-size: 12px;
-  color: rgba(255,255,255,.92);
-  margin: 2px 6px 10px;
-  opacity: .95;
-}
-
-.breakTable{
-  width:100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  overflow: hidden;
-  border-radius: 12px;
-  background: rgba(10,12,16,.35);
-}
 
 .breakTable thead th{
-  background: rgba(10,12,16,.65);
-  color: rgba(255,255,255,.78);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  padding: 10px 10px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-  white-space: nowrap;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  opacity:.6;
+  padding:8px 6px;
+  text-align:center;
 }
 
 .breakTable tbody td{
-  padding: 10px 10px;
-  font-size: 14px;
-  font-weight: 800;
-  color: rgba(255,255,255,.92);
-  border-bottom: 1px solid rgba(255,255,255,.06);
-  white-space: nowrap;
+  padding:8px 6px;
+  text-align:center;
+  border-top:1px solid rgba(255,255,255,.05);
 }
 
-.breakTable tbody tr:last-child td{
-  border-bottom: 0;
+/* team column left aligned */
+.breakTable td.colTeam,
+.breakTable th.colTeam{
+  text-align:left;
+  padding-left:10px;
 }
 
-/* Zebra + hover */
-.breakTable tbody tr:nth-child(odd) td{ background: rgba(255,255,255,.02); }
-.breakTable tbody tr:nth-child(even) td{ background: rgba(255,255,255,.00); }
-
-/* Column sizing/alignment */
-.breakTable th:nth-child(1), .breakTable td:nth-child(1){ width:34px; text-align:center; opacity:.9; }
-.breakTable th:nth-child(2), .breakTable td:nth-child(2){ text-align:left; width: 40%; }
-.breakTable th:nth-child(n+3), .breakTable td:nth-child(n+3){ text-align:center; font-variant-numeric: tabular-nums; }
-
-/* Team name nicer */
-.breakTable td.name{
-  max-width: 260px;
-  overflow:hidden;
-  text-overflow: ellipsis;
+/* ranking column subtle */
+.breakTable td.colRank{
+  opacity:.6;
 }
 
-/* PKT emphasis (6th col) */
-.breakTable td:nth-child(6){
-  color: #d9ff7a;
-  text-shadow: 0 0 18px rgba(217,255,122,.15);
+/* highlight leader */
+.breakTable tbody tr:first-child{
+  background:rgba(255,255,255,.04);
 }
 
-/* Top 1–2 subtle highlight */
-.breakTable tbody tr:nth-child(1) td{
-  background: linear-gradient(90deg, rgba(106,228,255,.10), rgba(255,255,255,.02));
-}
-.breakTable tbody tr:nth-child(2) td{
-  background: linear-gradient(90deg, rgba(165,110,255,.09), rgba(255,255,255,.01));
+/* PKT column accent */
+.breakTable td.colPts{
+  font-weight:700;
+  color:#d7ff5e;
 }
 
-/* Responsive if someone opens on smaller screen */
-@media (max-width: 1200px){
-  .breakTables{ grid-template-columns: 1fr; }
-}
-
-
-
-/* === Break tables TV polish v3 tweaks === */
-.breakGrid{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  align-items: start;
-}
-
-.breakGroupCard{
-  padding: 14px 14px 12px;
-  border-radius: 18px;
-}
-
-.breakGroupTitle{
-  font-size: 13px;
-  letter-spacing: 3px;
-  margin: 4px 0 10px;
-}
-
-.breakTable{
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  table-layout: fixed;
-  overflow:hidden;
-  border-radius: 14px;
-}
-
-.breakTable thead th{
-  font-size: 12px;
-  padding: 10px 10px;
-  letter-spacing: 2px;
-}
-
-.breakTable tbody td{
-  font-size: 14px;
-  padding: 10px 10px;
-}
-
-.breakTable th.colTeam, .breakTable td.colTeam{ width: 42%; }
-.breakTable th.colRank, .breakTable td.colRank{ width: 8%; }
-.breakTable th.colMWP, .breakTable td.colMWP{ width: 6%; }
-.breakTable th.colPts, .breakTable td.colPts{ width: 10%; }
-.breakTable th.colSets, .breakTable td.colSets{ width: 14%; }
-.breakTable th.colPoints, .breakTable td.colPoints{ width: 14%; }
-
-/* Make the whole break layout feel fuller */
-.breakLayout{
-  gap: 16px;
-}
-.breakMainCard{
-  padding: 18px;
-}
+/* --- SIDE CARDS CLEANUP --- */
 .breakSideCard{
-  padding: 14px 16px;
+  background:rgba(10,14,28,.55);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:14px 16px;
+  backdrop-filter:blur(12px);
 }
+
 .breakSideCard h3{
-  font-size: 12px;
-  letter-spacing: 2px;
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  opacity:.7;
+  margin-bottom:6px;
 }
+
 .breakItem{
-  padding: 10px 12px;
-  font-size: 14px;
+  padding:6px 0;
+  font-size:14px;
 }
