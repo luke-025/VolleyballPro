@@ -6,6 +6,7 @@
   <title>VolleyballPro • Overlay</title>
   <link rel="stylesheet" href="css/main.css" />
   <style>
+
     html, body { height:100%; margin:0; padding:0; overflow:hidden; background:transparent; }
     body { background: transparent; }
 
@@ -222,14 +223,44 @@
       to   { transform: translateX(-50%); }
     }
 
-    /* keep other scenes working */
-    .scene-break{ padding: 46px 60px 60px 60px; }
-    .scene-break .breakOverlay{ position:absolute; inset:0; padding: 46px 60px 60px 60px; }
-    .scene-technical{ background: rgba(5,8,18,.96); }
-    .scene-sponsors{ background: rgba(5,8,18,.96); }
+    
+
+    /* === FIX: Break/Technical inside scaled stage === */
+    .scene-break{
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
+        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
+        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
+        rgba(5,8,18,.96);
+    }
+    .scene-break .breakOverlay{
+      position:absolute !important;
+      inset:0 !important;
+      width: 1920px !important;
+      height: 1080px !important;
+      overflow:hidden;
+    }
+
+    /* technical.html uses .tech { position: fixed } — override when embedded */
+    .scene-technical{
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
+        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
+        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
+        rgba(5,8,18,.96);
+    }
+    .scene-technical .tech{
+      position:absolute !important;
+      inset:0 !important;
+      width: 1920px !important;
+      height: 1080px !important;
+      overflow:hidden;
+    }
+
 
     /* Allow point pulse animation from overlay-anim.js */
     .pointsNum{ will-change: transform, filter; }
+  
   </style>
 </head>
 <body>
