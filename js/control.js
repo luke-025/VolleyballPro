@@ -441,6 +441,69 @@ const filterState = {
     return pin;
   }
 
+
+  // Delete team (and cleanup related matches / program / queue)
+  function bindTeamDelete() {
+    if (!els.teamsList) return;
+    if (els.teamsList.dataset.boundDelete) return;
+    els.teamsList.dataset.boundDelete = "1";
+
+    els.teamsList.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("[data-del-team]");
+      if (!btn) return;
+
+      const teamId = btn.getAttribute("data-del-team");
+      const stNow = current?.state || {};
+      const team = (stNow.teams || []).find(t => t.id === teamId);
+      const teamName = team?.name || "drużynę";
+
+      const ok = (UI.confirmDialog)
+        ? UI.confirmDialog("Usunąć drużynę?", `Usunąć „${teamName}”?\n\nUwaga: usunięte zostaną też mecze z jej udziałem.`)
+        : confirm(`Usunąć „${teamName}”?\n\nUwaga: usunięte zostaną też mecze z jej udziałem.`);
+
+      if (!ok) return;
+
+      const pin = requirePin();
+      if (!pin) return;
+
+      try {
+        await STORE.mutate(slug, pin, (st) => {
+          st.teams = (st.teams || []).filter(t => t.id !== teamId);
+
+          const removedMatchIds = new Set(
+            (st.matches || [])
+              .filter(m => m.teamAId === teamId || m.teamBId === teamId)
+              .map(m => m.id)
+          );
+
+          st.matches = (st.matches || []).filter(m => !removedMatchIds.has(m.id));
+
+          // Clear program if it pointed to removed match
+          if (st.meta?.programMatchId && removedMatchIds.has(st.meta.programMatchId)) {
+            st.meta.programMatchId = null;
+          }
+
+          // Clean queue entries that pointed to removed matches
+          if (st.meta?.queue && Array.isArray(st.meta.queue)) {
+            st.meta.queue = st.meta.queue.filter(q => !removedMatchIds.has(q.matchId));
+          }
+
+          // If playoffs existed, mark as not generated (safe regen)
+          if (st.playoffs) {
+            st.playoffs.generated = false;
+          }
+
+          return st;
+        });
+
+        UI.toast(`Usunięto: ${teamName}`, "success");
+      } catch (e) {
+        UI.toast("Błąd usuwania drużyny: " + (e?.message || e), "error");
+        console.error(e);
+      }
+    });
+  }
+
   
   function formatSetPreview(m) {
     const parts = [];
@@ -784,7 +847,9 @@ function render() {
         });
         UI.toast("Odblokowano mecz", "success");
       } else if (delId) {
-        if (!UI.confirmDialog("Usuń mecz?", "Ta operacja jest nieodwracalna.")) return;
+        if (!UI.confirmDialog("Usuń mecz?", "Ta ope  bindTeamDelete();
+
+racja jest nieodwracalna.")) return;
         await STORE.mutate(slug, pin, (st) => {
           st.matches = (st.matches||[]).filter(m => m.id!==delId);
           if (st.meta?.programMatchId === delId) st.meta.programMatchId = null;
