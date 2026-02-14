@@ -466,7 +466,7 @@ function render() {
       const row = document.createElement("div");
       row.className = "row";
       row.innerHTML = `<div class="grow"><b>${t.name}</b> <span class="muted">(${t.group||"—"})</span></div>
-        <button class="btn btn-ghost" data-del-team="${t.id}">Usuń</button>`;
+        <button type="button" class="btn btn-ghost" data-del-team="${t.id}">Usuń</button>`;
       els.teamsList.appendChild(row);
     }
 
@@ -716,6 +716,8 @@ function render() {
     els.teamsList.addEventListener("click", async (ev) => {
       const btn = ev.target.closest("button[data-del-team]");
       if (!btn) return;
+      ev.preventDefault();
+      ev.stopPropagation();
       const pin = requirePin(); if (!pin) return;
 
       const teamId = btn.getAttribute("data-del-team");
