@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VolleyballPro • Court</title>
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Court</h1>
+        <div class="muted">Turniej: <b id="slug"></b> • panel operatora</div>
+      </div>
+      <div class="badge">Skróty: <span class="kbd">Q</span>/<span class="kbd">W</span> (A +/−) • <span class="kbd">O</span>/<span class="kbd">P</span> (B +/−)</div>
+    </div>
+
+    <div class="card">
+      <h2>Połączenie</h2>
+      <div id="status" class="muted">—</div>
+      <div class="formRow" style="margin-top:10px">
+        <div>
+          <label>PIN</label>
+          <input id="pin" placeholder="PIN z Control" />
+        </div>
+        <div style="display:flex; align-items:end">
+          <button class="btn btn-primary" id="btnSavePin">Zapisz PIN</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:14px">
+      <div class="card">
+        <h2>Wybór meczu</h2>
+        <div class="formRow">
+          <div>
+            <label>Etap</label>
+            <select id="stage"></select>
+          </div>
+          <div id="groupWrap">
+            <label>Grupa</label>
+            <select id="group"></select>
+          </div>
+        </div>
+        <div id="matches" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card" id="liveBox" style="display:none">
+        <h2>Mecz</h2>
+        <div class="row">
+          <div class="grow">
+            <div class="muted small">Drużyna A</div>
+            <div id="aName" style="font-size:18px;font-weight:800"></div>
+          </div>
+          <div class="scoreMono" id="aScore">0</div>
+        </div>
+
+        <div class="row">
+          <div class="grow">
+            <div class="muted small">Drużyna B</div>
+            <div id="bName" style="font-size:18px;font-weight:800"></div>
+          </div>
+          <div class="scoreMono" id="bScore">0</div>
+        </div>
+
+        <div class="row">
+          <div class="grow muted small" id="setInfo">—</div>
+          <div class="muted small">Sety: <span class="scoreMono" id="sets">0:0</span></div>
+        </div>
+
+        <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
+          <button class="btn btn-primary" id="btnAPlus">A +1</button>
+          <button class="btn" id="btnAMinus">A −1</button>
+          <button class="btn btn-primary" id="btnBPlus">B +1</button>
+          <button class="btn" id="btnBMinus">B −1</button>
+        </div>
+
+        <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
+          <button class="btn btn-ghost" id="btnResetSet">Reset bieżącego seta</button>
+          <button class="btn btn-danger" id="btnRelease">Zwolnij mecz</button>
+          <button class="btn btn-primary" id="btnConfirm" style="display:none">Zatwierdź wynik</button>
+        </div>
+
+        <div class="muted small" style="margin-top:10px">
+          Set kończy się automatycznie: set 1–2 do 25, set 3 do 15, zawsze min. 2 punkty przewagi.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/ui-shared.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/court.js"></script>
+</body>
+</html>

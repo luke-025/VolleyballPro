@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VolleyballPro • Overlay</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    body{background:transparent}
+    .container{max-width:none; padding:0}
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="scorebar">
+      <div class="scoreCol">
+        <div class="teamName" id="aName">—</div>
+        <div class="teamSub">Drużyna A</div>
+      </div>
+      <div class="scoreBox" id="aScore">—</div>
+
+      <div class="midBox">
+        <div class="midTop">
+          <div class="midBadge" id="badge">—</div>
+          <div class="midSets" id="sets"></div>
+        </div>
+        <div class="midSetInfo" id="setInfo"></div>
+      </div>
+
+      <div class="scoreBox" id="bScore">—</div>
+      <div class="scoreCol right">
+        <div class="teamName" id="bName">—</div>
+        <div class="teamSub">Drużyna B</div>
+      </div>
+    </div>
+    <div id="root"></div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/ui-shared.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/overlay.js"></script>
+</body>
+</html>

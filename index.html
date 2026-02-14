@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VolleyballPro 2.0</title>
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>VolleyballPro 2.0</h1>
+        <div class="muted">Nowy system: Control / Court / Overlay (Supabase realtime)</div>
+      </div>
+      <div class="badge">Start</div>
+    </div>
+
+    <div class="card">
+      <h2>Jak otwierać linki</h2>
+      <p class="muted">Używamy opcji A: turniej identyfikujesz parametrem <code>?t=slug</code>.</p>
+
+      <div class="card inner">
+        <h3>Przykład: liga-2026</h3>
+        <div class="muted small">
+          Control (laptop): <code>/control.html?t=liga-2026</code><br/>
+          Court (telefon): <code>/court.html?t=liga-2026</code><br/>
+          Overlay (OBS, publiczny): <code>/overlay.html?t=liga-2026</code>
+        </div>
+      </div>
+
+      <p class="muted small">Jeśli turniej nie istnieje, wejdź w Control i utwórz go (ustawisz PIN). Overlay nie wymaga PIN.</p>
+    </div>
+  </div>
+</body>
+</html>
