@@ -52,6 +52,7 @@
     status: "all", // all|live|pending|finished|confirmed
     stage: "all",  // all|group|playoffs (non-group)
     group: "all",  // all|A|B|...
+    court: "all", // all|1|2|...
   };
 
   function ensureFiltersUI(state) {
@@ -90,6 +91,12 @@
           </select>
         </div>
         <div>
+          <label>Boisko</label>
+          <select id="opCourt">
+            <option value="all">Wszystkie</option>
+          </select>
+        </div>
+        <div>
           <label>Grupa</label>
           <select id="opGroup">
             <option value="all">Wszystkie</option>
@@ -104,9 +111,20 @@
     const q = document.getElementById("opQ");
     const stSel = document.getElementById("opStatus");
     const stageSel = document.getElementById("opStage");
+    const courtSel = document.getElementById("opCourt");
     const grpSel = document.getElementById("opGroup");
+    courtSel.value = filterState.court || "all";
 
     // Fill groups from state
+    // Fill courts from state
+    const courts = new Set((state.matches || []).map(m=>String(m.court||"").trim()).filter(Boolean));
+    [...courts].sort((a,b)=>a.localeCompare(b,"pl")).forEach(c=>{
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = `Boisko ${c}`;
+      courtSel.appendChild(opt);
+    });
+
     const groups = new Set((state.matches || []).filter(m=>m.stage==="group").map(m=>String(m.group||"").trim()).filter(Boolean));
     [...groups].sort((a,b)=>a.localeCompare(b,"pl")).forEach(g=>{
       const opt = document.createElement("option");
@@ -118,6 +136,7 @@
     q.addEventListener("input", () => { filterState.q = q.value.trim(); renderAll(); });
     stSel.addEventListener("change", () => { filterState.status = stSel.value; renderAll(); });
     stageSel.addEventListener("change", () => { filterState.stage = stageSel.value; renderAll(); });
+    courtSel.addEventListener("change", () => { filterState.court = courtSel.value; renderAll(); });
     grpSel.addEventListener("change", () => { filterState.group = grpSel.value; renderAll(); });
 
     // defaults
@@ -245,8 +264,40 @@ function render() {
 
     // matches
     els.matchesList.innerHTML = "";
-    for (const m0 of state.matches || []) {
-      const m = ENG.emptyMatchPatch(m0);
+
+    const matchesAll = (state.matches || []).map(m => ENG.emptyMatchPatch(m));
+
+    const matches = matchesAll.filter((m) => {
+      // status filter
+      if (filterState.status !== "all" && m.status !== filterState.status) return false;
+
+      // stage filter
+      if (filterState.stage === "group" && m.stage !== "group") return false;
+      if (filterState.stage === "playoffs" && m.stage === "group") return false;
+
+      // group filter
+      if (filterState.group !== "all") {
+        if (String(m.group || "").trim() !== filterState.group) return false;
+      }
+
+      // court filter
+      if (filterState.court !== "all") {
+        if (String(m.court || "").trim() !== filterState.court) return false;
+      }
+
+      // search query
+      const q = (filterState.q || "").toLowerCase();
+      if (q) {
+        const ta = (state.teams || []).find(x=>x.id===m.teamAId)?.name || "";
+        const tb = (state.teams || []).find(x=>x.id===m.teamBId)?.name || "";
+        const hay = `${ta} ${tb} ${(m.group||"")} ${(m.stage||"")} ${(m.court||"")}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    for (const m0 of matches) {
+      const m = m0;
       const teamA = (state.teams||[]).find(x=>x.id===m.teamAId);
       const teamB = (state.teams||[]).find(x=>x.id===m.teamBId);
       const sum = ENG.scoreSummary(m);
@@ -259,7 +310,7 @@ function render() {
       row.innerHTML = `
         <div class="grow">
           <div class="matchTitle">${claimed} <b>${teamA?.name||"?"}</b> vs <b>${teamB?.name||"?"}</b></div>
-          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} • status: <b>${m.status}</b> • sety: ${sum.setsA}:${sum.setsB}${(m.status==="finished"||m.status==="confirmed") ? (` • przebieg: <b>${formatSetPreview(m)}</b>`) : ""}</div>
+          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} ${(m.court?("• Boisko "+m.court):"")} • status: <b>${m.status}</b> • sety: ${sum.setsA}:${sum.setsB}${(m.status==="finished"||m.status==="confirmed") ? (` • przebieg: <b>${formatSetPreview(m)}</b>`) : ""}</div>
         </div>
         <div class="btnGroup">
           <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"PROGRAM":"Ustaw PROGRAM"}</button>
@@ -459,6 +510,7 @@ function render() {
 
     const programId = btn.getAttribute("data-program");
     const liveId = btn.getAttribute("data-live");
+    const courtId = btn.getAttribute("data-court");
     const unclaimId = btn.getAttribute("data-unclaim");
     const delId = btn.getAttribute("data-del-match");
     const confirmId = btn.getAttribute("data-confirm");
@@ -506,7 +558,17 @@ function render() {
           return st;
         });
         UI.toast("Cofnięto do live", "success");
-      } else if (unclaimId) {
+    
+      } else if (courtId) {
+        const val = prompt("Numer/nazwa boiska dla tego meczu (np. 1, 2, A). Zostaw puste, żeby usunąć:", "");
+        if (val === null) return;
+        await STORE.mutate(slug, pin, (st) => {
+          st.matches = (st.matches || []).map(m => (m.id === courtId ? ({ ...m, court: String(val).trim() }) : m));
+          return st;
+        });
+        UI.toast("Zapisano boisko", "success");
+
+    } else if (unclaimId) {
         await STORE.mutate(slug, pin, (st) => {
           st.matches = (st.matches||[]).map(m => m.id===unclaimId ? ({...m, claimedBy:null, claimedAt:null}) : m);
           return st;
