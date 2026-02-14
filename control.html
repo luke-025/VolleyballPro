@@ -50,9 +50,21 @@
 </div>
 </div>
 </div>
+<div class="card" style="margin-top:14px">
+  <h2>Scena transmisji</h2>
+  <div class="muted small">Steruje sceną na PRO overlay (bez przeładowań).</div>
+  <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
+    <button class="btn btn-primary" id="btnSceneGame">Game</button>
+    <button class="btn btn-primary" id="btnSceneBreak">Break</button>
+    <button class="btn btn-primary" id="btnSceneTechnical">Technical</button>
+    <button class="btn btn-primary" id="btnSceneSponsors">Sponsors</button>
+    <span class="badge" id="sceneStatus" style="margin-left:auto">Scena: —</span>
+  </div>
+</div>
+
 <div class="card" id="sponsorsCard" style="margin-top:14px">
   <h2>Sponsorzy (grafiki)</h2>
-  <div class="muted small">Wklejaj URL do gotowych plansz 1920×1080 (JPG/PNG/WebP). Overlay będzie je rotował w scenie „Sponsors”.</div>
+  <div class="muted small">Wklejaj URL do gotowych plansz 1920×1080 (JPG/PNG/WebP). Scena „Sponsors” będzie je rotowała.</div>
 
   <div class="formRow" style="margin-top:10px">
     <div>
@@ -172,6 +184,7 @@
 <script src="js/engine.js"></script>
 <script src="js/state.js"></script>
 <script src="js/control.js"></script>
+<script src="js/control-scene.js"></script>
 <script src="js/control-sponsors.js"></script>
 </body>
 </html>
