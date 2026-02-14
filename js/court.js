@@ -3,6 +3,7 @@
   const UI = window.VP_UI;
   const ENG = window.VPEngine;
   const STORE = window.VPState;
+  const esc = (s)=>String(s??'').replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c]));
 
   const slug = UI.getSlug();
   if (!slug) {
@@ -24,6 +25,7 @@
     stage: document.getElementById("stage"),
     groupWrap: document.getElementById("groupWrap"),
     group: document.getElementById("group"),
+    court: document.getElementById("court"),
     matches: document.getElementById("matches"),
     liveBox: document.getElementById("liveBox"),
     btnRelease: document.getElementById("btnRelease"),
@@ -37,26 +39,51 @@
     btnBPlus: document.getElementById("btnBPlus"),
     btnBMinus: document.getElementById("btnBMinus"),
     btnResetSet: document.getElementById("btnResetSet"),
-    btnUndo: document.getElementById("btnUndo"),
     btnConfirm: document.getElementById("btnConfirm"),
     liveHint: document.getElementById("liveHint"),
   };
 
+  // ensure court filter UI exists (older court.html may not have it)
+  function ensureCourtFilterUI() {
+    if (els.court) return;
+    // Try to insert after groupWrap
+    const host = els.groupWrap ? els.groupWrap.parentElement : null;
+    if (!host) return;
+
+    const wrap = document.createElement("div");
+    wrap.className = "formRow";
+    wrap.style.marginTop = "10px";
+    wrap.innerHTML = `
+      <div id="courtWrap">
+        <label>Boisko</label>
+        <select id="court">
+          <option value="">Wszystkie</option>
+        </select>
+      </div>
+    `;
+    // Insert after groupWrap if possible
+    if (els.groupWrap && els.groupWrap.nextSibling) host.insertBefore(wrap, els.groupWrap.nextSibling);
+    else host.appendChild(wrap);
+
+    els.court = wrap.querySelector("#court");
+    els.court.addEventListener("change", renderMatchList);
+  }
+
+  function populateCourtOptions() {
+    if (!current || !els.court) return;
+    const st = current.state;
+    const courts = Array.from(new Set((st.matches||[]).map(m => (m.court||"").trim()).filter(Boolean)))
+      .sort((a,b)=>a.localeCompare(b,"pl",{numeric:true,sensitivity:"base"}));
+
+    const cur = els.court.value || "";
+    els.court.innerHTML = `<option value="">Wszystkie</option>` + courts.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+    // restore selection if still exists
+    if ([...els.court.options].some(o=>o.value===cur)) els.court.value = cur;
+  }
+
+
   els.slug.textContent = slug;
   els.pin.value = STORE.getPin(slug);
-
-  // Ensure Undo button exists (backwards compatible with older court.html)
-  if (!els.btnUndo) {
-    const target = els.btnResetSet ? els.btnResetSet.parentElement : null;
-    if (target) {
-      const b = document.createElement("button");
-      b.id = "btnUndo";
-      b.className = "btn btn-ghost";
-      b.textContent = "Cofnij punkt";
-      target.insertBefore(b, els.btnResetSet);
-      els.btnUndo = b;
-    }
-  }
 
   function requirePin() {
     const pin = STORE.getPin(slug);
@@ -85,11 +112,13 @@
     const st = current.state;
     const stage = els.stage.value;
     const group = (els.group.value||"").trim();
+    const court = (els.court && (els.court.value||"").trim()) || "";
 
     const filtered = (st.matches||[])
       .filter(m => (m.stage||"group") === stage)
       .filter(m => stage !== "group" ? true : (m.group||"") === group)
       .filter(m => ["pending","live","finished"].includes(m.status||"pending"))
+      .filter(m => !court ? true : ((m.court||"").trim() === court))
       .sort((a,b) => (a.status||"").localeCompare(b.status||""));
 
     els.matches.innerHTML = "";
@@ -110,7 +139,7 @@
       row.innerHTML = `
         <div class="grow">
           <div class="matchTitle"><b>${ta?.name||"?"}</b> vs <b>${tb?.name||"?"}</b></div>
-          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group"?("• Grupa "+(m.group||"")):""} • ${m.status} • sety ${sum.setsA}:${sum.setsB}</div>
+          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group"?("• Grupa "+(m.group||"")):""}${(m.court&&String(m.court).trim())?(" • Boisko "+String(m.court).trim()):""} • ${m.status} • sety ${sum.setsA}:${sum.setsB}</div>
         </div>
         <button class="btn ${mine ? "btn-primary" : ""}" data-claim="${m.id}" ${locked ? "disabled":""}>${btnText}</button>
       `;
@@ -149,15 +178,6 @@
     els.btnBMinus.disabled = finished || s.b <= 0;
     els.btnResetSet.disabled = finished;
 
-    // Undo: enabled only when live and we have any event in the current set
-    let canUndo = false;
-    if (!finished && Array.isArray(m.events) && m.events.length) {
-      for (let i = m.events.length - 1; i >= 0; i--) {
-        if (m.events[i] && m.events[i].set === idx) { canUndo = true; break; }
-      }
-    }
-    if (els.btnUndo) els.btnUndo.disabled = !canUndo;
-
     // Option A: results are confirmed only in Control, not on the phone.
     els.btnConfirm.style.display = "none";
 
@@ -182,7 +202,9 @@
     }
     current = await STORE.fetchState(slug);
     els.status.textContent = "Połączono.";
+    ensureCourtFilterUI();
     renderFilters();
+    populateCourtOptions();
     // show/hide group
     updateGroupVisibility();
     renderMatchList();
@@ -191,6 +213,7 @@
     if (unsub) unsub();
     unsub = STORE.subscribeState(slug, (snap) => {
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
+      populateCourtOptions();
       renderFilters();
       updateGroupVisibility();
       renderMatchList();
@@ -286,26 +309,7 @@
   els.btnAMinus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"a",-1)));
   els.btnBPlus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"b",+1)));
   els.btnBMinus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"b",-1)));
-  els.btnResetSet.addEventListener("click", ()=> {
-    if (!confirm("Zresetować aktualny set?")) return;
-    mutateMatch(m => ENG.resetCurrentSet(m));
-  });
-
-  // Undo last point in current set (uses event log)
-  if (els.btnUndo) {
-    els.btnUndo.addEventListener("click", ()=> mutateMatch(m => {
-      const mm = ENG.emptyMatchPatch(m);
-      const idx = ENG.currentSetIndex(mm);
-      const evs = Array.isArray(mm.events) ? mm.events : [];
-      for (let i = evs.length - 1; i >= 0; i--) {
-        const e = evs[i];
-        if (e && e.set === idx && (e.side === "a" || e.side === "b")) {
-          return ENG.addPoint(mm, e.side, -1);
-        }
-      }
-      return mm;
-    }));
-  }
+  els.btnResetSet.addEventListener("click", ()=> mutateMatch(m => ENG.resetCurrentSet(m)));
 
   // NOTE: confirmation happens in Control (Option A)
 
@@ -320,26 +324,6 @@
     else if (k === "w") { els.btnAMinus.click(); }
     else if (k === "o") { els.btnBPlus.click(); }
     else if (k === "p") { els.btnBMinus.click(); }
-    else if (k === "z") { els.btnUndo && els.btnUndo.click(); }
-    else if (k === "r") { els.btnResetSet.click(); }
-  });
-
-
-  // Auto-release match on tab close / refresh (best effort)
-  window.addEventListener("beforeunload", () => {
-    try {
-      const pin = STORE.getPin(slug);
-      if (!pin || !activeMatchId) return;
-      // fire-and-forget; may be canceled by browser, but helps often
-      STORE.mutate(slug, pin, (st) => {
-        const m = st.matches.find(x=>x.id===activeMatchId);
-        if (m && m.claimedBy === deviceId) {
-          m.claimedBy = null;
-          m.claimedAt = null;
-        }
-        return st;
-      });
-    } catch (e) {}
   });
 
   // init filters
