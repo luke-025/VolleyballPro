@@ -53,25 +53,8 @@
     bSets: $("bSets"),
     aScore: $("aScore"),
     bScore: $("bScore"),
-    aStreak: $("aStreak"),
-    bStreak: $("bStreak"),
-    aStreakTxt: $("aStreakTxt"),
-    bStreakTxt: $("bStreakTxt"),
     ticker: $("liveTicker"),
   };
-
-  function setStreak(which, n) {
-    const pill = which === "a" ? elGame.aStreak : elGame.bStreak;
-    const txt = which === "a" ? elGame.aStreakTxt : elGame.bStreakTxt;
-    if (!pill || !txt) return;
-
-    if (n && n >= 3) {
-      pill.classList.remove("idle");
-      txt.textContent = `SERIA ${n}`;
-    } else {
-      pill.classList.add("idle");
-      txt.textContent = `SERIA`;
-    }
   }
 
 
@@ -129,10 +112,7 @@
       if (elGame.aSets) elGame.aSets.textContent = "0";
       if (elGame.bSets) elGame.bSets.textContent = "0";
       if (elGame.aScore) elGame.aScore.textContent = "—";
-      if (elGame.bScore) elGame.bScore.textContent = "—";
-      setStreak("a", 0);
-      setStreak("b", 0);
-      return;
+      if (elGame.bScore) elGame.bScore.textContent = "—";      return;
     }
 
     const pm = ENG.emptyMatchPatch(pm0);
@@ -154,13 +134,7 @@
     if (typeof ENG.computeStreaks === "function") {
       const streak = ENG.computeStreaks(pm);
       const side = streak.currentSide; // "a"|"b"|null
-      const len = streak.currentLen || 0;
-      setStreak("a", side === "a" ? len : 0);
-      setStreak("b", side === "b" ? len : 0);
-    } else {
-      setStreak("a", 0);
-      setStreak("b", 0);
-    }
+      const len = streak.currentLen || 0;    } else {    }
   }
 
   // ----- BREAK render (existing) -----
