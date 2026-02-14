@@ -5,6 +5,15 @@
   const STORE = window.VPState;
 
   const slug = UI.getSlug();
+
+  const LS_COURT_PRESET = "VP_COURT_PRESET";
+  function getCourtPreset() {
+    try { return localStorage.getItem(LS_COURT_PRESET) || ""; } catch (e) { return ""; }
+  }
+  function setCourtPreset(v) {
+    try { localStorage.setItem(LS_COURT_PRESET, v || ""); } catch (e) {}
+  }
+
   if (!slug) {
     document.getElementById("app").innerHTML = "<div class='card'><h2>Brak parametru turnieju</h2><p>Dodaj do linku <code>?t=twoj-turniej</code></p></div>";
     return;
