@@ -1,120 +1,369 @@
 
-/* ===============================
-   BREAK TABLES – TV CLEAN v4
-   Stable layout, no grid changes
-================================= */
+/* css/main.css - broadcast look */
+:root{
+  --bg:#070A12;
+  --card:#0D1324;
+  --card2:#0B1020;
+  --text:#EAF0FF;
+  --muted:#9AA7C7;
+  --accent:#6AE4FF;
+  --accent2:#A56EFF;
+  --danger:#FF4D6D;
+  --ok:#2DFF9E;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --radius:18px;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+}
 
-/* --- LEFT HEADER CLEANUP --- */
-.breakHeader small{
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:var(--sans);
+  background: radial-gradient(1200px 700px at 20% 0%, rgba(106,228,255,.15), transparent 60%),
+              radial-gradient(900px 600px at 80% 20%, rgba(165,110,255,.13), transparent 55%),
+              var(--bg);
+  color:var(--text);
+}
+a{color:var(--accent)}
+code{font-family:var(--mono); color:var(--accent)}
+.container{max-width:1100px; margin:0 auto; padding:20px}
+.header{display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:14px}
+.brand{display:flex; flex-direction:column}
+.brand h1{margin:0; font-size:20px; letter-spacing:.4px}
+.brand .muted{color:var(--muted); font-size:12px}
+.badge{padding:6px 10px; border:1px solid rgba(255,255,255,.12); border-radius:999px; color:var(--muted); font-size:12px}
+
+.grid{display:grid; grid-template-columns: 1fr 1fr; gap:14px}
+@media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px solid rgba(255,255,255,.10);
+  border-radius: var(--radius);
+  padding:14px;
+  box-shadow: var(--shadow);
+}
+.card.inner{padding:12px; margin:10px 0}
+.card h2{margin:0 0 10px 0; font-size:16px}
+.card h3{margin:0 0 10px 0; font-size:14px}
+.card h4{margin:0 0 10px 0; font-size:13px; color:var(--muted); font-weight:600}
+
+.row{display:flex; align-items:center; gap:10px; padding:8px 0; border-top:1px solid rgba(255,255,255,.08)}
+.row:first-child{border-top:none}
+.grow{flex:1}
+.small{font-size:12px}
+.muted{color:var(--muted)}
+.right{text-align:right}
+
+input, select{
+  width:100%;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  outline:none;
+}
+label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+
+.formRow{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+@media (max-width: 650px){ .formRow{grid-template-columns:1fr} }
+
+.btn{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+  background: rgba(255,255,255,.06);
+  color:var(--text);
+  cursor:pointer;
+  font-weight:600;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.5; cursor:not-allowed}
+.btn-primary{
+  background: linear-gradient(90deg, rgba(106,228,255,.25), rgba(165,110,255,.22));
+  border-color: rgba(106,228,255,.35);
+}
+.btn-ghost{background: transparent}
+.btn-danger{background: rgba(255,77,109,.12); border-color: rgba(255,77,109,.35); color: #FFD7DE}
+.btnGroup{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+
+.matchRow{
+  display:flex; gap:12px; align-items:center;
+  padding:10px 0; border-top:1px solid rgba(255,255,255,.08)
+}
+.matchRow:first-child{border-top:none}
+.matchTitle{font-size:14px}
+
+.scoreMono{font-family:var(--mono); font-size:18px}
+.tbl{width:100%; border-collapse:collapse; font-size:12px}
+.tbl th, .tbl td{padding:7px 8px; border-bottom:1px solid rgba(255,255,255,.08)}
+.tbl th{color:var(--muted); font-weight:700}
+
+.toast{
+  position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+  background: rgba(10,14,28,.88);
+  border:1px solid rgba(255,255,255,.14);
+  padding:10px 12px; border-radius:999px;
+  opacity:0; transition: opacity .25s, transform .25s;
+  box-shadow: var(--shadow);
+  font-size:13px;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+.toast-warn{border-color: rgba(255,185,79,.35)}
+.toast-error{border-color: rgba(255,77,109,.35)}
+.toast-success{border-color: rgba(45,255,158,.35)}
+
+.kbd{
+  font-family:var(--mono);
+  border:1px solid rgba(255,255,255,.2);
+  border-bottom-width:2px;
+  padding:2px 6px;
+  border-radius:8px;
+  color:var(--muted);
   font-size:12px;
-  letter-spacing:2px;
-  opacity:.6;
-  text-transform:uppercase;
 }
 
-.breakHeader h1{
+/* Overlay */
+.overlay{
+  width:1920px; height:1080px;
+  position:relative;
+  overflow:hidden;
+  background: transparent;
+  font-family:var(--sans);
+}
+.scorebar{
+  position:absolute; left:60px; bottom:60px;
+  display:flex; align-items:stretch;
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.16);
+}
+.scoreCol{
+  background: rgba(8,12,24,.78);
+  backdrop-filter: blur(10px);
+  padding:16px 18px;
+  display:flex; flex-direction:column; justify-content:center;
+  min-width: 420px;
+}
+.scoreCol.right{min-width: 420px}
+.teamName{font-size:30px; font-weight:800; letter-spacing:.3px}
+.teamSub{color:var(--muted); font-size:14px; margin-top:2px}
+.scoreBox{
+  background: linear-gradient(180deg, rgba(106,228,255,.22), rgba(165,110,255,.18));
+  min-width:140px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono);
+  font-size:64px; font-weight:900;
+}
+.midBox{
+  background: rgba(8,12,24,.70);
+  padding:12px 14px;
+  display:flex; flex-direction:column; justify-content:center;
+  min-width: 220px;
+  gap:6px;
+}
+.midTop{display:flex; justify-content:space-between; align-items:center}
+.midBadge{
+  display:inline-flex; align-items:center; gap:8px;
+  color:var(--muted);
+  font-size:14px;
+}
+.midSets{
+  font-family:var(--mono);
   font-size:28px;
-  font-weight:700;
-  opacity:.9;
-  margin:4px 0 2px;
+  font-weight:900;
+}
+.midSetInfo{color:var(--muted); font-size:14px}
+.overlayNotice{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  background: rgba(8,12,24,.75);
+  border:1px solid rgba(255,255,255,.16);
+  padding:14px 16px;
+  border-radius: 16px;
+  color: var(--muted);
 }
 
-.breakMeta{
+
+/* =========================================================
+   BREAK (scene + standalone) — tables + header TV styling
+   Scoped so it cannot affect Control/Court pages
+   ========================================================= */
+
+/* Header (top-left) inside Break scene */
+.scene-break .breakHeader small,
+.breakPage .breakHeader small{
+  font-size: 12px;
+  letter-spacing: 2px;
+  opacity: .60;
+  text-transform: uppercase;
+}
+
+.scene-break .breakHeader h1,
+.breakPage .breakHeader h1{
+  font-size: 28px;
+  font-weight: 800;
+  opacity: .92;
+  margin: 4px 0 2px;
+}
+
+.scene-break .breakMeta,
+.breakPage .breakMeta{
   display:flex;
   gap:10px;
   align-items:center;
   margin-top:6px;
 }
 
-.breakMetaBadge{
+.scene-break .breakMetaBadge,
+.breakPage .breakMetaBadge{
   padding:6px 12px;
   border-radius:999px;
-  background:rgba(255,255,255,.06);
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.10);
   font-size:12px;
   letter-spacing:1px;
 }
 
-/* --- GROUP CARD --- */
-.breakGroupCard{
-  background:rgba(10,14,28,.55);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
-  padding:14px 16px;
-  backdrop-filter:blur(12px);
+/* Group cards */
+.scene-break .breakGroupCard,
+.breakPage .breakGroupCard{
+  background: rgba(10,14,28,.55);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 14px 16px 12px;
+  backdrop-filter: blur(12px);
 }
 
-/* --- GROUP TITLE --- */
-.breakGroupTitle{
-  font-size:12px;
-  letter-spacing:3px;
-  text-transform:uppercase;
-  opacity:.7;
-  margin-bottom:8px;
+.scene-break .breakGroupTitle,
+.breakPage .breakGroupTitle{
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  opacity: .75;
+  margin: 4px 0 10px;
 }
 
-/* --- TABLE --- */
-.breakTable{
-  width:100%;
-  border-collapse:collapse;
-  font-size:14px;
+/* Tables (TV) */
+.scene-break .breakTable,
+.breakPage .breakTable{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(0,0,0,.10);
 }
 
-.breakTable thead th{
-  font-size:11px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  opacity:.6;
-  padding:8px 6px;
-  text-align:center;
+.scene-break .breakTable thead th,
+.breakPage .breakTable thead th{
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: .70;
+  padding: 10px 10px;
+  text-align: center;
+  background: rgba(255,255,255,.04);
+  border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
-.breakTable tbody td{
-  padding:8px 6px;
-  text-align:center;
-  border-top:1px solid rgba(255,255,255,.05);
+.scene-break .breakTable tbody td,
+.breakPage .breakTable tbody td{
+  font-size: 14px;
+  padding: 10px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,.05);
 }
 
-/* team column left aligned */
-.breakTable td.colTeam,
-.breakTable th.colTeam{
-  text-align:left;
-  padding-left:10px;
+.scene-break .breakTable tbody tr:nth-child(odd),
+.breakPage .breakTable tbody tr:nth-child(odd){
+  background: rgba(255,255,255,.02);
 }
 
-/* ranking column subtle */
-.breakTable td.colRank{
-  opacity:.6;
+.scene-break .breakTable tbody tr:first-child,
+.breakPage .breakTable tbody tr:first-child{
+  background: rgba(215,255,94,.06);
 }
 
-/* highlight leader */
-.breakTable tbody tr:first-child{
-  background:rgba(255,255,255,.04);
+.scene-break .breakTable th.colTeam,
+.scene-break .breakTable td.colTeam,
+.breakPage .breakTable th.colTeam,
+.breakPage .breakTable td.colTeam{
+  text-align: left;
+  padding-left: 12px;
+  width: 42%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* PKT column accent */
-.breakTable td.colPts{
-  font-weight:700;
-  color:#d7ff5e;
+.scene-break .breakTable th.colRank,
+.scene-break .breakTable td.colRank,
+.breakPage .breakTable th.colRank,
+.breakPage .breakTable td.colRank{
+  width: 8%;
+  opacity: .75;
 }
 
-/* --- SIDE CARDS CLEANUP --- */
-.breakSideCard{
-  background:rgba(10,14,28,.55);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
-  padding:14px 16px;
-  backdrop-filter:blur(12px);
+.scene-break .breakTable th.colMWP,
+.scene-break .breakTable td.colMWP,
+.breakPage .breakTable th.colMWP,
+.breakPage .breakTable td.colMWP{
+  width: 6%;
 }
 
-.breakSideCard h3{
-  font-size:12px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  opacity:.7;
-  margin-bottom:6px;
+.scene-break .breakTable th.colPts,
+.scene-break .breakTable td.colPts,
+.breakPage .breakTable th.colPts,
+.breakPage .breakTable td.colPts{
+  width: 10%;
+  font-weight: 900;
+  color: #d7ff5e;
 }
 
-.breakItem{
-  padding:6px 0;
-  font-size:14px;
+.scene-break .breakTable th.colSets,
+.scene-break .breakTable td.colSets,
+.breakPage .breakTable th.colSets,
+.breakPage .breakTable td.colSets{
+  width: 14%;
+  opacity: .92;
+}
+
+.scene-break .breakTable th.colPoints,
+.scene-break .breakTable td.colPoints,
+.breakPage .breakTable th.colPoints,
+.breakPage .breakTable td.colPoints{
+  width: 14%;
+  opacity: .92;
+}
+
+/* Side cards on the right */
+.scene-break .breakSideCard,
+.breakPage .breakSideCard{
+  background: rgba(10,14,28,.55);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 18px;
+  padding: 14px 16px;
+  backdrop-filter: blur(12px);
+}
+
+.scene-break .breakSideCard h3,
+.breakPage .breakSideCard h3{
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: .75;
+  margin: 0 0 8px;
+}
+
+.scene-break .breakItem,
+.breakPage .breakItem{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  font-size: 14px;
 }
