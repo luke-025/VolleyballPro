@@ -89,7 +89,16 @@
   }
 
 
-  function fmtTime(d) {
+    function esc(s){
+    return String(s||"")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+function fmtTime(d) {
     const hh = String(d.getHours()).padStart(2,"0");
     const mm = String(d.getMinutes()).padStart(2,"0");
     const ss = String(d.getSeconds()).padStart(2,"0");
@@ -220,7 +229,7 @@
           const body = rows.map((r, i) => `
             <tr>
               <td class="pos">${i+1}</td>
-              <td class="name">${UI ? UI.esc(r.name) : r.name}</td>
+              <td class="name">${esc(r.name) : r.name}</td>
               <td>${r.played}</td>
               <td>${r.wins}</td>
               <td>${r.losses}</td>
@@ -231,7 +240,7 @@
           `).join("");
           return `
             <div class="breakGroup">
-              <div class="breakGroupTitle">GRUPA ${UI ? UI.esc(String(g)) : String(g)}</div>
+              <div class="breakGroupTitle">GRUPA ${esc(String(g)) : String(g)}</div>
               <table class="breakTable">
                 <thead>
                   <tr>

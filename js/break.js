@@ -21,7 +21,16 @@
     notice: $("breakNotice"),
   };
 
-  function fmtTime(d) {
+    function esc(s){
+    return String(s||"")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+function fmtTime(d) {
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
     const ss = String(d.getSeconds()).padStart(2, "0");
@@ -63,7 +72,7 @@
             (r, i) => `
           <tr>
             <td class="pos">${i + 1}</td>
-            <td class="name">${UI.esc(r.name)}</td>
+            <td class="name">${esc(r.name)}</td>
             <td>${r.played}</td>
             <td>${r.wins}</td>
             <td>${r.losses}</td>
@@ -76,7 +85,7 @@
 
         return `
         <div class="breakGroup">
-          <div class="breakGroupTitle">GRUPA ${UI.esc(String(g).toUpperCase())}</div>
+          <div class="breakGroupTitle">GRUPA ${esc(String(g).toUpperCase())}</div>
           <table class="breakTable">
             <thead>
               <tr>
@@ -101,7 +110,7 @@
 
     const items = confirmed.slice(0, 4).map((m) => {
       const s = matchScoreNow(m);
-      return `<div class="breakItem"><span>${UI.esc(matchLabel(st, m))}</span><b>${s.setsA}:${s.setsB}</b></div>`;
+      return `<div class="breakItem"><span>${esc(matchLabel(st, m))}</span><b>${s.setsA}:${s.setsB}</b></div>`;
     });
 
     el.last.innerHTML = items.join("") || `<div class="muted">Brak zakończonych meczów.</div>`;
@@ -111,7 +120,7 @@
     if (!el.next) return;
     const pending = (st.matches || []).filter((m) => m.status === "pending");
     const items = pending.slice(0, 4).map((m) => {
-      return `<div class="breakItem"><span>${UI.esc(matchLabel(st, m))}</span><b>—</b></div>`;
+      return `<div class="breakItem"><span>${esc(matchLabel(st, m))}</span><b>—</b></div>`;
     });
     el.next.innerHTML = items.join("") || `<div class="muted">Brak zaplanowanych meczów.</div>`;
   }
@@ -125,7 +134,7 @@
       return;
     }
     const s = matchScoreNow(m);
-    el.program.innerHTML = `<div class="breakItem"><span>${UI.esc(matchLabel(st, m))}</span><b>${s.setsA}:${s.setsB} • ${s.a}:${s.b}</b></div>`;
+    el.program.innerHTML = `<div class="breakItem"><span>${esc(matchLabel(st, m))}</span><b>${s.setsA}:${s.setsB} • ${s.a}:${s.b}</b></div>`;
   }
 
   function renderAll(st) {
