@@ -46,6 +46,54 @@
     standingsBox: document.getElementById("standingsBox")
   };
 
+  function getBaseUrl() {
+    // e.g. https://volleyball-pro-eight.vercel.app
+    return location.origin;
+  }
+
+  function sceneLabel(key){
+    return ({game:"Game", break:"Break", technical:"Technical", sponsors:"Sponsors"}[key] || key);
+  }
+
+  function bindSceneUI(){
+    const card = document.getElementById("sceneCard");
+    if (!card) return;
+    card.querySelectorAll("[data-scene]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const scene = btn.getAttribute("data-scene");
+        const pin = STORE.getPin(slug);
+        if (!pin) { UI.toast("Podaj PIN", "warn"); return; }
+        try{
+          await STORE.mutate(slug, pin, (st) => {
+            st.meta = st.meta || {};
+            st.meta.scene = scene;
+            return st;
+          });
+          UI.toast("Ustawiono scenę: " + sceneLabel(scene), "success");
+        }catch(e){
+          UI.toast(e.message || "Błąd zmiany sceny", "error");
+        }
+      });
+    });
+
+    // Fill links
+    const base = getBaseUrl();
+    const t = encodeURIComponent(slug);
+    const set = (id, url) => { const el=document.getElementById(id); if(el) el.textContent=url; };
+    set("linkGame", `${base}/overlay.html?t=${t}`);
+    set("linkBreak", `${base}/break.html?t=${t}`);
+    set("linkTech", `${base}/technical.html?t=${t}`);
+    set("linkSponsors", `${base}/sponsors.html?t=${t}`);
+  }
+
+  function renderSceneStatus(st){
+    const s = (st?.meta?.scene) || "game";
+    const el = document.getElementById("sceneStatus");
+    if (el) el.innerHTML = `Aktualna scena: <span class="kbd">${sceneLabel(s)}</span>`;
+  }
+
+
+
   els.titleSlug.textContent = slug;
 
   function requirePin() {
@@ -72,7 +120,8 @@
   }
 
 function render() {
-    if (!current) return;
+    renderSceneStatus(state);
+if (!current) return;
     const state = current.state;
     // teams
     els.teamsList.innerHTML = "";

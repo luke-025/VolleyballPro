@@ -2,7 +2,8 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VolleyballPro • Technical</title>
   <link rel="stylesheet" href="/css/main.css" />
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/js/config.js"></script>
@@ -10,4 +11,110 @@
   <script src="/js/util.js"></script>
   <script src="/js/engine.js"></script>
   <script src="/js/state.js"></script>
-<title>VolleyballPro • Technical</title></head><body><div class='container'><div class='card'><div style='font-weight:900'>Zaraz wracamy</div><div class='notice'>Ekran techniczny.</div></div></div></body></html>
+  <style>
+    html, body { height:100%; overflow:hidden; }
+    .tech {
+      position: fixed; inset: 0;
+      width: 1920px; height: 1080px;
+      overflow: hidden;
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
+        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
+        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
+        rgba(5,8,18,.96);
+      font-family: var(--sans);
+      color: var(--text);
+    }
+    .techInner {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      justify-content:center; align-items:center;
+      text-align:center;
+      padding: 80px;
+    }
+    .techTitle{
+      font-size:84px;
+      font-weight:900;
+      letter-spacing:2px;
+      text-transform: uppercase;
+      text-shadow: 0 20px 60px rgba(0,0,0,.55);
+    }
+    .techSub{
+      margin-top:18px;
+      font-size:28px;
+      color: var(--muted);
+      max-width: 1200px;
+      line-height:1.25;
+    }
+    .techBar{
+      margin-top:40px;
+      display:flex; gap:14px; align-items:center;
+      padding:14px 18px;
+      border-radius:999px;
+      background: rgba(8,12,24,.55);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      backdrop-filter: blur(12px);
+    }
+    .techClock{
+      font-family: var(--mono);
+      font-size:22px;
+      color: var(--text);
+    }
+    .techHint{
+      font-size:14px;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="tech" id="root">
+    <div class="techInner">
+      <div class="techTitle" id="title">ZARAZ WRACAMY</div>
+      <div class="techSub" id="subtitle">Trwają przygotowania do kolejnego meczu</div>
+      <div class="techBar">
+        <div class="techClock" id="clock">--:--:--</div>
+        <div class="techHint">Ekran techniczny • VolleyballPro</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const UI = window.VP_UI;
+      const STORE = window.VPState;
+      const slug = UI.getSlug();
+      if(!slug){
+        document.getElementById("subtitle").textContent = "Brak parametru ?t=...";
+        return;
+      }
+
+      function tick(){
+        const d = new Date();
+        document.getElementById("clock").textContent = d.toLocaleTimeString();
+      }
+      tick();
+      setInterval(tick, 1000);
+
+      function enforce(state){
+        const scene = (state && state.meta && state.meta.scene) ? state.meta.scene : "game";
+        if(scene === "technical") return;
+        const t = encodeURIComponent(slug);
+        const target = ({
+          game: `/overlay.html?t=${t}`,
+          break: `/break.html?t=${t}`,
+          sponsors: `/sponsors.html?t=${t}`,
+          playoffs: `/playoffs.html?t=${t}`,
+        })[scene];
+        if(target) location.replace(target);
+      }
+
+      let unsub = STORE.subscribeState(slug, (st) => {
+        enforce(st);
+      });
+
+      STORE.fetchState(slug).then(st => enforce(st)).catch(()=>{});
+    })();
+  </script>
+</body>
+</html>

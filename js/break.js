@@ -3,7 +3,22 @@
 // Public (no PIN). Reads vp_tournament_state via Supabase and renders full-screen.
 
 (function () {
-  const U = window.VP_UTIL;
+  const U =   function enforceScene(state){
+    const scene = (state?.meta?.scene) || "game";
+    if(scene === "break") return;
+    const t = encodeURIComponent(slug);
+    const target = ({
+      game: `/overlay.html?t=${t}`,
+      technical: `/technical.html?t=${t}`,
+      sponsors: `/sponsors.html?t=${t}`,
+      playoffs: `/playoffs.html?t=${t}`,
+    })[scene];
+    if(target){
+      location.replace(target);
+    }
+  }
+
+window.VP_UTIL;
   const E = window.VPEngine;
   const S = window.VPState;
 

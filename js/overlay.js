@@ -10,7 +10,24 @@
     return;
   }
 
-  let current = null;
+    function enforceScene(state){
+    const scene = (state?.meta?.scene) || "game";
+    if(scene === "game") return;
+    const t = encodeURIComponent(slug);
+    const target = ({
+      break: `/break.html?t=${t}`,
+      technical: `/technical.html?t=${t}`,
+      sponsors: `/sponsors.html?t=${t}`,
+      playoffs: `/playoffs.html?t=${t}`,
+    })[scene];
+    if(target){
+      if(location.pathname !== target.split("?")[0]){
+        location.replace(target);
+      }
+    }
+  }
+
+let current = null;
   let unsub = null;
 
   const el = {
