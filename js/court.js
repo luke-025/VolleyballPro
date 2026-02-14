@@ -37,12 +37,26 @@
     btnBPlus: document.getElementById("btnBPlus"),
     btnBMinus: document.getElementById("btnBMinus"),
     btnResetSet: document.getElementById("btnResetSet"),
+    btnUndo: document.getElementById("btnUndo"),
     btnConfirm: document.getElementById("btnConfirm"),
     liveHint: document.getElementById("liveHint"),
   };
 
   els.slug.textContent = slug;
   els.pin.value = STORE.getPin(slug);
+
+  // Ensure Undo button exists (backwards compatible with older court.html)
+  if (!els.btnUndo) {
+    const target = els.btnResetSet ? els.btnResetSet.parentElement : null;
+    if (target) {
+      const b = document.createElement("button");
+      b.id = "btnUndo";
+      b.className = "btn btn-ghost";
+      b.textContent = "Cofnij punkt";
+      target.insertBefore(b, els.btnResetSet);
+      els.btnUndo = b;
+    }
+  }
 
   function requirePin() {
     const pin = STORE.getPin(slug);
@@ -134,6 +148,15 @@
     els.btnBPlus.disabled = finished;
     els.btnBMinus.disabled = finished || s.b <= 0;
     els.btnResetSet.disabled = finished;
+
+    // Undo: enabled only when live and we have any event in the current set
+    let canUndo = false;
+    if (!finished && Array.isArray(m.events) && m.events.length) {
+      for (let i = m.events.length - 1; i >= 0; i--) {
+        if (m.events[i] && m.events[i].set === idx) { canUndo = true; break; }
+      }
+    }
+    if (els.btnUndo) els.btnUndo.disabled = !canUndo;
 
     // Option A: results are confirmed only in Control, not on the phone.
     els.btnConfirm.style.display = "none";
@@ -263,7 +286,26 @@
   els.btnAMinus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"a",-1)));
   els.btnBPlus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"b",+1)));
   els.btnBMinus.addEventListener("click", ()=> mutateMatch(m => ENG.addPoint(m,"b",-1)));
-  els.btnResetSet.addEventListener("click", ()=> mutateMatch(m => ENG.resetCurrentSet(m)));
+  els.btnResetSet.addEventListener("click", ()=> {
+    if (!confirm("Zresetować aktualny set?")) return;
+    mutateMatch(m => ENG.resetCurrentSet(m));
+  });
+
+  // Undo last point in current set (uses event log)
+  if (els.btnUndo) {
+    els.btnUndo.addEventListener("click", ()=> mutateMatch(m => {
+      const mm = ENG.emptyMatchPatch(m);
+      const idx = ENG.currentSetIndex(mm);
+      const evs = Array.isArray(mm.events) ? mm.events : [];
+      for (let i = evs.length - 1; i >= 0; i--) {
+        const e = evs[i];
+        if (e && e.set === idx && (e.side === "a" || e.side === "b")) {
+          return ENG.addPoint(mm, e.side, -1);
+        }
+      }
+      return mm;
+    }));
+  }
 
   // NOTE: confirmation happens in Control (Option A)
 
@@ -278,6 +320,26 @@
     else if (k === "w") { els.btnAMinus.click(); }
     else if (k === "o") { els.btnBPlus.click(); }
     else if (k === "p") { els.btnBMinus.click(); }
+    else if (k === "z") { els.btnUndo && els.btnUndo.click(); }
+    else if (k === "r") { els.btnResetSet.click(); }
+  });
+
+
+  // Auto-release match on tab close / refresh (best effort)
+  window.addEventListener("beforeunload", () => {
+    try {
+      const pin = STORE.getPin(slug);
+      if (!pin || !activeMatchId) return;
+      // fire-and-forget; may be canceled by browser, but helps often
+      STORE.mutate(slug, pin, (st) => {
+        const m = st.matches.find(x=>x.id===activeMatchId);
+        if (m && m.claimedBy === deviceId) {
+          m.claimedBy = null;
+          m.claimedAt = null;
+        }
+        return st;
+      });
+    } catch (e) {}
   });
 
   // init filters
