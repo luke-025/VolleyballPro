@@ -486,3 +486,108 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   opacity: .65;
   line-height: 1.25;
 }
+/* ============================= */
+/* BREAK – FINAL PRO LAYOUT */
+/* ============================= */
+
+/* Top badge */
+.break-top-title {
+  position: absolute;
+  top: 30px;
+  left: 40px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Główna siatka */
+.break-wrapper {
+  display: grid;
+  grid-template-columns: 2.2fr 1fr;
+  gap: 40px;
+  padding: 110px 80px 60px 80px;
+}
+
+/* Lewa strona – 4 grupy */
+.break-groups-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 26px;
+}
+
+/* Karta grupy */
+.break-group-card {
+  padding: 18px 22px 22px 22px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Nazwa grupy */
+.break-group-card h3 {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  opacity: 0.6;
+}
+
+/* Tabela */
+.break-group-card table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.break-group-card th {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.6;
+  padding: 6px 4px;
+}
+
+.break-group-card td {
+  padding: 7px 4px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Pierwsza kolumna (#) */
+.break-group-card td:first-child {
+  opacity: 0.6;
+}
+
+/* Prawa kolumna */
+.break-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Karty po prawej */
+.break-side-card {
+  padding: 18px 22px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.break-side-card h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.6;
+  margin-bottom: 10px;
+}
+
+.break-side-card p {
+  font-size: 14px;
+  font-weight: 500;
+}
