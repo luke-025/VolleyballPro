@@ -486,108 +486,160 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   opacity: .65;
   line-height: 1.25;
 }
-/* ============================= */
-/* BREAK – FINAL PRO LAYOUT */
-/* ============================= */
 
-/* Top badge */
-.break-top-title {
-  position: absolute;
-  top: 30px;
-  left: 40px;
-  padding: 10px 22px;
+
+/* =========================================================
+   BREAK — TV ULTRA overrides
+   (pure overrides, keeps layout; scoped to Break only)
+   ========================================================= */
+
+.breakOverlay .breakTop::before{
+  background: linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+/* Ultra card surface */
+.breakOverlay .breakLeft.card,
+.breakOverlay .card.breakPanel,
+.breakOverlay .breakGroup{
+  background: radial-gradient(1200px 600px at 10% 0%, rgba(255,255,255,.07), rgba(255,255,255,.03)) ,
+              rgba(10,14,28,.50);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 18px 70px rgba(0,0,0,.55);
+}
+
+/* Slight “broadcast” shine */
+.breakOverlay .breakLeft.card::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  pointer-events:none;
+  background: linear-gradient(110deg, rgba(255,255,255,.12), rgba(255,255,255,0) 35%, rgba(255,255,255,.08) 70%, rgba(255,255,255,0));
+  opacity:.16;
+  mix-blend-mode: screen;
+  border-radius: 22px;
+  filter: blur(1px);
+}
+
+/* Tables: tighter & clearer */
+.breakOverlay .breakGroup .breakTable{
+  background: rgba(0,0,0,.14);
+  border: 1px solid rgba(255,255,255,.07);
+}
+
+.breakOverlay .breakGroup .breakTable thead th{
+  background: rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  color: rgba(255,255,255,.85);
+}
+
+.breakOverlay .breakGroup .breakTable tbody td{
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+
+.breakOverlay .breakGroup .breakTable tbody tr:nth-child(odd){
+  background: rgba(255,255,255,.018);
+}
+.breakOverlay .breakGroup .breakTable tbody tr:hover{
+  background: rgba(255,255,255,.045);
+}
+
+/* Rank “pill” */
+.breakOverlay .breakGroup .breakTable td.colRank{
+  font-weight: 900;
+  color: rgba(255,255,255,.92);
+}
+.breakOverlay .breakGroup .breakTable td.colRank span{
+  display:inline-flex;
+  width: 28px;
+  height: 22px;
+  align-items:center;
+  justify-content:center;
   border-radius: 999px;
-  font-weight: 600;
-  font-size: 15px;
-  letter-spacing: 0.5px;
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
 }
 
-/* Główna siatka */
-.break-wrapper {
-  display: grid;
-  grid-template-columns: 2.2fr 1fr;
-  gap: 40px;
-  padding: 110px 80px 60px 80px;
+/* If no span exists, still style the cell */
+.breakOverlay .breakGroup .breakTable td.colRank{
+  width: 8%;
 }
 
-/* Lewa strona – 4 grupy */
-.break-groups-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 26px;
+/* Top 1 / Top 2 highlight */
+.breakOverlay .breakGroup .breakTable tbody tr:nth-child(1){
+  background: linear-gradient(90deg, rgba(215,255,94,.10), rgba(215,255,94,.02));
+}
+.breakOverlay .breakGroup .breakTable tbody tr:nth-child(2){
+  background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.01));
 }
 
-/* Karta grupy */
-.break-group-card {
-  padding: 18px 22px 22px 22px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.06);
+/* PKT column “LED” accent */
+.breakOverlay .breakGroup .breakTable td.colPts{
+  font-weight: 950;
+  text-shadow: 0 0 18px rgba(215,255,94,.28);
+}
+.breakOverlay .breakGroup .breakTable td.colPts::after{
+  content:"";
+  display:block;
+  height:2px;
+  margin:6px auto 0;
+  width: 26px;
+  border-radius: 99px;
+  background: rgba(215,255,94,.55);
+  filter: blur(.2px);
+  opacity:.55;
 }
 
-/* Nazwa grupy */
-.break-group-card h3 {
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-  opacity: 0.6;
+/* Group title: add tiny dot separator vibe */
+.breakOverlay .breakGroupTitle{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.breakOverlay .breakGroupTitle::after{
+  content:"";
+  flex:1;
+  height:1px;
+  margin-left: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,.20), rgba(255,255,255,0));
+  opacity:.45;
 }
 
-/* Tabela */
-.break-group-card table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+/* Right panels: headline bar */
+.breakOverlay .breakSectionTitle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.breakOverlay .breakSectionTitle::before{
+  content:"";
+  width:10px;
+  height:10px;
+  border-radius:3px;
+  background: rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow: 0 0 22px rgba(255,255,255,.10);
 }
 
-.break-group-card th {
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  opacity: 0.6;
-  padding: 6px 4px;
+/* Make “Brak…” look intentional */
+.breakOverlay .muted{
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px dashed rgba(255,255,255,.08);
 }
 
-.break-group-card td {
-  padding: 7px 4px;
-  border-top: 1px solid rgba(255,255,255,0.05);
+/* Subtle scene fade-in */
+.scene-break{
+  animation: breakFadeIn .35s ease-out both;
+}
+@keyframes breakFadeIn{
+  from{ opacity: 0; transform: translateY(8px); }
+  to{ opacity: 1; transform: translateY(0); }
 }
 
-/* Pierwsza kolumna (#) */
-.break-group-card td:first-child {
-  opacity: 0.6;
-}
-
-/* Prawa kolumna */
-.break-side-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-/* Karty po prawej */
-.break-side-card {
-  padding: 18px 22px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.break-side-card h4 {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  opacity: 0.6;
-  margin-bottom: 10px;
-}
-
-.break-side-card p {
-  font-size: 14px;
-  font-weight: 500;
+/* Reduce huge empty bottom on very short content */
+.breakOverlay{
+  min-height: 100%;
 }
