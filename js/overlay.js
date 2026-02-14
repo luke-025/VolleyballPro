@@ -1,4 +1,4 @@
-// js/overlay.js (PRO overlay + sponsors rotation)
+// js/overlay.js (PRO overlay + sponsors rotation) — styled GAME HUD + streak indicator + live ticker
 (function () {
   const UI = window.VP_UI;
   const U = window.VP_UTIL;
@@ -49,112 +49,108 @@
   const elGame = {
     aName: $("aName"),
     bName: $("bName"),
+    aSets: $("aSets"),
+    bSets: $("bSets"),
     aScore: $("aScore"),
     bScore: $("bScore"),
-    sets: $("sets"),
-    setInfo: $("setInfo"),
-    badge: $("badge"),
-    notice: $("gameNotice"),
+    aStreak: $("aStreak"),
+    bStreak: $("bStreak"),
+    aStreakTxt: $("aStreakTxt"),
+    bStreakTxt: $("bStreakTxt"),
+    ticker: $("liveTicker"),
   };
-  // ----- Momentum (current streak) -----
-  function ensureMomentumDom() {
-    if ($("momentumWrap")) return;
-    const scorebar = document.querySelector(".scene-game .scorebar");
-    if (!scorebar) return;
-    const wrap = document.createElement("div");
-    wrap.id = "momentumWrap";
-    wrap.style.position = "absolute";
-    wrap.style.left = "50%";
-    wrap.style.bottom = "12px";
-    wrap.style.transform = "translateX(-50%)";
-    wrap.style.width = "420px";
-    wrap.style.height = "10px";
-    wrap.style.borderRadius = "999px";
-    wrap.style.background = "rgba(255,255,255,.10)";
-    wrap.style.overflow = "hidden";
-    wrap.style.boxShadow = "0 10px 30px rgba(0,0,0,.25)";
-    wrap.style.display = "none";
 
-    const fill = document.createElement("div");
-    fill.id = "momentumFill";
-    fill.style.height = "100%";
-    fill.style.width = "50%";
-    fill.style.transformOrigin = "left center";
-    fill.style.transition = "transform 220ms ease, width 220ms ease, opacity 220ms ease";
-    fill.style.opacity = "0.95";
-    fill.style.background = "rgba(255,255,255,.65)";
-    wrap.appendChild(fill);
+  function setStreak(which, n) {
+    const pill = which === "a" ? elGame.aStreak : elGame.bStreak;
+    const txt = which === "a" ? elGame.aStreakTxt : elGame.bStreakTxt;
+    if (!pill || !txt) return;
 
-    scorebar.appendChild(wrap);
+    if (n && n >= 3) {
+      pill.hidden = false;
+      txt.textContent = `SERIA ${n}`;
+    } else {
+      pill.hidden = true;
+    }
   }
 
-  function renderMomentum(match) {
-    ensureMomentumDom();
-    const wrap = $("momentumWrap");
-    const fill = $("momentumFill");
-    if (!wrap || !fill || !ENG.computeStreaks) return;
+  function renderTicker(state) {
+    if (!elGame.ticker) return;
+    const st = state || {};
+    const pid = st.meta?.programMatchId;
+    const live = (st.matches || [])
+      .map(m => ENG.emptyMatchPatch(m))
+      .filter(m => m.status === "live" && m.id !== pid);
 
-    const st = ENG.computeStreaks(match);
-    const len = +st.currentLen || 0;
-    const side = st.currentSide;
-
-    // show only for meaningful streak
-    if (!side || len < 3) {
-      wrap.style.display = "none";
+    if (!live.length) {
+      elGame.ticker.innerHTML = `<span class="muted">—</span>`;
       return;
     }
 
-    // len 3..10 -> strength 0.15..0.5
-    const strength = Math.min(0.5, 0.15 + (Math.min(len, 10) - 3) * 0.05);
-    // center is neutral 50%; move towards side
-    const center = 0.5;
-    const pos = side === "a" ? (center - strength) : (center + strength);
-    // fill indicates side dominance by shifting fill window
-    fill.style.width = "30%";
-    fill.style.transform = `translateX(${(pos - 0.15) * 100}%)`;
-    wrap.style.display = "block";
-  }
+    // Up to 3 matches in ticker
+    const items = live.slice(0, 3).map((m) => {
+      const ta = (st.teams || []).find(x => x.id === m.teamAId)?.name || "—";
+      const tb = (st.teams || []).find(x => x.id === m.teamBId)?.name || "—";
+      const idx = ENG.currentSetIndex(m);
+      const s = m.sets[idx];
+      const score = `${s.a}:${s.b}`;
+      const div = document.createElement("div");
+      div.className = "tickItem";
+      div.textContent = `${ta} ${score} ${tb}`;
+      return div.outerHTML;
+    });
 
+    // separators
+    elGame.ticker.innerHTML = items.join('<span class="tickSep">•</span>');
+  }
 
   function renderGame(state) {
     const st = state || {};
     const pmId = st.meta?.programMatchId;
     const pm0 = (st.matches || []).find(m => m.id === pmId);
 
+    renderTicker(st);
+
     if (!pmId || !pm0) {
-      elGame.badge.textContent = slug || "—";
-      elGame.aName.textContent = "BRAK";
-      elGame.bName.textContent = "PROGRAMU";
-      elGame.aScore.textContent = "—";
-      elGame.bScore.textContent = "—";
-      elGame.sets.textContent = "";
-      elGame.setInfo.textContent = "";
-      if (elGame.notice) elGame.notice.style.display = "none";
+      if (elGame.aName) elGame.aName.textContent = "BRAK MECZU";
+      if (elGame.bName) elGame.bName.textContent = "NA TRANSMISJI";
+      if (elGame.aSets) elGame.aSets.textContent = "0";
+      if (elGame.bSets) elGame.bSets.textContent = "0";
+      if (elGame.aScore) elGame.aScore.textContent = "—";
+      if (elGame.bScore) elGame.bScore.textContent = "—";
+      setStreak("a", 0);
+      setStreak("b", 0);
       return;
     }
 
     const pm = ENG.emptyMatchPatch(pm0);
-    const ta = (st.teams || []).find(x => x.id === pm.teamAId);
-    const tb = (st.teams || []).find(x => x.id === pm.teamBId);
+    const ta = (st.teams || []).find(x => x.id === pm.teamAId)?.name || "Drużyna A";
+    const tb = (st.teams || []).find(x => x.id === pm.teamBId)?.name || "Drużyna B";
+
     const idx = ENG.currentSetIndex(pm);
     const s = pm.sets[idx];
     const sum = ENG.scoreSummary(pm);
 
-    elGame.badge.textContent = UI.stageLabel(pm.stage) + (pm.stage === "group" && pm.group ? (" • Grupa " + pm.group) : "");
-    elGame.aName.textContent = ta?.name || "Drużyna A";
-    elGame.bName.textContent = tb?.name || "Drużyna B";
-    elGame.aScore.textContent = s.a;
-    elGame.bScore.textContent = s.b;
-    elGame.sets.textContent = `${sum.setsA}:${sum.setsB}`;
+    if (elGame.aName) elGame.aName.textContent = ta;
+    if (elGame.bName) elGame.bName.textContent = tb;
+    if (elGame.aSets) elGame.aSets.textContent = String(sum.setsA);
+    if (elGame.bSets) elGame.bSets.textContent = String(sum.setsB);
+    if (elGame.aScore) elGame.aScore.textContent = String(s.a);
+    if (elGame.bScore) elGame.bScore.textContent = String(s.b);
 
-    if (pm.status === "finished") elGame.setInfo.textContent = `KONIEC • czeka na zatwierdzenie`;
-    else if (pm.status === "confirmed") elGame.setInfo.textContent = `KONIEC`;
-    else elGame.setInfo.textContent = `Set ${idx + 1}/3`;
-
-    renderMomentum(pm);
+    // Streak indicator (current streak)
+    if (typeof ENG.computeStreaks === "function") {
+      const streak = ENG.computeStreaks(pm);
+      const side = streak.currentSide; // "a"|"b"|null
+      const len = streak.currentLen || 0;
+      setStreak("a", side === "a" ? len : 0);
+      setStreak("b", side === "b" ? len : 0);
+    } else {
+      setStreak("a", 0);
+      setStreak("b", 0);
+    }
   }
 
-  // ----- BREAK render (compact; uses engine standings) -----
+  // ----- BREAK render (existing) -----
   function safeText(el, txt) { if (el) el.textContent = txt || ""; }
 
   function fmtStage(stage) {
@@ -343,7 +339,7 @@
     renderProgram(state);
   }
 
-  // ----- TECHNICAL render -----
+  // ----- TECHNICAL clock -----
   function tickTechClock() {
     const el = $("techClock");
     if (!el) return;
@@ -351,10 +347,11 @@
     el.textContent = d.toLocaleTimeString();
   }
 
-  // ----- SPONSORS render + rotation -----
+  // ----- SPONSORS render + rotation (existing) -----
   let sponsorsTimer = null;
   let sponsorsIdx = 0;
   let sponsorsCache = { listKey: "", enabled: true, interval: 8, list: [] };
+  let current = null;
 
   function ensureSponsorsDom() {
     const root = $("sceneSponsors");
@@ -403,7 +400,7 @@
   }
 
   function startSponsors() {
-    if (sponsorsTimer) return; // already running
+    if (sponsorsTimer) return;
     sponsorsTimer = setInterval(() => {
       if (activeScene !== "sponsors") return;
       rotateSponsors();
@@ -451,7 +448,6 @@
     }
     if (!enabled && !force) return;
 
-    // choose sponsor (if rotation disabled: always first)
     const idx = enabled ? (sponsorsIdx % list.length) : 0;
     const url = list[idx]?.url || "";
     setSponsorImage(dom, url);
@@ -462,13 +458,9 @@
 
   // ----- Wiring -----
   if (!slug) {
-    const n = $("gameNotice");
-    if (n) { n.style.display = "block"; n.textContent = "Brak parametru ?t=..."; }
     applyScale();
     return;
   }
-
-  let current = null;
 
   function renderAll() {
     const st = current?.state || {};
@@ -487,11 +479,7 @@
     setInterval(tickTechClock, 1000);
 
     const tid = await STORE.getTournamentId(slug);
-    if (!tid) {
-      const n = $("gameNotice");
-      if (n) { n.style.display = "block"; n.textContent = `Turniej "${slug}" nie istnieje.`; }
-      return;
-    }
+    if (!tid) return;
 
     current = await STORE.fetchState(slug);
     renderAll();
