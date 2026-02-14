@@ -146,21 +146,6 @@
     }
 
                 
-/* TV polish */
-    .teamPill{
-      border: 2px solid rgba(255,255,255,.07);
-      box-shadow: 0 14px 40px rgba(0,0,0,.32);
-    }
-    .pointsPill{
-      box-shadow: 0 14px 40px rgba(0,0,0,.30);
-    }
-    .gameHUD{ gap: 10px; }
-    .teamRow{ gap: 14px; }
-    .ticker{ height: 86px; }
-    .tickerInner{ height: 52px; border-radius: 14px; }
-    .tickerLabel{ font-size: 20px; opacity:.92; }
-    .tickerItems{ font-size: 22px; gap: 80px; }
-
     /* === Ticker === */
     .ticker{
       position:absolute;
@@ -243,8 +228,10 @@
     .scene-technical{ background: rgba(5,8,18,.96); }
     .scene-sponsors{ background: rgba(5,8,18,.96); }
 
-/* Point pulse (used by js/overlay-anim.js on .scoreBox) */
-    .scoreBox.vb-pulse{
+    /* Allow point pulse animation from overlay-anim.js */
+    .pointsNum{ will-change: transform, filter; }
+  /* Point pulse (used by js/overlay-anim.js on .scoreBox) */
+    .scene-game .scoreBox.vb-pulse{
       animation: vpPointPulse 420ms ease-out;
     }
     @keyframes vpPointPulse{
@@ -253,9 +240,21 @@
       100% { transform: scale(1); filter: brightness(1); }
     }
 
-    /* Allow point pulse animation from overlay-anim.js */
-    .pointsNum{ will-change: transform, filter; }
-  </style>
+/* TV polish (scoped to GAME only so Break/Technical never change) */
+    .scene-game .teamPill{
+      border: 2px solid rgba(255,255,255,.07);
+      box-shadow: 0 14px 40px rgba(0,0,0,.32);
+    }
+    .scene-game .pointsPill{
+      box-shadow: 0 14px 40px rgba(0,0,0,.30);
+    }
+    .scene-game .gameHUD{ gap: 10px; }
+    .scene-game .teamRow{ gap: 14px; }
+    .scene-game .ticker{ height: 86px; }
+    .scene-game .tickerInner{ height: 52px; border-radius: 14px; }
+    .scene-game .tickerLabel{ font-size: 20px; opacity:.92; }
+    .scene-game .tickerItems{ font-size: 22px; gap: 80px; }
+</style>
 </head>
 <body>
   <div class="overlayViewport">
