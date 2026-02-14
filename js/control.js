@@ -133,17 +133,34 @@
       grpSel.appendChild(opt);
     });
 
-    q.addEventListener("input", () => { filterState.q = q.value.trim(); renderAll(); });
-    stSel.addEventListener("change", () => { filterState.status = stSel.value; renderAll(); });
-    stageSel.addEventListener("change", () => { filterState.stage = stageSel.value; renderAll(); });
-    courtSel.addEventListener("change", () => { filterState.court = courtSel.value; renderAll(); });
-    grpSel.addEventListener("change", () => { filterState.group = grpSel.value; renderAll(); });
+    q.addEventListener("input", () => { filterState.q = q.value.trim(); render(); });
+    stSel.addEventListener("change", () => { filterState.status = stSel.value; render(); });
+    stageSel.addEventListener("change", () => { filterState.stage = stageSel.value; render(); });
+    courtSel.addEventListener("change", () => { filterState.court = courtSel.value; render(); });
+    grpSel.addEventListener("change", () => { filterState.group = grpSel.value; render(); });
 
     // defaults
     q.value = filterState.q;
     stSel.value = filterState.status;
     stageSel.value = filterState.stage;
     grpSel.value = filterState.group;
+    courtSel.value = filterState.court;
+
+    // populate options from state (groups + courts)
+    try {
+      const groups = new Set();
+      (state.teams||[]).forEach(t => { if (t.group) groups.add(String(t.group).trim()); });
+      (state.matches||[]).forEach(m => { const mm = ENG.emptyMatchPatch(m); if (mm.stage==='group' && mm.group) groups.add(String(mm.group).trim()); });
+      const gArr = Array.from(groups).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pl'));
+      grpSel.innerHTML = '<option value="all">Wszystkie</option>' + gArr.map(g=>`<option value="${g}">Grupa ${g}</option>`).join('');
+      grpSel.value = filterState.group;
+
+      const courts = new Set();
+      (state.matches||[]).forEach(m => { const c = String((m.court||'')).trim(); if (c) courts.add(c); });
+      const cArr = Array.from(courts).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pl'));
+      courtSel.innerHTML = '<option value="all">Wszystkie</option>' + cArr.map(c=>`<option value="${c}">Boisko ${c}</option>`).join('');
+      courtSel.value = filterState.court;
+    } catch(e) {}
   }
 
   function matchPassesFilters(state, m) {
@@ -252,6 +269,7 @@ function render() {
     if (!current) return;
     const state = current.state;
     renderSceneStatus(state);
+    ensureFiltersUI(state);
     // teams
     els.teamsList.innerHTML = "";
     for (const t of state.teams || []) {
@@ -310,7 +328,7 @@ function render() {
       row.innerHTML = `
         <div class="grow">
           <div class="matchTitle">${claimed} <b>${teamA?.name||"?"}</b> vs <b>${teamB?.name||"?"}</b></div>
-          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} ${(m.court?("• Boisko "+m.court):"")} • status: <b>${m.status}</b> • sety: ${sum.setsA}:${sum.setsB}${(m.status==="finished"||m.status==="confirmed") ? (` • przebieg: <b>${formatSetPreview(m)}</b>`) : ""}</div>
+          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} ${(m.court?("• Boisko "+m.court):"")} • status: <b>${m.status}</b>${(m.court&&String(m.court).trim()!=="")?` • boisko: <b>${m.court}</b>`:""} • sety: ${sum.setsA}:${sum.setsB}${(m.status==="finished"||m.status==="confirmed") ? (` • przebieg: <b>${formatSetPreview(m)}</b>`) : ""}</div>
         </div>
         <div class="btnGroup">
           <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"PROGRAM":"Ustaw PROGRAM"}</button>
