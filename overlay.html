@@ -143,6 +143,42 @@
     .tickItem{ display:flex; gap:14px; align-items:center; }
     .tickSep{ opacity:.55; color:#fff; font-weight:700; }
 
+
+    /* Smaller HUD */
+    .gameHUD{ left:46px; top:46px; gap:14px; }
+    .teamPill{ width: 500px; height: 78px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
+    .teamName{ font-size: 30px; }
+    .setsBox{ width: 90px; }
+    .setsVal{ font-size: 20px; }
+    .pointsPill{ width: 104px; height: 78px; border-radius: 18px; font-size: 34px; }
+    .teamRow{ gap: 14px; }
+    .streakPill{ height: 44px; padding: 8px 12px; }
+    .streakPill .txt{ font-size: 14px; }
+    .streakPill .flame{ font-size: 18px; display:inline-block; }
+    .streakPill:not([hidden]) .flame{ animation: flamePulse 900ms ease-in-out infinite; transform-origin: 50% 70%; }
+
+    @keyframes flamePulse{
+      0%   { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
+      50%  { transform: translateY(-1px) scale(1.08) rotate(4deg); filter: brightness(1.15); }
+      100% { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
+    }
+
+    /* Marquee ticker */
+    .tickerItems{ overflow:hidden; }
+    .marquee{ position:relative; width:100%; overflow:hidden; }
+    .marqueeTrack{
+      display:flex;
+      width:max-content;
+      gap:70px;
+      will-change: transform;
+      animation: marqueeScroll linear infinite;
+    }
+    .marqueeTrack > div{ display:flex; gap:70px; }
+    @keyframes marqueeScroll{
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
     /* keep other scenes working */
     .scene-break{ padding: 46px 60px 60px 60px; }
     .scene-break .breakOverlay{ position:absolute; inset:0; padding: 46px 60px 60px 60px; }
@@ -159,6 +195,7 @@
       <!-- GAME -->
       <div class="scene scene-game active" id="sceneGame">
         <div class="gameHUD">
+          
           <div class="teamRow" id="rowA">
             <div class="teamPill">
               <div class="teamName" id="aName">—</div>
@@ -167,12 +204,13 @@
                 <div class="setsVal" id="aSets">0</div>
               </div>
             </div>
+            <div class="pointsPill scoreBox" id="aScore">0</div>
             <div class="streakPill" id="aStreak" hidden>
               <div class="flame">🔥</div>
               <div class="txt" id="aStreakTxt">SERIA 0</div>
             </div>
-            <div class="pointsPill scoreBox" id="aScore">0</div>
           </div>
+
 
           <div class="teamRow" id="rowB">
             <div class="teamPill">
@@ -182,18 +220,18 @@
                 <div class="setsVal" id="bSets">0</div>
               </div>
             </div>
+            <div class="pointsPill scoreBox" id="bScore">0</div>
             <div class="streakPill" id="bStreak" hidden>
               <div class="flame">🔥</div>
               <div class="txt" id="bStreakTxt">SERIA 0</div>
             </div>
-            <div class="pointsPill scoreBox" id="bScore">0</div>
           </div>
         </div>
 
         <div class="ticker">
           <div class="tickerInner">
             <div class="tickerLabel">Inne mecze na żywo:</div>
-            <div class="tickerItems" id="liveTicker"></div>
+            <div class="tickerItems"><div class="marquee"><div class="marqueeTrack" id="liveTicker"></div></div></div>
           </div>
         </div>
       </div>

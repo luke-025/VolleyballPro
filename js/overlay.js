@@ -73,6 +73,7 @@
     }
   }
 
+  
   function renderTicker(state) {
     if (!elGame.ticker) return;
     const st = state || {};
@@ -82,26 +83,36 @@
       .filter(m => m.status === "live" && m.id !== pid);
 
     if (!live.length) {
-      elGame.ticker.innerHTML = `<span class="muted">—</span>`;
+      elGame.ticker.innerHTML = `<div><span class="muted">—</span></div><div><span class="muted">—</span></div>`;
+      // stop animation by setting duration
+      elGame.ticker.style.animationDuration = "0s";
       return;
     }
 
-    // Up to 3 matches in ticker
-    const items = live.slice(0, 3).map((m) => {
+    const items = live.slice(0, 6).map((m) => {
       const ta = (st.teams || []).find(x => x.id === m.teamAId)?.name || "—";
       const tb = (st.teams || []).find(x => x.id === m.teamBId)?.name || "—";
       const idx = ENG.currentSetIndex(m);
       const s = m.sets[idx];
       const score = `${s.a}:${s.b}`;
-      const div = document.createElement("div");
-      div.className = "tickItem";
-      div.textContent = `${ta} ${score} ${tb}`;
-      return div.outerHTML;
-    });
+      return `<span class="tickItem">${ta} ${score} ${tb}</span>`;
+    }).join('<span class="tickSep">•</span>');
 
-    // separators
-    elGame.ticker.innerHTML = items.join('<span class="tickSep">•</span>');
+    // Duplicate for seamless loop (two halves)
+    elGame.ticker.innerHTML = `<div>${items}</div><div>${items}</div>`;
+
+    // Compute a reasonable duration (longer content -> longer duration)
+    // fallback if we can't measure yet
+    requestAnimationFrame(() => {
+      try {
+        const w = elGame.ticker.scrollWidth || 1200;
+        const pxPerSec = 140; // speed
+        const dur = Math.max(12, Math.min(45, w / pxPerSec));
+        elGame.ticker.style.animationDuration = dur + "s";
+      } catch (e) {}
+    });
   }
+
 
   function renderGame(state) {
     const st = state || {};
