@@ -334,6 +334,7 @@ function render() {
           <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"PROGRAM":"Ustaw PROGRAM"}</button>
           ${canConfirm ? `<button class="btn btn-primary" data-confirm="${m.id}">Zatwierdź</button>` : ""}
           ${canReopen ? `<button class="btn btn-ghost" data-reopen="${m.id}">Cofnij do live</button>` : `<button class="btn btn-ghost" data-live="${m.id}">Live</button>`}
+          <button class="btn btn-ghost" data-court="${m.id}">Boisko</button>
           <button class="btn btn-ghost" data-unclaim="${m.id}">Odblokuj</button>
           <button class="btn btn-danger" data-del-match="${m.id}">Usuń</button>
         </div>
