@@ -70,7 +70,7 @@
       txt.textContent = `SERIA ${n}`;
     } else {
       pill.classList.add("idle");
-      txt.textContent = `SERIA`;
+      txt.textContent = `SERIA`; // hidden in idle mode
     }
   } else {
       pill.hidden = true;
