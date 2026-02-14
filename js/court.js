@@ -179,19 +179,24 @@
     els.bScore.textContent = s.b;
     els.sets.textContent = `${sum.setsA}:${sum.setsB}  •  Set ${idx+1}/3`;
 
+    const locked = !!st.meta?.locked;
     const finished = (m.status === "finished" || m.status === "confirmed");
-    els.btnAPlus.disabled = finished;
-    els.btnAMinus.disabled = finished || s.a <= 0;
-    els.btnBPlus.disabled = finished;
-    els.btnBMinus.disabled = finished || s.b <= 0;
-    els.btnResetSet.disabled = finished;
+
+    els.btnAPlus.disabled = finished || locked;
+    els.btnAMinus.disabled = finished || locked || s.a <= 0;
+    els.btnBPlus.disabled = finished || locked;
+    els.btnBMinus.disabled = finished || locked || s.b <= 0;
+    els.btnResetSet.disabled = finished || locked;
+
 
     // Option A: results are confirmed only in Control, not on the phone.
     els.btnConfirm.style.display = "none";
 
     // Hint for operator
     if (els.liveHint) {
-      if (m.status === "finished") {
+      if (locked) {
+        els.liveHint.innerHTML = "<b>Turniej zablokowany.</b> Edycja punktów jest wyłączona (odblokuj w Control).";
+      } else if (m.status === "finished") {
         els.liveHint.innerHTML = "<b>Mecz zakończony.</b> Wynik czeka na zatwierdzenie w panelu Control.";
       } else if (m.status === "confirmed") {
         els.liveHint.innerHTML = "<b>Wynik zatwierdzony.</b> Mecz jest już w tabeli (jeśli był grupowy).";
