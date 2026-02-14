@@ -95,7 +95,7 @@
 
       if(!UI || !STORE){
         const sub = document.getElementById("subtitle");
-        if(sub) sub.textContent = "Brak modułów VP_UI/VPState (sprawdź ścieżki /js/*.js)";
+        if(sub) sub.textContent = "";
         return;
       }
 
@@ -122,5 +122,21 @@
       STORE.subscribeState(slug, (snap) => enforce(snap.state));
     })();
   </script>
+
+<script>
+(function(){
+  const el = document.getElementById("techClock");
+  function tick(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    if (el) el.textContent = `${hh}:${mm}:${ss}`;
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+
 </body>
 </html>
