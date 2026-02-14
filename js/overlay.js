@@ -54,6 +54,8 @@
     aScore: $("aScore"),
     bScore: $("bScore"),
     ticker: $("liveTicker"),
+    metaStage: $("metaStage"),
+    metaSet: $("metaSet"),
   };
   }
 
@@ -68,7 +70,7 @@
       .filter(m => m.status === "live" && m.id !== pid);
 
     if (!live.length) {
-      elGame.ticker.innerHTML = `<div><span class="muted">—</span></div><div><span class="muted">—</span></div>`;
+      elGame.ticker.innerHTML = `<div><span class="muted">Brak innych meczów na żywo</span></div><div><span class="muted">Brak innych meczów na żywo</span></div>`;
       // stop animation by setting duration
       elGame.ticker.style.animationDuration = "0s";
       return;
@@ -98,6 +100,21 @@
     });
   }
 
+  function renderMeta(state, match) {
+    if (!elGame.metaStage || !elGame.metaSet) return;
+    if (!match) {
+      elGame.metaStage.textContent = slug ? String(slug).toUpperCase() : "—";
+      elGame.metaSet.textContent = "SET —/3";
+      return;
+    }
+    const stage = match.stage || "";
+    const stageLabel = (UI && typeof UI.stageLabel === "function") ? UI.stageLabel(stage) : stage;
+    const grp = (stage === "group" && match.group) ? (" • GRUPA " + String(match.group).toUpperCase()) : "";
+    elGame.metaStage.textContent = (stageLabel + grp).toUpperCase();
+
+    const idx = ENG.currentSetIndex(match);
+    elGame.metaSet.textContent = `SET ${idx + 1}/3`;
+  }
 
   function renderGame(state) {
     const st = state || {};
@@ -107,6 +124,7 @@
     renderTicker(st);
 
     if (!pmId || !pm0) {
+      renderMeta(st, null);
       if (elGame.aName) elGame.aName.textContent = "BRAK MECZU";
       if (elGame.bName) elGame.bName.textContent = "NA TRANSMISJI";
       if (elGame.aSets) elGame.aSets.textContent = "0";
@@ -116,6 +134,7 @@
     }
 
     const pm = ENG.emptyMatchPatch(pm0);
+    renderMeta(st, pm);
     const ta = (st.teams || []).find(x => x.id === pm.teamAId)?.name || "Drużyna A";
     const tb = (st.teams || []).find(x => x.id === pm.teamBId)?.name || "Drużyna B";
 
