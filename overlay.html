@@ -6,31 +6,8 @@
   <title>VolleyballPro • Overlay</title>
   <link rel="stylesheet" href="css/main.css" />
   <style>
-
     html, body { height:100%; margin:0; padding:0; overflow:hidden; background:transparent; }
     body { background: transparent; }
-
-    /* Scale-to-fit stage (1920×1080) */
-    .overlayViewport{
-      position:fixed; inset:0; width:100vw; height:100vh;
-      overflow:hidden;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .overlayStage{
-      width:1920px; height:1080px;
-      transform-origin:center center;
-      position:relative;
-      overflow:hidden;
-      background:transparent;
-      font-family: var(--sans);
-    }
-
-    .scene{
-      position:absolute; inset:0;
-      opacity:0; pointer-events:none;
-      transition: opacity 420ms ease;
-    }
-    .scene.active{ opacity:1; pointer-events:auto; }
 
     /* === SAFE AREA === */
     :root{
@@ -39,22 +16,24 @@
       --safe-r: max(44px, env(safe-area-inset-right));
       --safe-b: max(44px, env(safe-area-inset-bottom));
     }
+    .gameHUD{ left: var(--safe-l); top: var(--safe-t); }
+    .ticker{ padding-left: var(--safe-l); padding-right: var(--safe-r); padding-bottom: max(18px, var(--safe-b)); }
 
-    /* =========================
-       GAME (TV style)
-       ========================= */
-    .scene-game{ position:absolute; inset:0; background: transparent; }
 
-    .gameHUD{
-      position:absolute;
-      left: var(--safe-l);
-      top:  var(--safe-t);
-      display:flex; flex-direction:column;
-      gap: 10px;
-    }
+    .overlayViewport{ position:fixed; inset:0; width:100vw; height:100vh; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .overlayStage{ width:1920px; height:1080px; transform-origin:center center; position:relative; overflow:hidden; background:transparent; font-family: var(--sans); }
 
+    .scene{ position:absolute; inset:0; opacity:0; pointer-events:none; transition: opacity 420ms ease; }
+    .scene.active{ opacity:1; pointer-events:auto; }
+
+    /* === GAME (new style) === */
+
+    /* === GAME meta pills (stage + set) === */
     .gameMeta{
-      display:flex; gap:10px; align-items:center;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-start;
       margin-bottom: 2px;
     }
     .metaPill{
@@ -70,95 +49,26 @@
       text-transform: uppercase;
       backdrop-filter: blur(10px);
       box-shadow: 0 14px 40px rgba(0,0,0,.22);
-      display:flex; align-items:center;
+      display:flex;
+      align-items:center;
       white-space: nowrap;
       max-width: 820px;
-      overflow:hidden; text-overflow: ellipsis;
-    }
-
-    .teamRow{ display:flex; align-items:center; gap: 14px; }
-
-    .teamPill{
-      width: 500px;
-      height: 72px;
-      border-radius: 22px;
-      background: linear-gradient(90deg, rgba(10,12,16,.92), rgba(40,42,48,.92));
-      border: 2px solid rgba(255,255,255,.07);
-      box-shadow: 0 14px 40px rgba(0,0,0,.32);
-      display:flex; align-items:center;
-      padding: 12px 16px 12px 18px;
-      gap: 14px;
-      backdrop-filter: blur(12px);
-    }
-    .teamName{
-      font-size: 28px;
-      font-weight: 900;
-      letter-spacing: .2px;
-      color: #fff;
-      white-space: nowrap;
-      overflow:hidden; text-overflow: ellipsis;
-      flex:1;
-    }
-    .setsBox{
-      width: 90px;
-      text-align:center;
-      display:flex; flex-direction:column;
-      gap:4px;
-      align-items:center; justify-content:center;
-      color: rgba(255,255,255,.75);
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: lowercase;
-    }
-    .setsVal{ font-size: 20px; font-weight: 900; color:#fff; }
-
-    .pointsPill{
-      width: 98px;
-      height: 72px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.94);
-      border: 2px solid rgba(0,0,0,.12);
-      box-shadow: 0 14px 40px rgba(0,0,0,.30);
-      display:flex; align-items:center; justify-content:center;
-      color:#0b0f16;
-      letter-spacing:.5px;
-    }
-    .pointsNum{ font-size: 28px; font-weight: 1000; }
-
-    /* Ticker (static, up to 2 matches) */
-    .ticker{
-      position:absolute;
-      left:0; right:0; bottom:0;
-      height: 86px;
-      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.78));
-      display:flex;
-      align-items:flex-end;
-      padding: 18px var(--safe-r) max(18px, var(--safe-b)) var(--safe-l);
-      gap: 18px;
-    }
-    .tickerInner{
-      width:100%;
-      height: 52px;
-      border-radius: 14px;
-      background: rgba(10,12,16,.78);
-      border: 1px solid rgba(255,255,255,.10);
-      box-shadow: 0 18px 50px rgba(0,0,0,.35);
-      display:flex; align-items:center;
-      padding: 0 18px;
-      gap: 18px;
       overflow:hidden;
-      backdrop-filter: blur(12px);
+      text-overflow: ellipsis;
     }
-    .tickerLabel{
-      color:#fff;
-      font-weight: 900;
-      font-size: 20px;
-      white-space: nowrap;
-      opacity:.92;
-    }
+
+    /* Safer margins + smaller HUD */
+    .gameHUD{ left:44px; top:44px; gap:12px; }
+    .teamPill{ width: 500px; height: 72px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
+    .teamName{ font-size: 28px; }
+    .setsBox{ width: 92px; }
+    .setsVal{ font-size: 20px; }
+    .pointsPill{ width: 98px; height: 72px; border-radius: 18px; font-size: 28px; }
+
+    /* Static ticker: up to 2 matches; colored score */
     .tickerItems{
       display:flex;
-      gap: 80px;
+      gap: 90px;
       align-items:center;
       justify-content:flex-start;
       white-space: nowrap;
@@ -172,99 +82,161 @@
     .tickItem{ display:flex; align-items:center; gap:12px; }
     .tickTeams{ color:#ffffff; opacity:.92; }
     .tickScore{ color:#d9ff7a; }
-    .muted{ opacity:.75; }
 
-    /* Point pulse (used by js/overlay-anim.js on .scoreBox) */
-    .scene-game .scoreBox.vb-pulse{
-      animation: vpPointPulse 420ms ease-out;
-    }
-    @keyframes vpPointPulse{
-      0%   { transform: scale(1); filter: brightness(1); }
-      40%  { transform: scale(1.08); filter: brightness(1.12); }
-      100% { transform: scale(1); filter: brightness(1); }
-    }
+    .scene-game{ position:absolute; inset:0; }
+    .gameHUD{ position:absolute; left:60px; top:60px; display:flex; flex-direction:column; gap:18px; }
+    .teamRow{ display:flex; align-items:center; gap:16px; }
 
-    /* =========================
-       BREAK / TECH / SPONSORS
-       (must be self-contained inside stage)
-       ========================= */
-    .scene-break{
-      background:
-        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
-        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
-        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
-        rgba(5,8,18,.96);
-    }
-    /* override main.css fixed positioning so it scales inside overlayStage */
-    .scene-break .breakOverlay{
-      position:absolute;
-      inset:0;
-      width:1920px; height:1080px;
-      overflow:hidden;
-      background: transparent;
-    }
-
-    .scene-technical{
-      background:
-        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
-        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
-        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
-        rgba(5,8,18,.96);
-    }
-    .scene-technical .techInner{
-      position:absolute; inset:0;
-      display:flex; flex-direction:column;
-      justify-content:center; align-items:center;
-      text-align:center;
-      padding: 80px;
-      color: var(--text);
-    }
-    .scene-technical .techTitle{
-      font-size:84px;
-      font-weight:900;
-      letter-spacing:2px;
-      text-transform: uppercase;
-      text-shadow: 0 20px 60px rgba(0,0,0,.55);
-    }
-    .scene-technical .techSub{
-      margin-top:18px;
-      font-size:28px;
-      color: var(--muted);
-      max-width: 1200px;
-      line-height:1.25;
-    }
-    .scene-technical .techBar{
-      margin-top:40px;
-      display:flex; gap:14px; align-items:center;
-      padding:14px 18px;
-      border-radius:999px;
-      background: rgba(8,12,24,.55);
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+    .teamPill{
+      width: 560px;
+      height: 92px;
+      border-radius: 26px;
+      background: linear-gradient(90deg, rgba(10,12,16,.92), rgba(40,42,48,.92));
+      border: 2px solid rgba(255,255,255,.08);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      padding: 14px 18px 14px 22px;
+      gap: 18px;
       backdrop-filter: blur(12px);
     }
-    .scene-technical .techClock{
-      font-family: var(--mono);
-      font-size:22px;
-      color: var(--text);
+    .teamName{
+      font-size: 34px;
       font-weight: 900;
+      letter-spacing: .2px;
+      color: #fff;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      flex:1;
     }
-    .scene-technical .techHint{
-      font-size:14px;
-      color: var(--muted);
+    .setsBox{
+      width: 96px;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      align-items:center;
+      justify-content:center;
+      color: rgba(255,255,255,.75);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: lowercase;
+    }
+    .setsVal{
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
     }
 
-    .scene-sponsors{
-      background: rgba(5,8,18,.96);
+    .pointsPill{
+      width: 120px;
+      height: 92px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.94);
+      border: 2px solid rgba(0,0,0,.12);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 36px;
+      font-weight: 1000;
+      color:#0b0f16;
+      letter-spacing:.5px;
     }
 
+                
+    /* === Ticker === */
+    .ticker{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height: 92px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.78));
+      display:flex;
+      align-items:flex-end;
+      padding: 18px 60px;
+      gap: 18px;
+    }
+    .tickerInner{
+      width:100%;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(10,12,16,.78);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      padding: 0 18px;
+      gap: 18px;
+      overflow:hidden;
+      backdrop-filter: blur(12px);
+    }
+    .tickerLabel{
+      color:#fff;
+      font-weight: 900;
+      font-size: 22px;
+      white-space: nowrap;
+    }
+    .tickerItems{
+      display:flex;
+      gap: 70px;
+      align-items:center;
+      white-space: nowrap;
+      overflow:hidden;
+      flex:1;
+      color: #d9ff7a;
+      font-weight: 900;
+      font-size: 24px;
+      letter-spacing:.3px;
+    }
+    .tickItem{ display:flex; gap:14px; align-items:center; }
+    .tickSep{ opacity:.55; color:#fff; font-weight:700; }
+
+
+    /* Smaller HUD */
+    .gameHUD{ left:46px; top:46px; gap:14px; }
+    .teamPill{ width: 500px; height: 78px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
+    .teamName{ font-size: 28px; }
+    .setsBox{ width: 90px; }
+    .setsVal{ font-size: 20px; }
+    .pointsPill{ width: 104px; height: 78px; border-radius: 18px; font-size: 34px; }
+    .teamRow{ gap: 14px; }
+                
+          50%  { transform: translateY(-1px) scale(1.08) rotate(4deg); filter: brightness(1.15); }
+      100% { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
+    }
+
+    /* Marquee ticker */
+    .tickerItems{ overflow:hidden; }
+    .marquee{ position:relative; width:100%; overflow:hidden; }
+    .marqueeTrack{
+      display:flex;
+      width:max-content;
+      gap:70px;
+      will-change: transform;
+      animation: marqueeScroll linear infinite;
+    }
+    .marqueeTrack > div{ display:flex; gap:70px; }
+    @keyframes marqueeScroll{
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* keep other scenes working */
+    .scene-break{ padding: 46px 60px 60px 60px; }
+    .scene-break .breakOverlay{ position:absolute; inset:0; padding: 46px 60px 60px 60px; }
+    .scene-technical{ background: rgba(5,8,18,.96); }
+    .scene-sponsors{ background: rgba(5,8,18,.96); }
+
+    /* Allow point pulse animation from overlay-anim.js */
+    .pointsNum{ will-change: transform, filter; }
   </style>
 </head>
 <body>
   <div class="overlayViewport">
     <div class="overlayStage" id="stage">
-
-<div class="scene scene-game active" id="sceneGame">
+      <!-- GAME -->
+      <div class="scene scene-game active" id="sceneGame">
         <div class="gameHUD">
 
           <div class="gameMeta">
@@ -309,7 +281,8 @@
         </div>
       </div>
 
-<div class="scene scene-break" id="sceneBreak">
+      <!-- BREAK -->
+      <div class="scene scene-break" id="sceneBreak">
         <div class="breakOverlay" id="breakRoot">
           <div class="breakTop">
             <div class="breakTitle">
@@ -348,7 +321,8 @@
         </div>
       </div>
 
-<div class="scene scene-technical" id="sceneTechnical">
+      <!-- TECHNICAL -->
+      <div class="scene scene-technical" id="sceneTechnical">
         <div class="techInner">
           <div class="techTitle" id="techTitle">ZARAZ WRACAMY</div>
           <div class="techSub" id="techSubtitle">Trwają przygotowania do kolejnego meczu</div>
@@ -359,14 +333,12 @@
         </div>
       </div>
 
-<div class="scene scene-sponsors" id="sceneSponsors"></div>
+      <!-- SPONSORS -->
+      <div class="scene scene-sponsors" id="sceneSponsors"></div>
     </div>
   </div>
 
-  <script
-    </div>
-  </div>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/supabase.js"></script>
   <script src="js/util.js"></script>
