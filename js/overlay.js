@@ -53,12 +53,27 @@
     bSets: $("bSets"),
     aScore: $("aScore"),
     bScore: $("bScore"),
+    aStreak: $("aStreak"),
+    bStreak: $("bStreak"),
+    aStreakTxt: $("aStreakTxt"),
+    bStreakTxt: $("bStreakTxt"),
     ticker: $("liveTicker"),
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
   };
-  }
 
+  function setStreak(which, n) {
+    const pill = which === "a" ? elGame.aStreak : elGame.bStreak;
+    const txt = which === "a" ? elGame.aStreakTxt : elGame.bStreakTxt;
+    if (!pill || !txt) return;
+
+    if (n && n >= 3) {
+      pill.hidden = false;
+      txt.textContent = `SERIA ${n}`;
+    } else {
+      pill.hidden = true;
+    }
+  }
 
   
   function renderTicker(state) {
@@ -71,7 +86,6 @@
 
     if (!live.length) {
       elGame.ticker.innerHTML = `<div><span class="muted">Brak innych meczów na żywo</span></div><div><span class="muted">Brak innych meczów na żywo</span></div>`;
-      // stop animation by setting duration
       elGame.ticker.style.animationDuration = "0s";
       return;
     }
@@ -81,42 +95,45 @@
       const tb = (st.teams || []).find(x => x.id === m.teamBId)?.name || "—";
       const idx = ENG.currentSetIndex(m);
       const s = m.sets[idx];
+      const sum = ENG.scoreSummary(m);
+      const sets = `${sum.setsA}:${sum.setsB}`;
       const score = `${s.a}:${s.b}`;
-      return `<span class="tickItem">${ta} ${score} ${tb}</span>`;
+      return `<span class="tickItem">${ta} ${sets} (${score}) ${tb}</span>`;
     }).join('<span class="tickSep">•</span>');
 
     // Duplicate for seamless loop (two halves)
     elGame.ticker.innerHTML = `<div>${items}</div><div>${items}</div>`;
 
-    // Compute a reasonable duration (longer content -> longer duration)
-    // fallback if we can't measure yet
     requestAnimationFrame(() => {
       try {
         const w = elGame.ticker.scrollWidth || 1200;
-        const pxPerSec = 140; // speed
+        const pxPerSec = 140;
         const dur = Math.max(12, Math.min(45, w / pxPerSec));
         elGame.ticker.style.animationDuration = dur + "s";
       } catch (e) {}
     });
   }
 
+
+  
   function renderMeta(state, match) {
     if (!elGame.metaStage || !elGame.metaSet) return;
+
     if (!match) {
       elGame.metaStage.textContent = slug ? String(slug).toUpperCase() : "—";
       elGame.metaSet.textContent = "SET —/3";
       return;
     }
+
     const stage = match.stage || "";
     const stageLabel = (UI && typeof UI.stageLabel === "function") ? UI.stageLabel(stage) : stage;
-    const grp = (stage === "group" && match.group) ? (" • GRUPA " + String(match.group).toUpperCase()) : "";
+    const grp = (stage === "group" && match.group) ? (" • Grupa " + String(match.group).toUpperCase()) : "";
     elGame.metaStage.textContent = (stageLabel + grp).toUpperCase();
 
     const idx = ENG.currentSetIndex(match);
     elGame.metaSet.textContent = `SET ${idx + 1}/3`;
   }
-
-  function renderGame(state) {
+function renderGame(state) {
     const st = state || {};
     const pmId = st.meta?.programMatchId;
     const pm0 = (st.matches || []).find(m => m.id === pmId);
@@ -130,7 +147,10 @@
       if (elGame.aSets) elGame.aSets.textContent = "0";
       if (elGame.bSets) elGame.bSets.textContent = "0";
       if (elGame.aScore) elGame.aScore.textContent = "—";
-      if (elGame.bScore) elGame.bScore.textContent = "—";      return;
+      if (elGame.bScore) elGame.bScore.textContent = "—";
+      setStreak("a", 0);
+      setStreak("b", 0);
+      return;
     }
 
     const pm = ENG.emptyMatchPatch(pm0);
@@ -153,7 +173,13 @@
     if (typeof ENG.computeStreaks === "function") {
       const streak = ENG.computeStreaks(pm);
       const side = streak.currentSide; // "a"|"b"|null
-      const len = streak.currentLen || 0;    } else {    }
+      const len = streak.currentLen || 0;
+      setStreak("a", side === "a" ? len : 0);
+      setStreak("b", side === "b" ? len : 0);
+    } else {
+      setStreak("a", 0);
+      setStreak("b", 0);
+    }
   }
 
   // ----- BREAK render (existing) -----
