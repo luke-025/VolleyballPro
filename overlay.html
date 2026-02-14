@@ -242,8 +242,6 @@
     }
 
     /* technical.html uses .tech { position: fixed } — override when embedded */
-    
-    /* TECHNICAL scene layout (self-contained) */
     .scene-technical{
       background:
         radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
@@ -252,62 +250,11 @@
         rgba(5,8,18,.96);
     }
     .scene-technical .tech{
-      position:absolute;
-      inset:0;
-      width:1920px;
-      height:1080px;
+      position:absolute !important;
+      inset:0 !important;
+      width: 1920px !important;
+      height: 1080px !important;
       overflow:hidden;
-      display:flex;
-    }
-    .scene-technical .techInner{
-      margin:auto;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      text-align:center;
-      padding: 80px;
-      color: var(--text);
-    }
-    .scene-technical .techTitle{
-      font-size:84px;
-      font-weight:900;
-      letter-spacing:2px;
-      text-transform: uppercase;
-      text-shadow: 0 20px 60px rgba(0,0,0,.55);
-    }
-    .scene-technical .techSub{
-      margin-top:18px;
-      font-size:28px;
-      color: var(--muted);
-      max-width: 1200px;
-      line-height:1.25;
-    }
-    .scene-technical .techBar{
-      margin-top:40px;
-      display:flex;
-      gap:14px;
-      align-items:center;
-      padding:14px 18px;
-      border-radius:999px;
-      background: rgba(8,12,24,.55);
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow: 0 18px 50px rgba(0,0,0,.45);
-      backdrop-filter: blur(12px);
-    }
-    .scene-technical .techClock{
-      font-family: var(--mono);
-      font-size:22px;
-      color: var(--text);
-      font-weight: 900;
-      letter-spacing: .5px;
-      min-width: 92px;
-      text-align:center;
-    }
-    .scene-technical .techHint{
-      font-size:14px;
-      color: var(--muted);
-      white-space: nowrap;
     }
 
 
@@ -407,8 +354,7 @@
 
       <!-- TECHNICAL -->
       <div class="scene scene-technical" id="sceneTechnical">
-        <div class="tech" id="techRoot">
-          <div class="techInner">
+        <div class="techInner">
           <div class="techTitle" id="techTitle">ZARAZ WRACAMY</div>
           <div class="techSub" id="techSubtitle">Trwają przygotowania do kolejnego meczu</div>
           <div class="techBar">
@@ -430,6 +376,7 @@
   <script src="js/ui-shared.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/state.js"></script>
+<script src="js/break.js"></script>
   <script src="js/overlay.js"></script>
   <script src="js/overlay-anim.js"></script>
 </body>
