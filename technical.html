@@ -81,20 +81,30 @@
 
   <script>
     (function(){
-      const UI = window.VP_UI;
-      const STORE = window.VPState;
-      const slug = UI.getSlug();
-      if(!slug){
-        document.getElementById("subtitle").textContent = "Brak parametru ?t=...";
-        return;
-      }
-
+      // Clock should always run, even if connection scripts fail.
       function tick(){
         const d = new Date();
-        document.getElementById("clock").textContent = d.toLocaleTimeString();
+        const el = document.getElementById("clock");
+        if (el) el.textContent = d.toLocaleTimeString();
       }
       tick();
       setInterval(tick, 1000);
+
+      const UI = window.VP_UI;
+      const STORE = window.VPState;
+
+      if(!UI || !STORE){
+        const sub = document.getElementById("subtitle");
+        if(sub) sub.textContent = "Brak modułów VP_UI/VPState (sprawdź ścieżki /js/*.js)";
+        return;
+      }
+
+      const slug = UI.getSlug();
+      if(!slug){
+        const sub = document.getElementById("subtitle");
+        if(sub) sub.textContent = "Brak parametru ?t=...";
+        return;
+      }
 
       function enforce(state){
         const scene = (state && state.meta && state.meta.scene) ? state.meta.scene : "game";
@@ -104,16 +114,12 @@
           game: `/overlay.html?t=${t}`,
           break: `/break.html?t=${t}`,
           sponsors: `/sponsors.html?t=${t}`,
-          playoffs: `/playoffs.html?t=${t}`,
-        })[scene];
-        if(target) location.replace(target);
+          technical: `/technical.html?t=${t}`,
+        })[scene] || `/overlay.html?t=${t}`;
+        location.replace(target);
       }
 
-      let unsub = STORE.subscribeState(slug, (st) => {
-        enforce(st);
-      });
-
-      STORE.fetchState(slug).then(st => enforce(st)).catch(()=>{});
+      STORE.subscribeState(slug, (snap) => enforce(snap.state));
     })();
   </script>
 </body>
