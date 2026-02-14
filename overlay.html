@@ -78,25 +78,7 @@
       letter-spacing:.5px;
     }
 
-    .streakPill{
-      height: 52px;
-      border-radius: 999px;
-      padding: 10px 14px;
-      background: rgba(10,12,16,.92);
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: 0 16px 40px rgba(0,0,0,.28);
-      display:flex;
-      align-items:center;
-      gap:10px;
-      color:#fff;
-      font-weight: 900;
-      letter-spacing:.2px;
-      backdrop-filter: blur(12px);
-    }
-    .streakPill .flame{ font-size: 18px; }
-    .streakPill .txt{ font-size: 16px; }
-    .streakPill[hidden]{ display:none; }
-
+                
     /* === Ticker === */
     .ticker{
       position:absolute;
@@ -152,14 +134,8 @@
     .setsVal{ font-size: 20px; }
     .pointsPill{ width: 104px; height: 78px; border-radius: 18px; font-size: 34px; }
     .teamRow{ gap: 14px; }
-    .streakPill{ height: 44px; padding: 8px 12px; }
-    .streakPill .txt{ font-size: 14px; }
-    .streakPill .flame{ font-size: 18px; display:inline-block; }
-    .streakPill:not([hidden]) .flame{ animation: flamePulse 900ms ease-in-out infinite; transform-origin: 50% 70%; }
-
-    @keyframes flamePulse{
-      0%   { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
-      50%  { transform: translateY(-1px) scale(1.08) rotate(4deg); filter: brightness(1.15); }
+                
+          50%  { transform: translateY(-1px) scale(1.08) rotate(4deg); filter: brightness(1.15); }
       100% { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
     }
 
@@ -186,7 +162,7 @@
     .scene-sponsors{ background: rgba(5,8,18,.96); }
 
     /* Allow point pulse animation from overlay-anim.js */
-    .pointsPill{ will-change: transform, filter; }
+    .pointsNum{ will-change: transform, filter; }
   </style>
 </head>
 <body>
@@ -196,6 +172,7 @@
       <div class="scene scene-game active" id="sceneGame">
         <div class="gameHUD">
           
+          
           <div class="teamRow" id="rowA">
             <div class="teamPill">
               <div class="teamName" id="aName">—</div>
@@ -204,10 +181,12 @@
                 <div class="setsVal" id="aSets">0</div>
               </div>
             </div>
-            <div class="pointsPill scoreBox" id="aScore">0</div>
-            <div class="streakPill" id="aStreak" hidden>
-              <div class="flame">🔥</div>
-              <div class="txt" id="aStreakTxt">SERIA 0</div>
+            <div class="pointsPill">
+              <div class="pointsNum scoreBox" id="aScore">0</div>
+              <div class="pointsStreak" id="aStreak" hidden>
+                <span class="flame">🔥</span>
+                <span class="txt" id="aStreakTxt">SERIA 0</span>
+              </div>
             </div>
           </div>
 
@@ -220,10 +199,12 @@
                 <div class="setsVal" id="bSets">0</div>
               </div>
             </div>
-            <div class="pointsPill scoreBox" id="bScore">0</div>
-            <div class="streakPill" id="bStreak" hidden>
-              <div class="flame">🔥</div>
-              <div class="txt" id="bStreakTxt">SERIA 0</div>
+            <div class="pointsPill">
+              <div class="pointsNum scoreBox" id="bScore">0</div>
+              <div class="pointsStreak" id="bStreak" hidden>
+                <span class="flame">🔥</span>
+                <span class="txt" id="bStreakTxt">SERIA 0</span>
+              </div>
             </div>
           </div>
         </div>
