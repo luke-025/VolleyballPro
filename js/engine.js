@@ -76,9 +76,33 @@
   function addPoint(match, side /*'a'|'b'*/, delta) {
     const m = emptyMatchPatch(match);
     if (m.status === "finished" || m.status === "confirmed") return m;
+
+    // events: point-by-point log, used for PRO stats (streaks, momentum, etc.)
+    if (!Array.isArray(m.events)) m.events = [];
+
     const idx = currentSetIndex(m);
     const s = m.sets[idx];
-    s[side] = Math.max(0, (+s[side]||0) + delta);
+
+    const before = +s[side] || 0;
+    const after = Math.max(0, before + (+delta || 0));
+    s[side] = after;
+
+    // Only touch events if score actually changed
+    if (after !== before) {
+      if (delta > 0) {
+        m.events.push({ ts: Date.now(), set: idx, side });
+      } else if (delta < 0) {
+        // Remove last matching event (same set + side) to keep log consistent
+        for (let i = m.events.length - 1; i >= 0; i--) {
+          const e = m.events[i];
+          if (e && e.set === idx && e.side === side) {
+            m.events.splice(i, 1);
+            break;
+          }
+        }
+      }
+    }
+
     // auto-finish set? (we don't store explicit set-finish flags; rules infer from points)
     // if either side reached min and 2-pt lead, set is finished; match may be finished too
     return tryAutoFinish(m);
@@ -89,6 +113,9 @@
     if (m.status === "finished" || m.status === "confirmed") return m;
     const idx = currentSetIndex(m);
     m.sets[idx] = { a:0, b:0 };
+    if (Array.isArray(m.events)) {
+      m.events = m.events.filter(e => !(e && e.set === idx));
+    }
     return tryAutoFinish(m);
   }
 
@@ -343,7 +370,30 @@
     return st;
   }
 
-  window.VPEngine = {
+  
+  function computeStreaks(match) {
+    const m = emptyMatchPatch(match);
+    const events = Array.isArray(m.events) ? m.events : [];
+
+    let bestA = 0, bestB = 0;
+    let currentSide = null;
+    let currentLen = 0;
+
+    for (const e of events) {
+      const side = e && e.side;
+      if (side !== "a" && side !== "b") continue;
+
+      if (side === currentSide) currentLen++;
+      else { currentSide = side; currentLen = 1; }
+
+      if (currentSide === "a") bestA = Math.max(bestA, currentLen);
+      else if (currentSide === "b") bestB = Math.max(bestB, currentLen);
+    }
+
+    return { bestA, bestB, currentSide, currentLen };
+  }
+
+window.VPEngine = {
     emptyMatchPatch,
     addPoint,
     resetCurrentSet,
@@ -353,6 +403,7 @@
     currentSetIndex,
     computeStandings,
     generatePlayoffs,
-    applyPlayoffsProgression
+    applyPlayoffsProgression,
+    computeStreaks
   };
 })();

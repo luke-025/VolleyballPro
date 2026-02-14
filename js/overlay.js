@@ -81,6 +81,8 @@
     const s = pm.sets[idx];
     const sum = ENG.scoreSummary(pm);
 
+    const streak = (ENG.computeStreaks ? ENG.computeStreaks(pm) : null);
+
     elGame.badge.textContent = UI.stageLabel(pm.stage) + (pm.stage === "group" && pm.group ? (" • Grupa " + pm.group) : "");
     elGame.aName.textContent = ta?.name || "Drużyna A";
     elGame.bName.textContent = tb?.name || "Drużyna B";
@@ -90,7 +92,12 @@
 
     if (pm.status === "finished") elGame.setInfo.textContent = `KONIEC • czeka na zatwierdzenie`;
     else if (pm.status === "confirmed") elGame.setInfo.textContent = `KONIEC`;
-    else elGame.setInfo.textContent = `Set ${idx + 1}/3`;
+    else {
+      elGame.setInfo.textContent = `Set ${idx + 1}/3`;
+      if (streak && streak.currentLen >= 3) {
+        elGame.setInfo.textContent += ` • SERIA ${String(streak.currentSide||"").toUpperCase()} ${streak.currentLen}`;
+      }
+    }
   }
 
   // ----- BREAK render (compact; uses engine standings) -----

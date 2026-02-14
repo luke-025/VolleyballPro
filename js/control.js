@@ -212,6 +212,8 @@
       const sum = scoreSummary(m);
       const pts = totalPointsFromSets(m);
       const margin = maxSetMargin(m);
+
+        const streak = (window.VPEngine && typeof window.VPEngine.computeStreaks === "function") ? window.VPEngine.computeStreaks(m) : null;
       const setPreview = (m.status === "finished" || m.status === "confirmed") ? formatSetPreview(m) : "";
 
       const isProgram = state.meta?.programMatchId === m.id;
@@ -230,6 +232,8 @@
             • sety: ${sum.setsA}:${sum.setsB}
             • punkty: <b>${pts.a}:${pts.b}</b>
             ${margin ? ` • max różnica seta: ${margin}` : ""}
+            ${streak ? ` • serie max: A${streak.bestA} B${streak.bestB}` : ""}
+            ${(streak && streak.currentLen >= 3) ? ` • teraz: ${String(streak.currentSide||"").toUpperCase()} ${streak.currentLen}` : ""}
             ${setPreview ? ` • przebieg: <b>${setPreview}</b>` : ""}
           </div>
         </div>
@@ -264,6 +268,7 @@
     const s = (m.sets || [])[idx] || { a: 0, b: 0 };
     const pts = totalPointsFromSets(m);
     const sum = scoreSummary(m);
+    const streakP = (window.VPEngine && typeof window.VPEngine.computeStreaks === "function") ? window.VPEngine.computeStreaks(m) : null;
 
     els.programBox.innerHTML = `
       <div class="row">
@@ -275,6 +280,7 @@
           sety: <b>${sum.setsA}:${sum.setsB}</b>
           • punkty łącznie: <b>${pts.a}:${pts.b}</b>
           • suma punktów: ${pts.total}
+          ${streakP ? ` • serie max: A${streakP.bestA} B${streakP.bestB}` : ""}
         </div>
       </div>
     `;
