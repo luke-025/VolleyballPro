@@ -2,47 +2,219 @@
 <html lang="pl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VolleyballPro • Overlay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VolleyballPro • PRO Overlay</title>
   <link rel="stylesheet" href="css/main.css" />
   <style>
-    body{background:transparent}
-    .container{max-width:none; padding:0}
+    /* PRO overlay: one page, multiple scenes, no reloads */
+    html, body { height:100%; margin:0; padding:0; overflow:hidden; background:transparent; }
+    body { background: transparent; }
+
+    .overlayViewport{
+      position:fixed; inset:0;
+      width:100vw; height:100vh;
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+    }
+    /* Base stage is 1920x1080, scaled to fit viewport */
+    .overlayStage{
+      width:1920px; height:1080px;
+      transform-origin: center center;
+      position:relative;
+      overflow:hidden;
+      background: transparent;
+      font-family: var(--sans);
+      color: var(--text);
+    }
+    .scene{
+      position:absolute; inset:0;
+      opacity:0;
+      pointer-events:none;
+      transition: opacity 420ms ease;
+    }
+    .scene.active{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    /* Game scene tweaks */
+    .scene-game .scorebar{ position:absolute; left:60px; bottom:60px; }
+
+    /* Break scene container uses existing classes from main.css */
+    .scene-break{ padding: 46px 60px 60px 60px; }
+    .scene-break .breakOverlay{ position:absolute; inset:0; padding: 46px 60px 60px 60px; }
+    .scene-break .overlayNotice{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+
+    /* Technical scene */
+    .scene-technical{
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
+        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
+        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
+        rgba(5,8,18,.96);
+    }
+    .techInner {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      justify-content:center; align-items:center;
+      text-align:center;
+      padding: 80px;
+    }
+    .techTitle{
+      font-size:84px;
+      font-weight:900;
+      letter-spacing:2px;
+      text-transform: uppercase;
+      text-shadow: 0 20px 60px rgba(0,0,0,.55);
+    }
+    .techSub{
+      margin-top:18px;
+      font-size:28px;
+      color: var(--muted);
+      max-width: 1200px;
+      line-height:1.25;
+    }
+    .techBar{
+      margin-top:40px;
+      display:flex; gap:14px; align-items:center;
+      padding:14px 18px;
+      border-radius:999px;
+      background: rgba(8,12,24,.55);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      backdrop-filter: blur(12px);
+    }
+    .techClock{
+      font-family: var(--mono);
+      font-size:22px;
+      color: var(--text);
+    }
+    .techHint{
+      font-size:14px;
+      color: var(--muted);
+    }
+
+    /* Sponsors placeholder */
+    .scene-sponsors{
+      background: rgba(5,8,18,.96);
+      display:flex; align-items:center; justify-content:center;
+      padding: 80px;
+    }
+    .sponsorCard{
+      width: 1100px;
+      background: rgba(8,12,24,.55);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius: 22px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      padding: 26px 28px;
+    }
+    .sponsorCard h2{ margin:0 0 10px 0; font-size:28px; }
+    .sponsorCard .muted{ font-size:16px; }
   </style>
 </head>
 <body>
-  <div class="overlay">
-    <div class="scorebar">
-      <div class="scoreCol">
-        <div class="teamName" id="aName">—</div>
-        <div class="teamSub">Drużyna A</div>
-      </div>
-      <div class="scoreBox" id="aScore">—</div>
+  <div class="overlayViewport">
+    <div class="overlayStage" id="stage">
+      <!-- GAME -->
+      <div class="scene scene-game active" id="sceneGame">
+        <div class="scorebar">
+          <div class="scoreCol">
+            <div class="teamName" id="aName">—</div>
+            <div class="teamSub">Drużyna A</div>
+          </div>
+          <div class="scoreBox" id="aScore">—</div>
 
-      <div class="midBox">
-        <div class="midTop">
-          <div class="midBadge" id="badge">—</div>
-          <div class="midSets" id="sets"></div>
+          <div class="midBox">
+            <div class="midTop">
+              <div class="midBadge" id="badge">—</div>
+              <div class="midSets" id="sets"></div>
+            </div>
+            <div class="midSetInfo" id="setInfo"></div>
+          </div>
+
+          <div class="scoreBox" id="bScore">—</div>
+          <div class="scoreCol right">
+            <div class="teamName" id="bName">—</div>
+            <div class="teamSub">Drużyna B</div>
+          </div>
         </div>
-        <div class="midSetInfo" id="setInfo"></div>
+        <div id="gameNotice" class="overlayNotice" style="display:none"></div>
       </div>
 
-      <div class="scoreBox" id="bScore">—</div>
-      <div class="scoreCol right">
-        <div class="teamName" id="bName">—</div>
-        <div class="teamSub">Drużyna B</div>
+      <!-- BREAK -->
+      <div class="scene scene-break" id="sceneBreak">
+        <div class="breakOverlay" id="breakRoot">
+          <div class="breakTop">
+            <div class="breakTitle">
+              <div class="breakKicker">PRZERWA</div>
+              <div class="breakTournament" id="btName">VolleyballPro</div>
+            </div>
+            <div class="breakMeta">
+              <div class="breakPill" id="btSlug"></div>
+              <div class="breakClock" id="btClock"></div>
+            </div>
+          </div>
+
+          <div class="breakGrid">
+            <div class="breakLeft card">
+              <div class="breakSectionTitle">Tabele grup</div>
+              <div id="breakTables" class="breakTables"></div>
+            </div>
+
+            <div class="breakRight">
+              <div class="card breakPanel">
+                <div class="breakSectionTitle">Ostatnie wyniki</div>
+                <div id="breakLast" class="breakList"></div>
+              </div>
+              <div class="card breakPanel">
+                <div class="breakSectionTitle">Następne mecze</div>
+                <div id="breakNext" class="breakList"></div>
+              </div>
+              <div class="card breakPanel">
+                <div class="breakSectionTitle">Mecz na transmisji</div>
+                <div id="breakProgram" class="breakProgram"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="overlayNotice" id="breakNotice" style="display:none"></div>
+        </div>
+      </div>
+
+      <!-- TECHNICAL -->
+      <div class="scene scene-technical" id="sceneTechnical">
+        <div class="techInner">
+          <div class="techTitle" id="techTitle">ZARAZ WRACAMY</div>
+          <div class="techSub" id="techSubtitle">Trwają przygotowania do kolejnego meczu</div>
+          <div class="techBar">
+            <div class="techClock" id="techClock">--:--:--</div>
+            <div class="techHint">Ekran techniczny • VolleyballPro</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPONSORS (placeholder) -->
+      <div class="scene scene-sponsors" id="sceneSponsors">
+        <div class="sponsorCard">
+          <h2>Sponsorzy</h2>
+          <div class="muted">Rotacja sponsorów (premium) zrobimy w kolejnym kroku.</div>
+        </div>
       </div>
     </div>
-    <div id="root"></div>
   </div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/supabase.js"></script>
+  <script src="js/util.js"></script>
   <script src="js/ui-shared.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/state.js"></script>
+
+  <!-- PRO overlay logic (replaces old overlay.js redirects) -->
   <script src="js/overlay.js"></script>
+
+  <!-- Optional: point animation if you already use it -->
   <script src="js/overlay-anim.js"></script>
 </body>
 </html>
