@@ -1,4 +1,4 @@
-// js/overlay.js (PRO overlay - single page, multi-scene, no reloads)
+// js/overlay.js (PRO overlay + sponsors rotation)
 (function () {
   const UI = window.VP_UI;
   const U = window.VP_UTIL;
@@ -40,6 +40,9 @@
       if (scenes[k]) scenes[k].classList.toggle("active", k === target);
     }
     activeScene = target;
+
+    if (target === "sponsors") startSponsors();
+    else stopSponsors();
   }
 
   // ----- GAME render -----
@@ -90,7 +93,7 @@
     else elGame.setInfo.textContent = `Set ${idx + 1}/3`;
   }
 
-  // ----- BREAK render (adapted from break.js) -----
+  // ----- BREAK render (compact; uses engine standings) -----
   function safeText(el, txt) { if (el) el.textContent = txt || ""; }
 
   function fmtStage(stage) {
@@ -287,6 +290,115 @@
     el.textContent = d.toLocaleTimeString();
   }
 
+  // ----- SPONSORS render + rotation -----
+  let sponsorsTimer = null;
+  let sponsorsIdx = 0;
+  let sponsorsCache = { listKey: "", enabled: true, interval: 8, list: [] };
+
+  function ensureSponsorsDom() {
+    const root = $("sceneSponsors");
+    if (!root) return null;
+
+    let imgA = root.querySelector("#sponsorImgA");
+    let imgB = root.querySelector("#sponsorImgB");
+
+    if (!imgA || !imgB) {
+      root.innerHTML = `
+        <div class="sponsorsStage">
+          <div class="sponsorImgWrap">
+            <img id="sponsorImgA" class="sponsorImg show" alt="Sponsor" />
+            <img id="sponsorImgB" class="sponsorImg" alt="Sponsor" />
+          </div>
+          <div class="sponsorHint">Sponsorzy • VolleyballPro</div>
+        </div>
+      `;
+      imgA = root.querySelector("#sponsorImgA");
+      imgB = root.querySelector("#sponsorImgB");
+    }
+    return { root, imgA, imgB };
+  }
+
+  function preload(url) {
+    if (!url) return;
+    const i = new Image();
+    i.decoding = "async";
+    i.src = url;
+  }
+
+  function sponsorsListKey(list) {
+    return (list || []).map(x => x.url).join("|");
+  }
+
+  function setSponsorImage(dom, url) {
+    if (!dom) return;
+    const { imgA, imgB } = dom;
+    const aShowing = imgA.classList.contains("show");
+    const showEl = aShowing ? imgB : imgA;
+    const hideEl = aShowing ? imgA : imgB;
+
+    showEl.src = url || "";
+    showEl.classList.add("show");
+    hideEl.classList.remove("show");
+  }
+
+  function startSponsors() {
+    if (sponsorsTimer) return; // already running
+    sponsorsTimer = setInterval(() => {
+      if (activeScene !== "sponsors") return;
+      rotateSponsors();
+    }, 1000);
+    rotateSponsors(true);
+  }
+
+  function stopSponsors() {
+    if (!sponsorsTimer) return;
+    clearInterval(sponsorsTimer);
+    sponsorsTimer = null;
+  }
+
+  let lastTick = 0;
+  function rotateSponsors(force = false) {
+    if (!current || !current.state) return;
+    const meta = current.state.meta || {};
+    const list = Array.isArray(meta.sponsors) ? meta.sponsors : [];
+    const enabled = meta.sponsorsEnabled !== false;
+    const interval = Math.max(2, Math.min(60, Number(meta.sponsorsIntervalSec || 8)));
+
+    const key = sponsorsListKey(list);
+    if (key !== sponsorsCache.listKey) {
+      sponsorsCache = { listKey: key, enabled, interval, list };
+      sponsorsIdx = 0;
+      (list || []).forEach(sp => preload(sp.url));
+      force = true;
+    } else {
+      sponsorsCache.enabled = enabled;
+      sponsorsCache.interval = interval;
+      sponsorsCache.list = list;
+    }
+
+    const dom = ensureSponsorsDom();
+    if (!dom) return;
+
+    if (!list.length) {
+      dom.root.innerHTML = `<div class="sponsorCard"><h2>Sponsorzy</h2><div class="muted">Brak sponsorów. Dodaj URL w Control.</div></div>`;
+      return;
+    }
+
+    const now = Date.now();
+    if (!force && enabled) {
+      if (lastTick && (now - lastTick) < interval * 1000) return;
+    }
+    if (!enabled && !force) return;
+
+    // choose sponsor (if rotation disabled: always first)
+    const idx = enabled ? (sponsorsIdx % list.length) : 0;
+    const url = list[idx]?.url || "";
+    setSponsorImage(dom, url);
+
+    if (enabled) sponsorsIdx = (idx + 1) % list.length;
+    lastTick = now;
+  }
+
   // ----- Wiring -----
   if (!slug) {
     const n = $("gameNotice");
@@ -300,15 +412,10 @@
   function renderAll() {
     const st = current?.state || {};
     const scene = st.meta?.scene || "game";
-
-    // activate scene
     setActiveScene(scene);
-
-    // render active scene (and pre-render others cheaply)
     renderGame(st);
     renderBreak(st);
-
-    // technical clock always ticks, no state needed
+    if (scene === "sponsors") rotateSponsors(false);
   }
 
   async function start() {

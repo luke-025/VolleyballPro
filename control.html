@@ -50,16 +50,44 @@
 </div>
 </div>
 </div>
+<div class="card" id="sponsorsCard" style="margin-top:14px">
+  <h2>Sponsorzy (grafiki)</h2>
+  <div class="muted small">Wklejaj URL do gotowych plansz 1920×1080 (JPG/PNG/WebP). Overlay będzie je rotował w scenie „Sponsors”.</div>
 
-<div class="card" style="margin-top:14px">
-  <h2>Scena transmisji</h2>
-  <div class="muted small">Steruje sceną na overlay (PRO). Zmiana jest natychmiastowa i bez przeładowań.</div>
+  <div class="formRow" style="margin-top:10px">
+    <div>
+      <label>URL grafiki sponsora</label>
+      <input id="spUrl" placeholder="https://.../sponsor1.png" />
+    </div>
+    <div>
+      <label>Opis (opcjonalnie)</label>
+      <input id="spTitle" placeholder="np. Sponsor główny" />
+    </div>
+  </div>
+
   <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
-    <button class="btn btn-primary" id="btnSceneGame">Game</button>
-    <button class="btn btn-primary" id="btnSceneBreak">Break</button>
-    <button class="btn btn-primary" id="btnSceneTechnical">Technical</button>
-    <button class="btn btn-primary" id="btnSceneSponsors">Sponsors</button>
-    <span class="badge" id="sceneStatus" style="margin-left:auto">Scena: —</span>
+    <button class="btn btn-primary" id="spAdd">Dodaj sponsora</button>
+    <button class="btn btn-ghost" id="spClear">Wyczyść listę</button>
+    <span class="badge" style="margin-left:auto" id="spCount">0</span>
+  </div>
+
+  <div class="formRow" style="margin-top:10px">
+    <div>
+      <label>Czas wyświetlania (sekundy)</label>
+      <input id="spInterval" type="number" min="2" step="1" value="8" />
+    </div>
+    <div>
+      <label>Tryb</label>
+      <select id="spEnabled">
+        <option value="on">Włączona rotacja</option>
+        <option value="off">Zatrzymana (pokazuje 1. planszę)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card inner" style="margin-top:10px">
+    <h3>Lista sponsorów</h3>
+    <div id="spList" class="muted small">Brak sponsorów.</div>
   </div>
 </div>
 
@@ -144,6 +172,6 @@
 <script src="js/engine.js"></script>
 <script src="js/state.js"></script>
 <script src="js/control.js"></script>
-<script src="js/control-scene.js"></script>
+<script src="js/control-sponsors.js"></script>
 </body>
 </html>
