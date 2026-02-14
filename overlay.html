@@ -148,6 +148,27 @@
       font-size: 22px;
       white-space: nowrap;
     }
+    
+    /* Smaller points digits */
+    .pointsNum{ font-size:30px; }
+
+    /* Static ticker for up to 2 matches */
+    .tickerItems{
+      display:flex;
+      gap: 90px;
+      align-items:center;
+      justify-content:flex-start;
+      white-space: nowrap;
+      overflow:hidden;
+      flex:1;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing:.2px;
+    }
+    .tickItem{ display:flex; align-items:center; gap:12px; }
+    .tickTeams{ color:#ffffff; opacity:.92; }
+    .tickScore{ color:#d9ff7a; }
+
     .tickerItems{
       display:flex;
       gap: 70px;
@@ -247,7 +268,9 @@
         <div class="ticker">
           <div class="tickerInner">
             <div class="tickerLabel">Inne mecze na żywo:</div>
-            <div class="tickerItems"><div class="marquee"><div class="marqueeTrack" id="liveTicker"></div></div></div>
+            <div class="tickerItems" id="liveTicker"></div>
+          </div>
+        </div>
           </div>
         </div>
       </div>
