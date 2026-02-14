@@ -285,3 +285,70 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 @media (max-width: 1200px){
   .breakTables{ grid-template-columns: 1fr; }
 }
+
+
+
+/* === Break tables TV polish v3 tweaks === */
+.breakGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.breakGroupCard{
+  padding: 14px 14px 12px;
+  border-radius: 18px;
+}
+
+.breakGroupTitle{
+  font-size: 13px;
+  letter-spacing: 3px;
+  margin: 4px 0 10px;
+}
+
+.breakTable{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  overflow:hidden;
+  border-radius: 14px;
+}
+
+.breakTable thead th{
+  font-size: 12px;
+  padding: 10px 10px;
+  letter-spacing: 2px;
+}
+
+.breakTable tbody td{
+  font-size: 14px;
+  padding: 10px 10px;
+}
+
+.breakTable th.colTeam, .breakTable td.colTeam{ width: 42%; }
+.breakTable th.colRank, .breakTable td.colRank{ width: 8%; }
+.breakTable th.colMWP, .breakTable td.colMWP{ width: 6%; }
+.breakTable th.colPts, .breakTable td.colPts{ width: 10%; }
+.breakTable th.colSets, .breakTable td.colSets{ width: 14%; }
+.breakTable th.colPoints, .breakTable td.colPoints{ width: 14%; }
+
+/* Make the whole break layout feel fuller */
+.breakLayout{
+  gap: 16px;
+}
+.breakMainCard{
+  padding: 18px;
+}
+.breakSideCard{
+  padding: 14px 16px;
+}
+.breakSideCard h3{
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+.breakItem{
+  padding: 10px 12px;
+  font-size: 14px;
+}
