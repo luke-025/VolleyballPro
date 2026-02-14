@@ -187,220 +187,87 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 }
 
 
-
-/* Break / Overlay body helpers */
-.overlayBody{margin:0; padding:0; overflow:hidden; background:transparent}
-
-/* Break screen */
-.breakOverlay{
-  position:fixed;
-  left:0; top:0;
-  width:1920px;
-  height:1080px;
-  overflow:hidden;
-  background: transparent;
+/* === BREAK: group standings tables (TV) === */
+.breakGroup{
+  margin-top: 14px;
 }
-.breakTop{
-  position:absolute;
-  left:60px; top:45px; right:60px;
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:16px;
-}
-.breakTitle{display:flex; flex-direction:column; gap:6px}
-.breakKicker{
-  letter-spacing:.25em;
-  font-weight:900;
-  font-size:14px;
-  color:var(--muted);
-}
-.breakTournament{
-  font-weight:900;
-  font-size:44px;
-  line-height:1.05;
-}
-.breakMeta{display:flex; align-items:center; gap:12px}
-.breakPill{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(8,12,24,.65);
-  color:var(--muted);
-  font-family:var(--mono);
-  font-size:13px;
-}
-.breakClock{
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(8,12,24,.65);
-  font-family:var(--mono);
-  font-size:16px;
-  font-weight:900;
-}
-.breakGrid{
-  position:absolute;
-  left:60px; right:60px;
-  top:140px; bottom:60px;
-  display:grid;
-  grid-template-columns: 1fr 540px;
-  gap:16px;
-}
-.breakLeft{padding:16px}
-.breakSectionTitle{
-  font-weight:900;
-  font-size:16px;
-  margin-bottom:10px;
-  color:var(--text);
-  letter-spacing:.06em;
-  text-transform:uppercase;
-}
-.breakTables{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:12px;
-}
-.breakTableCard{
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:16px;
-  background: rgba(8,12,24,.40);
-  overflow:hidden;
-}
-.breakTableHeader{
-  padding:10px 12px;
-  font-weight:900;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-  font-size:13px;
-  color:var(--muted);
-  background: rgba(255,255,255,.04);
-  border-bottom:1px solid rgba(255,255,255,.08);
-}
-.breakTbl{font-size:12px}
-.breakTbl th, .breakTbl td{padding:7px 8px}
-.breakTeam{font-weight:800}
-.breakRight{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.breakPanel{padding:14px}
-.breakList{display:flex; flex-direction:column; gap:8px}
-.breakItem{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 10px;
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:14px;
-  background: rgba(0,0,0,.22);
-}
-.breakItemMain{flex:1; min-width:0}
-.breakItemTitle{
-  font-weight:800;
-  font-size:13px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.breakItemSub{font-size:12px; margin-top:2px}
-.breakItemScore{
-  font-family:var(--mono);
-  font-size:18px;
-  font-weight:900;
-  min-width:64px;
-  text-align:right;
-}
-.breakLive{
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:999px;
-  margin-right:8px;
-  font-size:11px;
-  font-weight:900;
-  background: rgba(45,255,158,.12);
-  border:1px solid rgba(45,255,158,.35);
-  color:#CFFFEF;
-}
-.breakPending{
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:999px;
-  margin-right:8px;
-  font-size:11px;
-  font-weight:900;
-  background: rgba(106,228,255,.10);
-  border:1px solid rgba(106,228,255,.30);
-  color:#DDFBFF;
-}
-.breakProgram{padding:4px 0}
-.breakProgramRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-}
-.breakProgramTeams{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-}
-.breakProgramA, .breakProgramB{
-  font-weight:900;
-  font-size:18px;
-}
-.breakProgramVs{color:var(--muted); font-size:12px; letter-spacing:.15em; text-transform:uppercase}
-.breakProgramScore{text-align:right}
-.breakProgramPoints{font-family:var(--mono); font-size:28px; font-weight:900}
-
-/* === VolleyballPro: point animation (overlay) === */
-@keyframes vbPulse {
-  0%   { transform: scale(1); filter: brightness(1); }
-  35%  { transform: scale(1.06); filter: brightness(1.25); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
-@keyframes vbFlash {
-  0%   { filter: brightness(1); }
-  35%  { filter: brightness(1.25); }
-  100% { filter: brightness(1); }
+.breakGroupTitle{
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: rgba(255,255,255,.78);
+  margin: 0 0 10px 2px;
 }
 
-/* Applied by js/overlay-anim.js */
-.vb-pulse { animation: vbPulse 260ms ease-out; transform-origin: center; }
-.vb-flash { animation: vbFlash 260ms ease-out; }
+.breakTable{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(8,12,24,.35);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 18px 50px rgba(0,0,0,.22);
+}
 
-/* Make sure elements can animate without layout jitter */
-.scoreBox, .midSets { will-change: transform, filter; }
-
-/* === Sponsors scene (full-screen image boards) === */
-.sponsorsStage{
-  position:absolute; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  background: rgba(5,8,18,.96);
-}
-.sponsorImgWrap{
-  position:absolute; inset:0;
-}
-.sponsorImg{
-  position:absolute; inset:0;
-  width:100%;
-  height:100%;
-  object-fit: contain; /* keep full board visible; change to cover if you prefer */
-  opacity:0;
-  transition: opacity 450ms ease;
-  filter: drop-shadow(0 18px 50px rgba(0,0,0,.45));
-}
-.sponsorImg.show{ opacity:1; }
-.sponsorHint{
-  position:absolute;
-  left:60px; bottom:60px;
-  padding:12px 14px;
-  border-radius:999px;
+.breakTable thead th{
+  font-size: 11px;
+  font-weight: 900;
+  color: rgba(255,255,255,.72);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  padding: 10px 10px;
   background: rgba(8,12,24,.55);
-  border:1px solid rgba(255,255,255,.14);
-  color: var(--muted);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 18px 50px rgba(0,0,0,.35);
-  font-size:14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.breakTable tbody td{
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255,255,255,.90);
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.breakTable tbody tr:last-child td{
+  border-bottom: none;
+}
+
+.breakTable tbody tr:nth-child(2n) td{
+  background: rgba(255,255,255,.03);
+}
+
+.breakTable .pos{
+  width: 34px;
+  text-align: center;
+  color: rgba(255,255,255,.70);
+}
+.breakTable .name{
+  text-align: left;
+  min-width: 160px;
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breakTable th:nth-child(n+3),
+.breakTable td:nth-child(n+3){
+  text-align: center;
+}
+
+.breakTable td:nth-child(6){ /* PKT */
+  color: #d9ff7a;
+}
+
+.breakTable td:nth-child(7),
+.breakTable td:nth-child(8){
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+
+@media (min-width: 1600px){
+  .breakTable thead th{ font-size: 12px; }
+  .breakTable tbody td{ font-size: 13px; }
 }
