@@ -225,6 +225,132 @@ const filterState = {
       courtSel.innerHTML = '<option value="all">Wszystkie</option>' + cArr.map(c=>`<option value="${c}">Boisko ${c}</option>`).join('');
       courtSel.value = filterState.court;
     } catch(e) {}
+
+    // --- Operator actions bindings (scene/lock/export/queue) ---
+    const opWrap = document.getElementById("opFilters");
+    if (opWrap && !opWrap.dataset.bound) {
+      opWrap.dataset.bound = "1";
+
+      // Scene buttons
+      opWrap.querySelectorAll("[data-scene]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const scene = btn.getAttribute("data-scene");
+          const pin = STORE.getPin(slug);
+          if (!pin) { UI.toast("Podaj PIN w Control", "warn"); return; }
+          try {
+            await STORE.mutate(slug, pin, (st) => {
+              st.meta = st.meta || {};
+              st.meta.scene = scene;
+              return st;
+            });
+            UI.toast("Scena: " + sceneLabel(scene), "success");
+          } catch (e) {
+            UI.toast(e?.message || "Błąd zmiany sceny", "error");
+          }
+        });
+      });
+
+      // Lock toggle
+      const btnLock = document.getElementById("btnLockToggle");
+      if (btnLock) {
+        btnLock.addEventListener("click", async () => {
+          const pin = STORE.getPin(slug);
+          if (!pin) { UI.toast("Podaj PIN w Control", "warn"); return; }
+          try {
+            const locked = !!(current?.state?.meta?.locked);
+            await STORE.mutate(slug, pin, (st) => {
+              st.meta = st.meta || {};
+              st.meta.locked = !locked;
+              return st;
+            });
+          } catch (e) {
+            UI.toast(e?.message || "Błąd blokady", "error");
+          }
+        });
+      }
+
+      // Export
+      const btnExport = document.getElementById("btnExportState");
+      if (btnExport) {
+        btnExport.addEventListener("click", () => {
+          const st = current?.state || {};
+          const name = `tournament_${slug}_${new Date().toISOString().slice(0,19).replace(/[:T]/g,"-")}.json`;
+          downloadJson(name, st);
+          UI.toast("Zapisano export JSON", "success");
+        });
+      }
+
+      // Queue UI
+      const qCourt = document.getElementById("qCourt");
+      const qMatch = document.getElementById("qMatch");
+      const qAdd = document.getElementById("qAdd");
+
+      // populate queue selects each render via renderQueue()
+      if (qAdd) {
+        qAdd.addEventListener("click", async () => {
+          const court = (qCourt?.value || "").trim();
+          const matchId = (qMatch?.value || "").trim();
+          if (!court || !matchId) { UI.toast("Wybierz boisko i mecz", "warn"); return; }
+          const pin = STORE.getPin(slug);
+          if (!pin) { UI.toast("Podaj PIN w Control", "warn"); return; }
+          try {
+            const q = getQueue(current?.state?.meta);
+            if (q.some(x => x.matchId === matchId && String(x.court||"") === court)) {
+              UI.toast("Ten mecz już jest w kolejce", "info"); return;
+            }
+            await STORE.mutate(slug, pin, (st) => {
+              st.meta = st.meta || {};
+              const qq = Array.isArray(st.meta.queue) ? st.meta.queue : [];
+              qq.push({ court, matchId });
+              st.meta.queue = qq;
+              return st;
+            });
+            UI.toast("Dodano do kolejki", "success");
+          } catch (e) {
+            UI.toast(e?.message || "Błąd kolejki", "error");
+          }
+        });
+      }
+
+      // Delegated clicks in queue list
+      const qList = document.getElementById("qList");
+      if (qList) {
+        qList.addEventListener("click", async (ev) => {
+          const btn = ev.target.closest("button[data-qact]");
+          if (!btn) return;
+          const act = btn.getAttribute("data-qact");
+          const idx = Number(btn.getAttribute("data-idx"));
+          const pin = STORE.getPin(slug);
+          if (!pin) { UI.toast("Podaj PIN w Control", "warn"); return; }
+          const q = getQueue(current?.state?.meta);
+          if (!(idx >= 0 && idx < q.length)) return;
+
+          const item = q[idx];
+          try {
+            if (act === "up" && idx > 0) {
+              const nq = q.slice();
+              [nq[idx-1], nq[idx]] = [nq[idx], nq[idx-1]];
+              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=nq; return st; });
+            } else if (act === "down" && idx < q.length-1) {
+              const nq = q.slice();
+              [nq[idx+1], nq[idx]] = [nq[idx], nq[idx+1]];
+              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=nq; return st; });
+            } else if (act === "del") {
+              const nq = q.filter((_,i)=>i!==idx);
+              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=nq; return st; });
+            } else if (act === "live") {
+              await STORE.setMatchStatus(slug, pin, item.matchId, "live");
+            } else if (act === "tx") {
+              // TRANSMISJA: program + scene game
+              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.programMatchId=item.matchId; st.meta.scene="game"; return st; });
+            }
+          } catch (e) {
+            UI.toast(e?.message || "Błąd akcji kolejki", "error");
+          }
+        });
+      }
+    }
+
   }
 
   function matchPassesFilters(state, m) {
