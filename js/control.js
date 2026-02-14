@@ -16,7 +16,7 @@
 (function () {
   const VPState = window.VPState;
   const UI = window.VP_UI || {};
-  const ENG = window.VP_ENG || window.ENG || {};
+  const ENG = window.VPEngine || window.VP_ENG || window.ENG || {};
 
   const $ = (id) => document.getElementById(id);
 
