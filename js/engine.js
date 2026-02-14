@@ -431,7 +431,6 @@
     return last.map(e => e.side);
   }
 window.VPEngine = {
-
     emptyMatchPatch,
     addPoint,
     resetCurrentSet,
@@ -441,7 +440,7 @@ window.VPEngine = {
     currentSetIndex,
     computeStandings,
     generatePlayoffs,
-    applyPlayoffsProgression
+    applyPlayoffsProgression,
     computeStreaks,
     computeMaxLead,
     computeLastPointsTimeline,

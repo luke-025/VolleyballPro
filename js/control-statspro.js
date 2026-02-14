@@ -52,8 +52,8 @@
     const aName = teamName(state, match.teamAId).toUpperCase();
     const bName = teamName(state, match.teamBId).toUpperCase();
 
-        const dotsA = padded.map(s => s === "a" ? `<span class="vbDot">🔵</span>` : `<span class="vbDot empty">·</span>`).join("");
-    const dotsB = padded.map(s => s === "b" ? `<span class="vbDot">🔵</span>` : `<span class="vbDot empty">·</span>`).join("");
+        const dotsA = padded.map(s => s === "a" ? `<span class="vbDot">🔵</span>` : `<span class="vbDot empty">&nbsp;</span>`).join("");
+    const dotsB = padded.map(s => s === "b" ? `<span class="vbDot">🔵</span>` : `<span class="vbDot empty">&nbsp;</span>`).join("");
 
     return `
       <div class="vbTimeline">
