@@ -53,27 +53,12 @@
     bSets: $("bSets"),
     aScore: $("aScore"),
     bScore: $("bScore"),
-    aStreak: $("aStreak"),
-    bStreak: $("bStreak"),
-    aStreakTxt: $("aStreakTxt"),
-    bStreakTxt: $("bStreakTxt"),
     ticker: $("liveTicker"),
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
   };
-
-  function setStreak(which, n) {
-    const pill = which === "a" ? elGame.aStreak : elGame.bStreak;
-    const txt = which === "a" ? elGame.aStreakTxt : elGame.bStreakTxt;
-    if (!pill || !txt) return;
-
-    if (n && n >= 3) {
-      pill.hidden = false;
-      txt.textContent = `SERIA ${n}`;
-    } else {
-      pill.hidden = true;
-    }
   }
+
 
   
   function renderTicker(state) {
@@ -89,7 +74,7 @@
       return;
     }
 
-    const items = live.slice(0, 2).map((m) => {
+    elGame.ticker.innerHTML = live.slice(0, 2).map((m) => {
       const ta = (st.teams || []).find(x => x.id === m.teamAId)?.name || "—";
       const tb = (st.teams || []).find(x => x.id === m.teamBId)?.name || "—";
       const idx = ENG.currentSetIndex(m);
@@ -103,9 +88,32 @@
         </div>
       `;
     }).join("");
-
-    elGame.ticker.innerHTML = items;
   }
+
+    const items = live.slice(0, 6).map((m) => {
+      const ta = (st.teams || []).find(x => x.id === m.teamAId)?.name || "—";
+      const tb = (st.teams || []).find(x => x.id === m.teamBId)?.name || "—";
+      const idx = ENG.currentSetIndex(m);
+      const s = m.sets[idx];
+      const score = `${s.a}:${s.b}`;
+      return `<span class="tickItem">${ta} ${score} ${tb}</span>`;
+    }).join('<span class="tickSep">•</span>');
+
+    // Duplicate for seamless loop (two halves)
+    elGame.ticker.innerHTML = `<div>${items}</div><div>${items}</div>`;
+
+    // Compute a reasonable duration (longer content -> longer duration)
+    // fallback if we can't measure yet
+    requestAnimationFrame(() => {
+      try {
+        const w = elGame.ticker.scrollWidth || 1200;
+        const pxPerSec = 140; // speed
+        const dur = Math.max(12, Math.min(45, w / pxPerSec));
+        elGame.ticker.style.animationDuration = dur + "s";
+      } catch (e) {}
+    });
+  }
+
 
   function renderMeta(state, match) {
     if (!elGame.metaStage || !elGame.metaSet) return;
@@ -118,9 +126,6 @@
     const idx = ENG.currentSetIndex(match);
     elGame.metaSet.textContent = `SET ${idx + 1}/3`;
 
-    // Stage pill:
-    // - for group stage show only "GRUPA X"
-    // - otherwise show stage label (e.g., ĆWIERĆFINAŁ, PÓŁFINAŁ, FINAŁ...)
     if (match.stage === "group" && match.group) {
       elGame.metaStage.textContent = `GRUPA ${String(match.group).toUpperCase()}`;
       return;
@@ -131,15 +136,7 @@
     elGame.metaStage.textContent = String(stageLabel || "—").toUpperCase();
   }
 
-    const stage = match.stage || "";
-    const stageLabel = (UI && typeof UI.stageLabel === "function") ? UI.stageLabel(stage) : stage;
-    const grp = (stage === "group" && match.group) ? (" • Grupa " + String(match.group).toUpperCase()) : "";
-    elGame.metaStage.textContent = (stageLabel + grp).toUpperCase();
-
-    const idx = ENG.currentSetIndex(match);
-    elGame.metaSet.textContent = `SET ${idx + 1}/3`;
-  }
-function renderGame(state) {
+  function renderGame(state) {
     const st = state || {};
     const pmId = st.meta?.programMatchId;
     const pm0 = (st.matches || []).find(m => m.id === pmId);
@@ -153,10 +150,7 @@ function renderGame(state) {
       if (elGame.aSets) elGame.aSets.textContent = "0";
       if (elGame.bSets) elGame.bSets.textContent = "0";
       if (elGame.aScore) elGame.aScore.textContent = "—";
-      if (elGame.bScore) elGame.bScore.textContent = "—";
-      setStreak("a", 0);
-      setStreak("b", 0);
-      return;
+      if (elGame.bScore) elGame.bScore.textContent = "—";      return;
     }
 
     const pm = ENG.emptyMatchPatch(pm0);
@@ -179,13 +173,7 @@ function renderGame(state) {
     if (typeof ENG.computeStreaks === "function") {
       const streak = ENG.computeStreaks(pm);
       const side = streak.currentSide; // "a"|"b"|null
-      const len = streak.currentLen || 0;
-      setStreak("a", side === "a" ? len : 0);
-      setStreak("b", side === "b" ? len : 0);
-    } else {
-      setStreak("a", 0);
-      setStreak("b", 0);
-    }
+      const len = streak.currentLen || 0;    } else {    }
   }
 
   // ----- BREAK render (existing) -----

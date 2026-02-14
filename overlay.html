@@ -26,14 +26,14 @@
       margin-bottom: 2px;
     }
     .metaPill{
-      height: 34px;
+      height: 32px;
       padding: 8px 12px;
       border-radius: 999px;
       background: rgba(10,12,16,.70);
       border: 1px solid rgba(255,255,255,.12);
       color: rgba(255,255,255,.92);
       font-weight: 900;
-      font-size: 14px;
+      font-size: 13px;
       letter-spacing: .35px;
       text-transform: uppercase;
       backdrop-filter: blur(10px);
@@ -41,18 +41,36 @@
       display:flex;
       align-items:center;
       white-space: nowrap;
-      max-width: 800px;
+      max-width: 820px;
       overflow:hidden;
       text-overflow: ellipsis;
     }
 
-    /* Safer margins + slightly smaller HUD (doesn't eat screen) */
+    /* Safer margins + smaller HUD */
     .gameHUD{ left:44px; top:44px; gap:12px; }
     .teamPill{ width: 520px; height: 76px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
     .teamName{ font-size: 30px; }
     .setsBox{ width: 92px; }
     .setsVal{ font-size: 20px; }
-    .pointsPill{ width: 104px; height: 76px; border-radius: 18px; font-size: 34px; }
+    .pointsPill{ width: 104px; height: 76px; border-radius: 18px; font-size: 30px; }
+
+    /* Static ticker: up to 2 matches; colored score */
+    .tickerItems{
+      display:flex;
+      gap: 90px;
+      align-items:center;
+      justify-content:flex-start;
+      white-space: nowrap;
+      overflow:hidden;
+      flex:1;
+      font-weight: 900;
+      font-size: 22px;
+      letter-spacing:.2px;
+      color:#fff;
+    }
+    .tickItem{ display:flex; align-items:center; gap:12px; }
+    .tickTeams{ color:#ffffff; opacity:.92; }
+    .tickScore{ color:#d9ff7a; }
 
     .scene-game{ position:absolute; inset:0; }
     .gameHUD{ position:absolute; left:60px; top:60px; display:flex; flex-direction:column; gap:18px; }
@@ -148,27 +166,6 @@
       font-size: 22px;
       white-space: nowrap;
     }
-    
-    /* Smaller points digits */
-    .pointsNum{ font-size:30px; }
-
-    /* Static ticker for up to 2 matches */
-    .tickerItems{
-      display:flex;
-      gap: 90px;
-      align-items:center;
-      justify-content:flex-start;
-      white-space: nowrap;
-      overflow:hidden;
-      flex:1;
-      font-weight: 900;
-      font-size: 22px;
-      letter-spacing:.2px;
-    }
-    .tickItem{ display:flex; align-items:center; gap:12px; }
-    .tickTeams{ color:#ffffff; opacity:.92; }
-    .tickScore{ color:#d9ff7a; }
-
     .tickerItems{
       display:flex;
       gap: 70px;
@@ -268,9 +265,7 @@
         <div class="ticker">
           <div class="tickerInner">
             <div class="tickerLabel">Inne mecze na żywo:</div>
-            <div class="tickerItems" id="liveTicker"></div>
-          </div>
-        </div>
+            <div class="tickerItems" id="liveTicker"></div></div></div>
           </div>
         </div>
       </div>
