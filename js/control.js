@@ -54,7 +54,21 @@
     return pin;
   }
 
-  function render() {
+  
+  function formatSetPreview(m) {
+    const parts = [];
+    const mm = ENG.emptyMatchPatch(m);
+    for (let i = 0; i < 3; i++) {
+      const s = mm.sets[i];
+      const a = +s.a || 0;
+      const b = +s.b || 0;
+      if (a === 0 && b === 0) continue;
+      parts.push(`${a}:${b}`);
+    }
+    return parts.join(", ");
+  }
+
+function render() {
     if (!current) return;
     const state = current.state;
     // teams
@@ -83,7 +97,7 @@
       row.innerHTML = `
         <div class="grow">
           <div class="matchTitle">${claimed} <b>${teamA?.name||"?"}</b> vs <b>${teamB?.name||"?"}</b></div>
-          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} • status: <b>${m.status}</b> • sety: ${sum.setsA}:${sum.setsB}</div>
+          <div class="muted small">${UI.stageLabel(m.stage)} ${m.stage==="group" ? ("• Grupa "+(m.group||"")) : ""} • status: <b>${m.status}</b> • sety: ${sum.setsA}:${sum.setsB}${(m.status==="finished"||m.status==="confirmed") ? (` • przebieg: <b>${formatSetPreview(m)}</b>`) : ""}</div>
         </div>
         <div class="btnGroup">
           <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"PROGRAM":"Ustaw PROGRAM"}</button>
