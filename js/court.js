@@ -6,6 +6,14 @@
   const esc = (s)=>String(s??'').replace(/[&<>"']/g, (c)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[c]));
 
   const slug = UI.getSlug();
+
+  function getUrlParam(name) {
+    try { return new URLSearchParams(location.search).get(name) || ""; } catch (e) { return ""; }
+  }
+  function getCourtFromUrl() {
+    return (getUrlParam("court") || getUrlParam("c") || "").trim();
+  }
+
   if (!slug) {
     document.getElementById("app").innerHTML = "<div class='card'><h2>Brak parametru turnieju</h2><p>Dodaj do linku <code>?t=twoj-turniej</code></p></div>";
     return;
