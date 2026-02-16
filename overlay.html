@@ -1,1010 +1,418 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <title>Overlay – turniej siatkówki</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VolleyballPro • Overlay</title>
+  <link rel="stylesheet" href="css/main.css" />
   <style>
-    /* --- BAZA --- */
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #020617;
-      color: #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
 
-    header {
-      padding: 8px 24px 0;
-      background: #020617;
-      border-bottom: none;
-    }
+    html, body { height:100%; margin:0; padding:0; overflow:hidden; background:transparent; }
+    body { background: transparent; }
 
-    .scene-banner {
-      text-align: center;
-      padding: 4px 0 0;
-      font-size: 14px;
+    /* === SAFE AREA === */
+    :root{
+      --safe-l: max(44px, env(safe-area-inset-left));
+      --safe-t: max(44px, env(safe-area-inset-top));
+      --safe-r: max(44px, env(safe-area-inset-right));
+      --safe-b: max(44px, env(safe-area-inset-bottom));
+    }
+    .gameHUD{ left: var(--safe-l); top: var(--safe-t); }
+    .ticker{ padding-left: var(--safe-l); padding-right: var(--safe-r); padding-bottom: max(18px, var(--safe-b)); }
+
+
+    .overlayViewport{ position:fixed; inset:0; width:100vw; height:100vh; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .overlayStage{ width:1920px; height:1080px; transform-origin:center center; position:relative; overflow:hidden; background:transparent; font-family: var(--sans); }
+
+    .scene{ position:absolute; inset:0; opacity:0; pointer-events:none; transition: opacity 420ms ease; }
+    .scene.active{ opacity:1; pointer-events:auto; }
+
+    /* === GAME (new style) === */
+
+    /* === GAME meta pills (stage + set) === */
+    .gameMeta{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-start;
+      margin-bottom: 2px;
+    }
+    .metaPill{
+      height: 32px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(10,12,16,.70);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.92);
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: .35px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #9ca3af;
-      min-height: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 14px 40px rgba(0,0,0,.22);
+      display:flex;
+      align-items:center;
+      white-space: nowrap;
+      max-width: 820px;
+      overflow:hidden;
+      text-overflow: ellipsis;
     }
 
-    main {
-      max-width: 1800px;
-      height: calc(100vh - 8px);
-      margin: 0 auto;
-      padding: 8px 24px 24px;
-      box-sizing: border-box;
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      grid-template-rows: auto 1fr auto;
-      gap: 12px;
-    }
+    /* Safer margins + smaller HUD */
+    .gameHUD{ left:44px; top:44px; gap:12px; }
+    .teamPill{ width: 500px; height: 72px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
+    .teamName{ font-size: 28px; }
+    .setsBox{ width: 92px; }
+    .setsVal{ font-size: 20px; }
+    .pointsPill{ width: 98px; height: 72px; border-radius: 18px; font-size: 28px; }
 
-    /* --- SCOREBOARD --- */
-    .scoreboard {
-      grid-column: 1 / span 2;
-      grid-row: 1;
-      width: 1100px;
-      margin: 0 auto;
-      padding: 10px 28px;
-      border-radius: 20px;
-      border: 1px solid #1f2937;
-      background: radial-gradient(circle at top, #111827, #020617 70%);
-      box-shadow:
-        0 18px 40px rgba(0, 0, 0, 0.7),
-        0 0 0 1px rgba(15, 23, 42, 0.9);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .scoreboard-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      color: #9ca3af;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .scoreboard-teams {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .team {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      text-align: center;
-      align-items: center;
-    }
-
-    .team-name {
+    /* Static ticker: up to 2 matches; colored score */
+    .tickerItems{
+      display:flex;
+      gap: 90px;
+      align-items:center;
+      justify-content:flex-start;
+      white-space: nowrap;
+      overflow:hidden;
+      flex:1;
+      font-weight: 900;
       font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 0.3px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
+      letter-spacing:.2px;
+      color:#fff;
     }
+    .tickItem{ display:flex; align-items:center; gap:12px; }
+    .tickTeams{ color:#ffffff; opacity:.92; }
+    .tickScore{ color:#d9ff7a; }
 
-    .team-sets {
-      font-size: 13px;
-      color: #9ca3af;
+    .scene-game{ position:absolute; inset:0; }
+    .gameHUD{ position:absolute; left:60px; top:60px; display:flex; flex-direction:column; gap:18px; }
+    .teamRow{ display:flex; align-items:center; gap:16px; }
+
+    .teamPill{
+      width: 560px;
+      height: 92px;
+      border-radius: 26px;
+      background: linear-gradient(90deg, rgba(10,12,16,.92), rgba(40,42,48,.92));
+      border: 2px solid rgba(255,255,255,.08);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      padding: 14px 18px 14px 22px;
+      gap: 18px;
+      backdrop-filter: blur(12px);
     }
-
-    .score-main {
-      text-align: center;
-      padding: 8px 16px;
-      border-radius: 999px;
-      border: 1px solid #1f2937;
-      background: rgba(15, 23, 42, 0.9);
-      min-width: 140px;
-      box-shadow: inset 0 0 12px rgba(15, 23, 42, 0.9);
-    }
-
-    .score-main span {
+    .teamName{
       font-size: 34px;
-      font-weight: 800;
-      display: inline-block;
-      min-width: 42px;
+      font-weight: 900;
+      letter-spacing: .2px;
+      color: #fff;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      flex:1;
     }
-
-    .score-main .separator {
-      font-size: 26px;
-      padding: 0 8px;
-      opacity: 0.8;
-    }
-
-    .set-info {
-      display: none;
-    }
-
-    /* historia setów */
-    .sets-history {
-      margin-top: 4px;
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
+    .setsBox{
+      width: 96px;
+      text-align:center;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      align-items:center;
+      justify-content:center;
+      color: rgba(255,255,255,.75);
       font-size: 12px;
-      color: #e5e7eb;
+      font-weight: 700;
+      text-transform: lowercase;
+    }
+    .setsVal{
+      font-size: 22px;
+      font-weight: 900;
+      color: #fff;
     }
 
-    .set-chip {
-      padding: 4px 8px;
-      border-radius: 999px;
-      border: 1px solid #1f2937;
-      background: #020617;
+    .pointsPill{
+      width: 120px;
+      height: 92px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.94);
+      border: 2px solid rgba(0,0,0,.12);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 36px;
+      font-weight: 1000;
+      color:#0b0f16;
+      letter-spacing:.5px;
     }
 
-    .set-chip .set-label {
-      font-weight: 600;
-      margin-right: 4px;
+                
+    /* === Ticker === */
+    .ticker{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height: 92px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.78));
+      display:flex;
+      align-items:flex-end;
+      padding: 18px 60px;
+      gap: 18px;
     }
-
-    /* serw */
-    .serve-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
-      background: transparent;
-      box-shadow: none;
-      transition: 0.2s ease;
+    .tickerInner{
+      width:100%;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(10,12,16,.78);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display:flex;
+      align-items:center;
+      padding: 0 18px;
+      gap: 18px;
+      overflow:hidden;
+      backdrop-filter: blur(12px);
     }
-
-    .serve-indicator.active {
-      background: #ffffff;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
-    }
-
-    .team-name.serving span.name-text {
-      border-bottom: 3px solid #38aa33;
-      padding-bottom: 2px;
-    }
-
-    /* --- TABELA (4 GRUPY) --- */
-    .standings {
-      grid-column: 2;
-      grid-row: 2;
-      border-radius: 18px;
-      border: 1px solid #1f2937;
-      background: rgba(2, 6, 23, 0.98);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-      font-size: 12px;
-      max-height: 65vh;
-      overflow: hidden;
-    }
-
-    .standings-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .standings-header h2 {
-      font-size: 16px;
-      margin: 0;
-    }
-
-    .standings-groups {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-
-    .standings-group h3 {
-      margin: 4px 0;
-      font-size: 14px;
-      color: #e5e7eb;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    th, td {
-      padding: 4px 6px;
-      text-align: center;
-    }
-
-    th {
-      background: #111827;
-      color: #9ca3af;
-      font-weight: 500;
-      border-bottom: 1px solid #1f2937;
-    }
-
-    tbody tr:nth-child(even) { background: #020617; }
-    tbody tr:nth-child(odd)  { background: #030712; }
-
-    tbody tr:first-child {
-      outline: 1px solid #38aa33;
-      outline-offset: -1px;
-    }
-
-    td {
-      border-bottom: 1px solid #111827;
-    }
-
-    td.team-name-cell {
-      text-align: left;
-      font-weight: 500;
-    }
-
-    /* --- PANEL WYNIKÓW (PRZERWA) --- */
-    .break-results-panel {
-      grid-column: 1;
-      grid-row: 2;
-      border-radius: 18px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-      font-size: 13px;
-    }
-
-    .break-results-panel h2 {
-      margin: 0;
-      font-size: 16px;
-    }
-
-    .break-results {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #e5e7eb;
-      max-height: 220px;
-      overflow-y: auto;
-    }
-
-    .break-results-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 3px 0;
-    }
-
-    .break-results-item span {
+    .tickerLabel{
+      color:#fff;
+      font-weight: 900;
+      font-size: 22px;
       white-space: nowrap;
     }
+    .tickerItems{
+      display:flex;
+      gap: 70px;
+      align-items:center;
+      white-space: nowrap;
+      overflow:hidden;
+      flex:1;
+      color: #d9ff7a;
+      font-weight: 900;
+      font-size: 24px;
+      letter-spacing:.3px;
+    }
+    .tickItem{ display:flex; gap:14px; align-items:center; }
+    .tickSep{ opacity:.55; color:#fff; font-weight:700; }
 
-    /* --- BOXY Z LOGO --- */
-    .overlay-logos-row {
-      display: flex;
-      grid-column: 2;
-      grid-row: 3;
-      align-self: start;
-      justify-self: center;
-      width: 100%;
-      gap: 12px;
-      max-width: 1100px;
-      margin: 0 auto;
+
+    /* Smaller HUD */
+    .gameHUD{ left:46px; top:46px; gap:14px; }
+    .teamPill{ width: 500px; height: 78px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
+    .teamName{ font-size: 28px; }
+    .setsBox{ width: 90px; }
+    .setsVal{ font-size: 20px; }
+    .pointsPill{ width: 104px; height: 78px; border-radius: 18px; font-size: 34px; }
+    .teamRow{ gap: 14px; }
+                
+          50%  { transform: translateY(-1px) scale(1.08) rotate(4deg); filter: brightness(1.15); }
+      100% { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
     }
 
-    .overlay-logo-box {
-      flex: 1;
-      height: 125px;
-      background: #ffffff;
-      border-radius: 18px;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
-      padding: 10px 18px;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    /* Marquee ticker */
+    .tickerItems{ overflow:hidden; }
+    .marquee{ position:relative; width:100%; overflow:hidden; }
+    .marqueeTrack{
+      display:flex;
+      width:max-content;
+      gap:70px;
+      will-change: transform;
+      animation: marqueeScroll linear infinite;
+    }
+    .marqueeTrack > div{ display:flex; gap:70px; }
+    @keyframes marqueeScroll{
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
     }
 
-    .overlay-logo-inner {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+    
+
+    /* === FIX: Break/Technical inside scaled stage === */
+    .scene-break{
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
+        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
+        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
+        rgba(5,8,18,.96);
+    }
+    .scene-break .breakOverlay{
+      position:absolute !important;
+      inset:0 !important;
+      width: 1920px !important;
+      height: 1080px !important;
+      overflow:hidden;
+    }
+
+    /* technical.html uses .tech { position: fixed } — override when embedded */
+    .scene-technical{
+      background:
+        radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
+        radial-gradient(900px 650px at 80% 25%, rgba(165,110,255,.16), transparent 58%),
+        radial-gradient(900px 650px at 50% 90%, rgba(45,255,158,.10), transparent 60%),
+        rgba(5,8,18,.96);
+    }
+    .scene-technical .tech{
+      position:absolute !important;
+      inset:0 !important;
+      width: 1920px !important;
+      height: 1080px !important;
+      overflow:hidden;
+    }
+
+
+    /* Allow point pulse animation from overlay-anim.js */
+    .pointsNum{ will-change: transform, filter; }
+
+/* HARD FIX: Technical scene layout inside overlay */
+    #sceneTechnical{
+      position:absolute; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      text-align:center;
+    }
+    #sceneTechnical .techInner{
       width: 100%;
       height: 100%;
-      gap: 6px;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding: 80px;
     }
-
-    .overlay-logo-label {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #111827;
-      text-align: center;
-    }
-
-    .overlay-logo-box img {
-      max-width: 100%;
-      max-height: 70%;
-      object-fit: contain;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    /* --- TEKST NA SCENIE TECHNICZNEJ --- */
-    .scene-overlay-message {
-      position: absolute;
-      left: 50%;
-      top: 55%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      font-size: 32px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #e5e7eb;
-      text-shadow: 0 8px 20px rgba(0,0,0,0.8);
-      pointer-events: none;
-      padding: 8px 16px;
-      display: none;
-    }
-
-    /* --- SCENY --- */
-
-    /* domyślnie: mecz (game) – scoreboard + tabela + loga */
-    body[data-scene="game"] .break-results-panel {
-      display: none;
-    }
-    body[data-scene="game"] .scene-overlay-message {
-      display: none;
-    }
-
-    /* PRZERWA – tabela + wyniki */
-    body[data-scene="break"] .scoreboard {
-      display: none;
-    }
-    body[data-scene="break"] main {
-      grid-template-columns: 1.2fr 1.8fr;
-      grid-template-rows: auto 1fr auto;
-    }
-    body[data-scene="break"] .overlay-logos-row {
-      grid-column: 1 / span 2;
-      grid-row: 3;
-      margin-top: 24px;
-    }
-    body[data-scene="break"] .break-results-panel,
-    body[data-scene="break"] .standings {
-      height: 100%;
-      max-height: none;
-      align-self: stretch;
-    }
-
-    /* KONIEC MECZU – tylko wynik + loga */
-    body[data-scene="final"] .standings,
-    body[data-scene="final"] .break-results-panel {
-      display: none;
-    }
-    body[data-scene="final"] .scoreboard {
-      grid-column: 1 / span 2;
-      grid-row: 2;
-      margin-top: 40px;
-      width: 900px;
-    }
-    body[data-scene="final"] .scoreboard-header {
-      justify-content: center;
-    }
-    body[data-scene="final"] .sets-history {
-      margin-top: 12px;
-    }
-    body[data-scene="final"] .set-chip {
-      font-size: 16px;
-      padding: 6px 12px;
-    }
-    body[data-scene="final"] .overlay-logos-row {
-      grid-column: 1 / span 2;
-      grid-row: 3;
-      justify-content: center;
-    }
-    body[data-scene="final"] .scene-overlay-message {
-      display: none;
-    }
-
-    /* PRZERWA TECHNICZNA – tylko napis + loga */
-    body[data-scene="technical"] .scoreboard,
-    body[data-scene="technical"] .standings,
-    body[data-scene="technical"] .break-results-panel {
-      display: none;
-    }
-    body[data-scene="technical"] main {
-      grid-template-columns: 1fr;
-      grid-template-rows: 1fr auto;
-    }
-    body[data-scene="technical"] .overlay-logos-row {
-      grid-column: 1;
-      grid-row: 2;
-      width: 1100px;
-      max-width: 1100px;
-      margin: 0 auto 40px;
-      justify-content: center;
-    }
-    body[data-scene="technical"] .scene-overlay-message {
-      display: block;
-    }
-
-    /* wspólna szerokość w 3 scenach z logotypami na dole */
-    body[data-scene="break"] .overlay-logos-row,
-    body[data-scene="final"] .overlay-logos-row,
-    body[data-scene="technical"] .overlay-logos-row {
-      max-width: 1100px;
-      margin-left: auto;
-      margin-right: auto;
-    }
+    #sceneTechnical .techTitle{ font-size:84px; font-weight:900; letter-spacing:2px; text-transform:uppercase; color: var(--text, rgba(255,255,255,.95)); text-shadow: 0 20px 60px rgba(0,0,0,.55); }
+    #sceneTechnical .techSub{ margin-top:18px; font-size:28px; color: var(--muted, rgba(255,255,255,.7)); max-width: 1200px; line-height:1.25; }
+    #sceneTechnical .techBar{ margin-top:40px; display:flex; gap:14px; align-items:center; padding:14px 18px; border-radius:999px;
+      background: rgba(8,12,24,.55); border:1px solid rgba(255,255,255,.14); box-shadow: 0 18px 50px rgba(0,0,0,.45); backdrop-filter: blur(12px); }
+    #sceneTechnical .techClock{ font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace); font-size:22px; font-weight:900; color: var(--text, rgba(255,255,255,.95)); }
+    #sceneTechnical .techHint{ font-size:14px; color: var(--muted, rgba(255,255,255,.7)); }
+  
   </style>
 </head>
 <body>
-  <header>
-    <div id="sceneBanner" class="scene-banner"></div>
-  </header>
+  <div class="overlayViewport">
+    <div class="overlayStage" id="stage">
+      <!-- GAME -->
+      <div class="scene scene-game active" id="sceneGame">
+        <div class="gameHUD">
 
-  <main>
-    <!-- SCOREBOARD (używany w game + final) -->
-    <section class="scoreboard">
-      <div class="scoreboard-header">
-        <div>Mecz: <span id="matchLabel">–</span></div>
-        <div>Set: <span id="currentSet">1</span> (gramy do 2 wygranych setów)</div>
-      </div>
-      <div class="scoreboard-teams">
-        <div class="team">
-          <div class="team-name" id="teamANameBox">
-            <span class="serve-indicator" id="serveA"></span>
-            <span class="name-text" id="teamAName">Drużyna A</span>
+          <div class="gameMeta">
+            <div class="metaPill" id="metaStage">—</div>
+            <div class="metaPill" id="metaSet">SET —/3</div>
           </div>
-          <div class="team-sets">Sety: <span id="teamASets">0</span></div>
-        </div>
-        <div class="score-main" id="scoreMain">
-          <span id="teamAPoints">0</span>
-          <span class="separator">:</span>
-          <span id="teamBPoints">0</span>
-        </div>
-        <div class="team">
-          <div class="team-name" id="teamBNameBox">
-            <span class="serve-indicator" id="serveB"></span>
-            <span class="name-text" id="teamBName">Drużyna B</span>
+          
+          
+          <div class="teamRow" id="rowA">
+            <div class="teamPill">
+              <div class="teamName" id="aName">—</div>
+              <div class="setsBox">
+                <div>wygrane sety</div>
+                <div class="setsVal" id="aSets">0</div>
+              </div>
+            </div>
+            <div class="pointsPill">
+              <div class="pointsNum scoreBox" id="aScore">0</div>
+</div>
           </div>
-          <div class="team-sets">Sety: <span id="teamBSets">0</span></div>
-        </div>
-      </div>
-      <div class="sets-history" id="setsHistory"></div>
-    </section>
 
-    <!-- PANEL WYNIKÓW (przerwa) -->
-    <section class="break-results-panel" id="breakResultsPanel">
-      <h2>Wyniki meczów</h2>
-      <div class="break-results" id="breakResults"></div>
-    </section>
 
-    <!-- TABELA – 4 GRUPY -->
-    <section class="standings">
-      <div class="standings-header">
-        <h2>Tabele grupowe</h2>
-        <span class="small-text">
-          Punktacja: 2:0 → 3 pkt, 2:1 → 2 pkt, 1:2 → 1 pkt, 0:2 → 0 pkt
-        </span>
-      </div>
-      <div class="standings-groups">
-        <div class="standings-group">
-          <h3>Grupa A</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Drużyna</th>
-                <th>M</th>
-                <th>W</th>
-                <th>P</th>
-                <th>Sety +</th>
-                <th>Sety –</th>
-                <th>Pkt +</th>
-                <th>Pkt –</th>
-                <th>Punkty</th>
-              </tr>
-            </thead>
-            <tbody id="standingsBodyA"></tbody>
-          </table>
+          <div class="teamRow" id="rowB">
+            <div class="teamPill">
+              <div class="teamName" id="bName">—</div>
+              <div class="setsBox">
+                <div>wygrane sety</div>
+                <div class="setsVal" id="bSets">0</div>
+              </div>
+            </div>
+            <div class="pointsPill">
+              <div class="pointsNum scoreBox" id="bScore">0</div>
+</div>
+          </div>
         </div>
-        <div class="standings-group">
-          <h3>Grupa B</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Drużyna</th>
-                <th>M</th>
-                <th>W</th>
-                <th>P</th>
-                <th>Sety +</th>
-                <th>Sety –</th>
-                <th>Pkt +</th>
-                <th>Pkt –</th>
-                <th>Punkty</th>
-              </tr>
-            </thead>
-            <tbody id="standingsBodyB"></tbody>
-          </table>
-        </div>
-        <div class="standings-group">
-          <h3>Grupa C</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Drużyna</th>
-                <th>M</th>
-                <th>W</th>
-                <th>P</th>
-                <th>Sety +</th>
-                <th>Sety –</th>
-                <th>Pkt +</th>
-                <th>Pkt –</th>
-                <th>Punkty</th>
-              </tr>
-            </thead>
-            <tbody id="standingsBodyC"></tbody>
-          </table>
-        </div>
-        <div class="standings-group">
-          <h3>Grupa D</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Drużyna</th>
-                <th>M</th>
-                <th>W</th>
-                <th>P</th>
-                <th>Sety +</th>
-                <th>Sety –</th>
-                <th>Pkt +</th>
-                <th>Pkt –</th>
-                <th>Punkty</th>
-              </tr>
-            </thead>
-            <tbody id="standingsBodyD"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
 
-    <!-- BOXY Z LOGO -->
-    <div class="overlay-logos-row">
-      <div class="overlay-logo-box" id="sponsorsBox">
-        <div class="overlay-logo-inner">
-          <div class="overlay-logo-label">Sponsorzy i partnerzy</div>
-          <img id="overlayLogo" alt="Sponsor / partner" />
+        <div class="ticker">
+          <div class="tickerInner">
+            <div class="tickerLabel">Inne mecze na żywo:</div>
+            <div class="tickerItems" id="liveTicker"></div></div></div>
+          </div>
         </div>
       </div>
-      <div class="overlay-logo-box" id="organizersBox">
-        <div class="overlay-logo-inner">
-          <div class="overlay-logo-label">Organizatorzy wydarzenia</div>
-          <img id="overlayOrganizerLogo" alt="Organizator wydarzenia" />
+
+      <!-- BREAK -->
+      <div class="scene scene-break" id="sceneBreak">
+        <div class="breakOverlay" id="breakRoot">
+          <div class="breakTop">
+            <div class="breakTitle">
+              <div class="breakKicker">PRZERWA</div>
+              <div class="breakTournament" id="btName">VolleyballPro</div>
+            </div>
+            <div class="breakMeta">
+              <div class="breakPill" id="btSlug"></div>
+              <div class="breakClock" id="btClock"></div>
+            </div>
+          </div>
+
+          <div class="breakGrid">
+            <div class="breakLeft card">
+              <div class="breakSectionTitle">Tabele grup</div>
+              <div id="breakTables" class="breakTables"></div>
+            </div>
+
+            <div class="breakRight">
+              <div class="card breakPanel">
+                <div class="breakSectionTitle">Ostatnie wyniki</div>
+                <div id="breakLast" class="breakList"></div>
+              </div>
+              <div class="card breakPanel">
+                <div class="breakSectionTitle">Następne mecze</div>
+                <div id="breakNext" class="breakList"></div>
+              </div>
+              <div class="card breakPanel">
+                <div class="breakSectionTitle">Mecz na transmisji</div>
+                <div id="breakProgram" class="breakProgram"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="overlayNotice" id="breakNotice" style="display:none"></div>
         </div>
       </div>
+
+      <!-- TECHNICAL -->
+      <div class="scene scene-technical" id="sceneTechnical">
+        <div class="techInner">
+          <div class="techTitle" id="techTitle">ZARAZ WRACAMY</div>
+          <div class="techSub" id="techSubtitle">Trwają przygotowania do kolejnego meczu</div>
+          <div class="techBar">
+            <div class="techClock" id="techClock">--:--:--</div>
+            <div class="techHint">Ekran techniczny • VolleyballPro</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPONSORS -->
+      <div class="scene scene-sponsors" id="sceneSponsors"></div>
     </div>
+  </div>
 
-    <div id="sceneOverlayMessage" class="scene-overlay-message"></div>
-  </main>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/ui-shared.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/state.js"></script>
+<script src="js/break.js"></script>
+  <script src="js/overlay.js"></script>
+  <script src="js/overlay-anim.js"></script>
 
-  <script>
-    /* --- KONFIG I STAN (taki sam STORAGE_KEY jak w index.html) --- */
-    const STORAGE_KEY = "volley_tournament_state_v1";
-    const LOGO_MAX_INDEX = 20;
-    const LOGO_ROTATION_MS = 5000;
-    const ORGANIZER_ROTATION_MS = 7000;
-    const ORGANIZER_LOGOS = ["MR Energy.png", "Tytani.png"];
+<script>
+(function(){
+  const el = document.getElementById("techClock");
+  function tick(){
+    const d=new Date();
+    const hh=String(d.getHours()).padStart(2,'0');
+    const mm=String(d.getMinutes()).padStart(2,'0');
+    const ss=String(d.getSeconds()).padStart(2,'0');
+    if(el) el.textContent = `${hh}:${mm}:${ss}`;
+  }
+  tick(); setInterval(tick,1000);
+})();
+</script>
 
-    // te same drużyny + grupy jak w index.html
-    const initialTeams = [
-      { name: "Asy Mikasy", group: "A" },
-      { name: "Tartak Siemianówka", group: "A" },
-      { name: "SGA Trans-Ber", group: "A" },
-      { name: "Rojal Flasz", group: "B" },
-      { name: "Meridan Team", group: "B" },
-      { name: "Torpeda Białystok", group: "B" },
-      { name: "Sparta Łosice", group: "C" },
-      { name: "Golden Crew", group: "C" },
-      { name: "MR Energy", group: "C" },
-      { name: "Global East", group: "D" },
-      { name: "KZS Białystok", group: "D" },
-      { name: "Kometa", group: "D" }
-    ];
-
-    let teams = [];
-    let matchesHistory = [];
-    let currentMatch = {
-      teamAId: null,
-      teamBId: null,
-      setA: 0,
-      setB: 0,
-      pointsA: 0,
-      pointsB: 0,
-      currentSet: 1,
-      setsHistory: []
-    };
-    let sponsors = [];
-    let lastPointWinner = null;
-
-    let logoFiles = [];
-    let logosRotationIndex = 0;
-    let logosRotationTimer = null;
-
-    let organizerFiles = [];
-    let organizerIndex = 0;
-    let organizerTimer = null;
-
-    /* --- pomocnicze --- */
-    function getParam(name, def = null) {
-      try {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name) || def;
-      } catch {
-        return def;
-      }
-    }
-
-    const scene = getParam("scene", "game"); // game / break / final / technical
-    document.body.setAttribute("data-scene", scene);
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-
-        if (Array.isArray(parsed.teams)) {
-          teams = parsed.teams;
-
-          // jeśli stare dane bez pola group – uzupełnij na podstawie initialTeams
-          if (teams.length && !teams[0].hasOwnProperty("group")) {
-            teams.forEach((t, i) => {
-              const tpl = initialTeams[i];
-              t.group = tpl ? tpl.group : "";
-            });
-          }
-        }
-        if (Array.isArray(parsed.matchesHistory)) matchesHistory = parsed.matchesHistory;
-        if (parsed.currentMatch) currentMatch = parsed.currentMatch;
-        if (Array.isArray(parsed.sponsors)) sponsors = parsed.sponsors;
-        if (parsed.lastPointWinner) lastPointWinner = parsed.lastPointWinner;
-      } catch (e) {
-        console.warn("Błąd odczytu stanu w overlay:", e);
-      }
-    }
-
-    /* --- render banner --- */
-    function renderSceneBanner() {
-      const banner = document.getElementById("sceneBanner");
-      let text = "";
-      switch (scene) {
-        case "break":
-          text = "Aktualna tabela i wyniki meczów";
-          break;
-        case "final":
-          text = "Koniec meczu – wynik końcowy";
-          break;
-        case "technical":
-          text = "Przerwa techniczna – zaraz wracamy";
-          break;
-        default:
-          text = "";
-      }
-      banner.textContent = text;
-      const msgEl = document.getElementById("sceneOverlayMessage");
-      if (msgEl) {
-        msgEl.textContent = scene === "technical"
-          ? "Przerwa techniczna – zaraz wracamy"
-          : "";
-      }
-    }
-
-    /* --- render scoreboard --- */
-    function renderScoreboard() {
-      const teamANameEl = document.getElementById("teamAName");
-      const teamBNameEl = document.getElementById("teamBName");
-      const teamASetsEl = document.getElementById("teamASets");
-      const teamBSetsEl = document.getElementById("teamBSets");
-      const teamAPointsEl = document.getElementById("teamAPoints");
-      const teamBPointsEl = document.getElementById("teamBPoints");
-      const matchLabelEl = document.getElementById("matchLabel");
-      const currentSetEl = document.getElementById("currentSet");
-      const historyEl = document.getElementById("setsHistory");
-
-      const teamA = teams.find(t => t.id === currentMatch.teamAId);
-      const teamB = teams.find(t => t.id === currentMatch.teamBId);
-
-      teamANameEl.textContent = teamA ? teamA.name : "Drużyna A";
-      teamBNameEl.textContent = teamB ? teamB.name : "Drużyna B";
-
-      teamASetsEl.textContent = currentMatch.setA;
-      teamBSetsEl.textContent = currentMatch.setB;
-      teamAPointsEl.textContent = currentMatch.pointsA;
-      teamBPointsEl.textContent = currentMatch.pointsB;
-
-      matchLabelEl.textContent = (teamA && teamB)
-        ? `${teamA.name} vs ${teamB.name}`
-        : "–";
-
-      currentSetEl.textContent = currentMatch.currentSet;
-
-      historyEl.innerHTML = "";
-      currentMatch.setsHistory.forEach(set => {
-        const chip = document.createElement("div");
-        chip.className = "set-chip";
-        chip.innerHTML = `<span class="set-label">Set ${set.number}:</span>${set.a} : ${set.b}`;
-        historyEl.appendChild(chip);
-      });
-
-      const serveA = document.getElementById("serveA");
-      const serveB = document.getElementById("serveB");
-      const teamANameBox = document.getElementById("teamANameBox");
-      const teamBNameBox = document.getElementById("teamBNameBox");
-
-      serveA.classList.remove("active");
-      serveB.classList.remove("active");
-      teamANameBox.classList.remove("serving");
-      teamBNameBox.classList.remove("serving");
-
-      if (lastPointWinner === "A") {
-        serveA.classList.add("active");
-        teamANameBox.classList.add("serving");
-      } else if (lastPointWinner === "B") {
-        serveB.classList.add("active");
-        teamBNameBox.classList.add("serving");
-      }
-    }
-
-    /* --- wyniki do przerwy --- */
-    function renderBreakResults() {
-      const container = document.getElementById("breakResults");
-      if (!container) return;
-
-      if (!matchesHistory.length) {
-        container.innerHTML = '<div class="small-text">Brak zakończonych meczów.</div>';
-        return;
-      }
-
-      container.innerHTML = "";
-      const history = [...matchesHistory].slice().reverse();
-      history.forEach(match => {
-        const teamA = teams.find(t => t.id === match.teamAId);
-        const teamB = teams.find(t => t.id === match.teamBId);
-        const nameA = teamA ? teamA.name : "Drużyna A";
-        const nameB = teamB ? teamB.name : "Drużyna B";
-
-        const stageLabel = match.stage && match.stage !== "group"
-          ? ` (${match.stage})`
-          : "";
-
-        const row = document.createElement("div");
-        row.className = "break-results-item";
-        row.innerHTML = `<span>${nameA} vs ${nameB}${stageLabel}</span><span>${match.setsA}:${match.setsB}</span>`;
-        container.appendChild(row);
-      });
-    }
-
-    /* --- tabela --- */
-    function getHeadToHeadWinner(teamId1, teamId2) {
-      const relevantMatches = matchesHistory.filter(
-        m =>
-          (!m.stage || m.stage === "group") &&
-          (
-            (m.teamAId === teamId1 && m.teamBId === teamId2) ||
-            (m.teamAId === teamId2 && m.teamBId === teamId1)
-          )
-      );
-      if (!relevantMatches.length) return null;
-
-      let wins1 = 0, wins2 = 0;
-      relevantMatches.forEach(m => {
-        if (m.setsA > m.setsB) {
-          if (m.teamAId === teamId1) wins1++; else wins2++;
-        } else if (m.setsB > m.setsA) {
-          if (m.teamBId === teamId1) wins1++; else wins2++;
-        }
-      });
-      if (wins1 > wins2) return teamId1;
-      if (wins2 > wins1) return teamId2;
-      return null;
-    }
-
-    function compareTeams(a, b) {
-      if (b.tablePoints !== a.tablePoints) return b.tablePoints - a.tablePoints;
-      const h2hWinner = getHeadToHeadWinner(a.id, b.id);
-      if (h2hWinner === a.id) return -1;
-      if (h2hWinner === b.id) return 1;
-
-      const diffA = a.setsWon - a.setsLost;
-      const diffB = b.setsWon - b.setsLost;
-      if (diffB !== diffA) return diffB - diffA;
-
-      const ratioA = a.pointsAgainst === 0 ? a.pointsFor : a.pointsFor / a.pointsAgainst;
-      const ratioB = b.pointsAgainst === 0 ? b.pointsFor : b.pointsFor / b.pointsAgainst;
-      if (ratioB !== ratioA) return ratioB - ratioA;
-
-      return a.name.localeCompare(b.name, "pl");
-    }
-
-    function renderStandings() {
-      const bodies = {
-        A: document.getElementById("standingsBodyA"),
-        B: document.getElementById("standingsBodyB"),
-        C: document.getElementById("standingsBodyC"),
-        D: document.getElementById("standingsBodyD"),
-      };
-
-      ["A", "B", "C", "D"].forEach(group => {
-        const tbody = bodies[group];
-        if (!tbody) return;
-        tbody.innerHTML = "";
-
-        const groupTeams = teams.filter(t => t.group === group);
-        const sortedTeams = [...groupTeams].sort(compareTeams);
-
-        sortedTeams.forEach((team, index) => {
-          const row = document.createElement("tr");
-
-          const posTd = document.createElement("td");
-          posTd.textContent = index + 1;
-          row.appendChild(posTd);
-
-          const nameTd = document.createElement("td");
-          nameTd.textContent = team.name;
-          nameTd.classList.add("team-name-cell");
-          row.appendChild(nameTd);
-
-          const playedTd = document.createElement("td");
-          playedTd.textContent = team.played;
-          row.appendChild(playedTd);
-
-          const wonTd = document.createElement("td");
-          wonTd.textContent = team.won;
-          row.appendChild(wonTd);
-
-          const lostTd = document.createElement("td");
-          lostTd.textContent = team.lost;
-          row.appendChild(lostTd);
-
-          const setsWonTd = document.createElement("td");
-          setsWonTd.textContent = team.setsWon;
-          row.appendChild(setsWonTd);
-
-          const setsLostTd = document.createElement("td");
-          setsLostTd.textContent = team.setsLost;
-          row.appendChild(setsLostTd);
-
-          const pointsForTd = document.createElement("td");
-          pointsForTd.textContent = team.pointsFor;
-          row.appendChild(pointsForTd);
-
-          const pointsAgainstTd = document.createElement("td");
-          pointsAgainstTd.textContent = team.pointsAgainst;
-          row.appendChild(pointsAgainstTd);
-
-          const tablePointsTd = document.createElement("td");
-          tablePointsTd.textContent = team.tablePoints;
-          row.appendChild(tablePointsTd);
-
-          tbody.appendChild(row);
-        });
-      });
-    }
-
-    /* --- rotacja logo sponsorów (logo1.png...) --- */
-    function detectLogoFiles(callback) {
-      logoFiles = [];
-      let remaining = LOGO_MAX_INDEX;
-      if (!remaining) { callback && callback(); return; }
-
-      for (let i = 1; i <= LOGO_MAX_INDEX; i++) {
-        const src = `logo${i}.png`;
-        const img = new Image();
-        img.onload = () => { logoFiles.push(src); checkDone(); };
-        img.onerror = () => { checkDone(); };
-        img.src = src;
-      }
-      function checkDone() {
-        if (--remaining === 0 && callback) callback();
-      }
-    }
-
-    function startOverlayLogoRotation() {
-      const imgEl = document.getElementById("overlayLogo");
-      if (!imgEl) return;
-      if (!logoFiles.length) {
-        imgEl.style.opacity = 0;
-        return;
-      }
-      if (logosRotationTimer) clearInterval(logosRotationTimer);
-
-      const showNext = () => {
-        imgEl.style.opacity = 0;
-        const src = logoFiles[logosRotationIndex];
-        logosRotationIndex = (logosRotationIndex + 1) % logoFiles.length;
-        setTimeout(() => {
-          imgEl.src = src;
-          imgEl.onload = () => { imgEl.style.opacity = 1; };
-        }, 200);
-      };
-      showNext();
-      logosRotationTimer = setInterval(showNext, LOGO_ROTATION_MS);
-    }
-
-    /* --- rotacja logo organizatorów --- */
-    function detectOrganizerFiles(callback) {
-      organizerFiles = [];
-      let remaining = ORGANIZER_LOGOS.length;
-      if (!remaining) { callback && callback(); return; }
-
-      ORGANIZER_LOGOS.forEach(src => {
-        const img = new Image();
-        img.onload = () => { organizerFiles.push(src); checkDone(); };
-        img.onerror = () => { checkDone(); };
-        img.src = src;
-      });
-      function checkDone() {
-        if (--remaining === 0 && callback) callback();
-      }
-    }
-
-    function startOrganizerRotation() {
-      const imgEl = document.getElementById("overlayOrganizerLogo");
-      if (!imgEl) return;
-      if (!organizerFiles.length) {
-        imgEl.style.opacity = 0;
-        return;
-      }
-      if (organizerTimer) clearInterval(organizerTimer);
-
-      const showNext = () => {
-        imgEl.style.opacity = 0;
-        const src = organizerFiles[organizerIndex];
-        organizerIndex = (organizerIndex + 1) % organizerFiles.length;
-        setTimeout(() => {
-          imgEl.src = src;
-          imgEl.onload = () => { imgEl.style.opacity = 1; };
-        }, 200);
-      };
-      showNext();
-      organizerTimer = setInterval(showNext, ORGANIZER_ROTATION_MS);
-    }
-
-    /* --- INIT --- */
-    loadState();
-    renderSceneBanner();
-    renderScoreboard();
-    renderStandings();
-    renderBreakResults();
-    detectLogoFiles(startOverlayLogoRotation);
-    detectOrganizerFiles(startOrganizerRotation);
-
-    /* gdy panel zapisze nowy stan – zaktualizuj overlay */
-    window.addEventListener("storage", (event) => {
-      if (event.key !== STORAGE_KEY) return;
-      loadState();
-      renderScoreboard();
-      renderStandings();
-      renderBreakResults();
-    });
-  </script>
-<script src="js/overlay-sponsors-addon.js"></script>
 </body>
 </html>
