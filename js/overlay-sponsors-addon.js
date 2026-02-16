@@ -17,17 +17,17 @@
     if (document.getElementById("vpSponsorsStyle")) return;
     const css = `
       /* Sponsors scene (TV) */
-      .scene-sponsors .sponsorsWrap{
+      #sceneSponsors, .scene-sponsors .sponsorsWrap{
         position:absolute; inset:0;
         padding: 80px 80px 80px 80px;
         display:flex;
         flex-direction:column;
         gap: 22px;
       }
-      .scene-sponsors .sponsorsTitle{
+      #sceneSponsors, .scene-sponsors .sponsorsTitle{
         display:flex; align-items:center; justify-content:flex-start;
       }
-      .scene-sponsors .sponsorsTitleBadge{
+      #sceneSponsors, .scene-sponsors .sponsorsTitleBadge{
         padding: 10px 16px;
         border-radius: 999px;
         background: rgba(255,255,255,.06);
@@ -39,14 +39,14 @@
         box-shadow: 0 18px 60px rgba(0,0,0,.55);
         backdrop-filter: blur(12px);
       }
-      .scene-sponsors .sponsorsGrid{
+      #sceneSponsors, .scene-sponsors .sponsorsGrid{
         display:grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 18px;
         flex: 1;
         align-content:start;
       }
-      .scene-sponsors .spCard{
+      #sceneSponsors, .scene-sponsors .spCard{
         height: 170px;
         border-radius: 22px;
         background: rgba(10,14,28,.55);
@@ -61,18 +61,18 @@
         overflow:hidden;
         backdrop-filter: blur(14px);
       }
-      .scene-sponsors .spLogo{
+      #sceneSponsors, .scene-sponsors .spLogo{
         width: 100%;
         height: 92px;
         display:flex; align-items:center; justify-content:center;
       }
-      .scene-sponsors .spLogo img{
+      #sceneSponsors, .scene-sponsors .spLogo img{
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
         filter: drop-shadow(0 12px 30px rgba(0,0,0,.35));
       }
-      .scene-sponsors .spName{
+      #sceneSponsors, .scene-sponsors .spName{
         font-size: 20px;
         font-weight: 900;
         color: rgba(255,255,255,.92);
@@ -84,7 +84,7 @@
       }
 
       /* Small sponsor accent on GAME (subtle) */
-      .scene-game .sponsorAccent{
+      #sceneGame, .scene-game .sponsorAccent{
         position:absolute;
         right: var(--safe-r);
         bottom: calc(86px + 22px + var(--safe-b)); /* above ticker */
@@ -99,7 +99,7 @@
         backdrop-filter: blur(12px);
         max-width: 520px;
       }
-      .scene-game .sponsorAccent .spMark{
+      #sceneGame, .scene-game .sponsorAccent .spMark{
         width: 36px;
         height: 24px;
         border-radius: 10px;
@@ -109,19 +109,19 @@
         overflow:hidden;
         flex: 0 0 auto;
       }
-      .scene-game .sponsorAccent .spMark img{
+      #sceneGame, .scene-game .sponsorAccent .spMark img{
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
         opacity: .95;
       }
-      .scene-game .sponsorAccent .spText{
+      #sceneGame, .scene-game .sponsorAccent .spText{
         display:flex;
         flex-direction:column;
         gap: 2px;
         min-width:0;
       }
-      .scene-game .sponsorAccent .spLabel{
+      #sceneGame, .scene-game .sponsorAccent .spLabel{
         font-size: 11px;
         letter-spacing: 2px;
         text-transform: uppercase;
@@ -129,7 +129,7 @@
         color: #fff;
         line-height: 1;
       }
-      .scene-game .sponsorAccent .spValue{
+      #sceneGame, .scene-game .sponsorAccent .spValue{
         font-size: 16px;
         font-weight: 900;
         color: rgba(255,255,255,.92);
@@ -148,7 +148,7 @@
   function ensureDOM() {
     ensureStyle();
 
-    const sceneSponsors = document.getElementById("sceneSponsors") || document.querySelector(".scene-sponsors");
+    const sceneSponsors = document.getElementById("sceneSponsors") || document.querySelector("#sceneSponsors, .scene-sponsors");
     if (sceneSponsors && !sceneSponsors.querySelector(".sponsorsWrap")) {
       const wrap = document.createElement("div");
       wrap.className = "sponsorsWrap";
@@ -161,7 +161,7 @@
       sceneSponsors.appendChild(wrap);
     }
 
-    const sceneGame = document.getElementById("sceneGame") || document.querySelector(".scene-game");
+    const sceneGame = document.getElementById("sceneGame") || document.querySelector("#sceneGame, .scene-game");
     if (sceneGame && !sceneGame.querySelector(".sponsorAccent")) {
       const a = document.createElement("div");
       a.className = "sponsorAccent";
@@ -234,7 +234,7 @@
   function renderAccent(st) {
     ensureDOM();
 
-    const accent = document.querySelector(".scene-game .sponsorAccent");
+    const accent = document.querySelector("#sceneGame, .scene-game .sponsorAccent");
     const nameEl = document.getElementById("spAccentName");
     const logoEl = document.getElementById("spAccentLogo");
     if (!accent || !nameEl || !logoEl) return;
@@ -286,6 +286,7 @@
       current = snap;
       renderAll(snap.state || {});
     });
+    window.VP_SPONSORS_DEBUG = { get snap(){ return current; } };
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
