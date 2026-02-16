@@ -1,12 +1,13 @@
-// js/overlay-sponsors-rotator.tv.js
+// js/overlay-sponsors-rotator.tv.wipe.js
 // SAFE: Sponsors scene only. ONE sponsor at a time, full-screen TV look.
-// Does NOT touch other scenes.
+// Adds "wipe" transition (like TV) without touching other scenes.
+// Also: removes bottom-left capsule, and renders logos on a white plate.
 // Needs: <div id="sceneSponsors" class="scene"></div> in overlay.html
 (function () {
   const UI = window.VP_UI;
   const STORE = window.VPState;
 
-  const STYLE_ID = "vpSponsorsRotatorTVStyle";
+  const STYLE_ID = "vpSponsorsRotatorTVWipeStyle";
 
   function getSlug() { try { return UI.getSlug(); } catch { return ""; } }
 
@@ -34,7 +35,7 @@
           radial-gradient(1400px 900px at 22% 28%, rgba(120,210,255,.20), rgba(0,0,0,0) 60%),
           radial-gradient(1300px 820px at 78% 30%, rgba(185,120,255,.18), rgba(0,0,0,0) 62%),
           radial-gradient(1500px 980px at 50% 88%, rgba(90,255,200,.12), rgba(0,0,0,0) 60%),
-          linear-gradient(180deg, rgba(5,7,11,.78), rgba(5,7,11,.60));
+          linear-gradient(180deg, rgba(5,7,11,.80), rgba(5,7,11,.62));
         opacity: .98;
         filter: saturate(1.06) contrast(1.08);
         transform: scale(1.02);
@@ -42,9 +43,9 @@
       #sceneSponsors .spVignette{
         position:absolute; inset:0;
         background:
-          radial-gradient(1200px 760px at 50% 44%, rgba(0,0,0,0), rgba(0,0,0,.58)),
+          radial-gradient(1200px 760px at 50% 44%, rgba(0,0,0,0), rgba(0,0,0,.60)),
           linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.05));
-        opacity: .7;
+        opacity: .72;
       }
       #sceneSponsors .spNoise{
         position:absolute; inset:0;
@@ -60,13 +61,43 @@
         display:flex;
         align-items:center;
         justify-content:center;
-        padding: clamp(26px, 4vw, 80px);
+        padding: clamp(26px, 4vw, 86px);
       }
 
-      /* Full-screen content block */
+      /* Wipe overlay (diagonal bar + light streak) */
+      #sceneSponsors .spWipe{
+        position:absolute;
+        top:-30%;
+        left:-70%;
+        width: 240%;
+        height: 160%;
+        background:
+          linear-gradient(110deg,
+            rgba(255,255,255,0) 34%,
+            rgba(255,255,255,.12) 44%,
+            rgba(255,255,255,.22) 50%,
+            rgba(255,255,255,.12) 56%,
+            rgba(255,255,255,0) 66%);
+        filter: blur(0px);
+        opacity: 0;
+        transform: translateX(-18%) skewX(-10deg);
+        mix-blend-mode: screen;
+        pointer-events:none;
+      }
+      #sceneSponsors .spWipe.isRun{
+        opacity: .95;
+        animation: spWipeMove 620ms cubic-bezier(.2,.9,.2,1) both;
+      }
+      @keyframes spWipeMove{
+        0%   { transform: translateX(-22%) skewX(-10deg); opacity: 0; }
+        15%  { opacity: .95; }
+        100% { transform: translateX(16%) skewX(-10deg); opacity: 0; }
+      }
+
+      /* Content block */
       #sceneSponsors .spHero{
-        width: min(1400px, 92vw);
-        height: min(820px, 78vh);
+        width: min(1480px, 94vw);
+        height: min(840px, 78vh);
         display:flex;
         flex-direction:column;
         align-items:center;
@@ -83,21 +114,21 @@
         transform: translateY(0px) scale(1);
         filter: blur(0px);
         transition:
-          opacity 650ms cubic-bezier(.18,.9,.18,1),
-          transform 650ms cubic-bezier(.18,.9,.18,1),
-          filter 650ms cubic-bezier(.18,.9,.18,1);
+          opacity 520ms cubic-bezier(.18,.9,.18,1),
+          transform 520ms cubic-bezier(.18,.9,.18,1),
+          filter 520ms cubic-bezier(.18,.9,.18,1);
       }
       #sceneSponsors .spHero.isOut{
         opacity: 0;
         transform: translateY(-10px) scale(1.01);
         filter: blur(12px);
         transition:
-          opacity 420ms ease,
-          transform 420ms ease,
-          filter 420ms ease;
+          opacity 380ms ease,
+          transform 380ms ease,
+          filter 380ms ease;
       }
 
-      /* Big logo */
+      /* Big logo area with WHITE plate */
       #sceneSponsors .spLogo{
         width: 100%;
         height: 62%;
@@ -105,11 +136,24 @@
         align-items:center;
         justify-content:center;
       }
-      #sceneSponsors .spLogo img{
+      #sceneSponsors .spPlate{
+        width: min(1180px, 86vw);
+        height: min(430px, 48vh);
+        border-radius: 28px;
+        background: rgba(255,255,255,.94);
+        box-shadow:
+          0 36px 140px rgba(0,0,0,.55),
+          inset 0 1px 0 rgba(0,0,0,.06);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding: clamp(18px, 2.5vw, 44px);
+      }
+      #sceneSponsors .spPlate img{
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
-        filter: drop-shadow(0 26px 90px rgba(0,0,0,.55));
+        filter: drop-shadow(0 16px 44px rgba(0,0,0,.28));
       }
 
       /* Name + role (VISIBLE, TV-sized) */
@@ -117,7 +161,7 @@
         font-weight: 980;
         letter-spacing: .6px;
         color: rgba(255,255,255,.96);
-        font-size: clamp(32px, 3.8vw, 64px);
+        font-size: clamp(28px, 3.2vw, 56px);
         line-height: 1.04;
         max-width: 96%;
         text-shadow: 0 10px 40px rgba(0,0,0,.55);
@@ -127,10 +171,10 @@
       }
       #sceneSponsors .spDesc{
         margin-top: -10px;
-        color: rgba(255,255,255,.82);
-        font-weight: 800;
+        color: rgba(255,255,255,.84);
+        font-weight: 850;
         letter-spacing: .25px;
-        font-size: clamp(22px, 2.3vw, 38px);
+        font-size: clamp(22px, 2.2vw, 38px);
         line-height: 1.1;
         max-width: 96%;
         text-shadow: 0 10px 40px rgba(0,0,0,.45);
@@ -139,38 +183,22 @@
         text-overflow: ellipsis;
       }
 
-      /* Small bottom tag (optional) */
-      #sceneSponsors .spTag{
-        position:absolute;
-        left: clamp(22px, 2.4vw, 48px);
-        bottom: clamp(20px, 2.2vw, 44px);
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: rgba(255,255,255,.06);
-        border: 1px solid rgba(255,255,255,.10);
-        color: rgba(255,255,255,.86);
-        font-weight: 900;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        font-size: 12px;
-        backdrop-filter: blur(12px);
-      }
-
       /* Fallback "no logo" */
       #sceneSponsors .spNoLogo{
-        width: 100%;
-        height: 62%;
+        width: min(1180px, 86vw);
+        height: min(430px, 48vh);
+        border-radius: 28px;
+        background: rgba(255,255,255,.10);
+        border: 1px dashed rgba(255,255,255,.22);
         display:flex;
         align-items:center;
         justify-content:center;
-        border-radius: 28px;
-        background: rgba(255,255,255,.06);
-        border: 1px dashed rgba(255,255,255,.20);
         color: rgba(255,255,255,.78);
         font-weight: 900;
         letter-spacing: 3px;
         text-transform: uppercase;
         font-size: clamp(22px, 2.2vw, 34px);
+        box-shadow: 0 36px 140px rgba(0,0,0,.50);
       }
     `;
 
@@ -198,7 +226,7 @@
             <div class="spDesc" id="spDesc"></div>
           </div>
         </div>
-        <div class="spTag">Sponsor turnieju</div>
+        <div class="spWipe" id="spWipe"></div>
       `);
     }
     return host;
@@ -224,20 +252,31 @@
     logo.innerHTML = "";
     name.textContent = sponsor?.name || "";
     desc.textContent = sponsor?.desc || "";
-
     desc.style.display = sponsor?.desc ? "block" : "none";
 
     if (sponsor?.logoUrl) {
+      const plate = document.createElement("div");
+      plate.className = "spPlate";
       const img = document.createElement("img");
       img.src = sponsor.logoUrl;
       img.alt = sponsor.name || "sponsor";
-      logo.appendChild(img);
+      plate.appendChild(img);
+      logo.appendChild(plate);
     } else {
       const box = document.createElement("div");
       box.className = "spNoLogo";
       box.textContent = "LOGO";
       logo.appendChild(box);
     }
+  }
+
+  function runWipe() {
+    const wipe = document.getElementById("spWipe");
+    if (!wipe) return;
+    wipe.classList.remove("isRun");
+    // force reflow
+    void wipe.offsetHeight;
+    wipe.classList.add("isRun");
   }
 
   function transitionTo(sponsor) {
@@ -250,17 +289,22 @@
     // First show
     if (!hero.classList.contains("isIn")) {
       setContent(sponsor);
+      runWipe();
       requestAnimationFrame(() => hero.classList.add("isIn"));
       return;
     }
 
+    // Start wipe + fade out quickly
+    runWipe();
     hero.classList.add("isOut");
+
+    // Swap content mid-wipe, then fade in
     pendingTimeout = setTimeout(() => {
       setContent(sponsor);
       hero.classList.remove("isOut");
       void hero.offsetHeight;
       hero.classList.add("isIn");
-    }, 430);
+    }, 320);
   }
 
   function rotate(state) {
