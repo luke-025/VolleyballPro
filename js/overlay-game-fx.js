@@ -189,7 +189,6 @@
       const ind = document.createElement("div");
       ind.id = id;
       ind.className = "serveIndicator";
-      // wstawiamy jako pierwsze dziecko teamPill
       pill.insertBefore(ind, pill.firstChild);
     });
 
@@ -198,27 +197,76 @@
       const scene = document.getElementById("sceneGame");
       if (scene) {
         scene.insertAdjacentHTML("beforeend", `
-          <div id="gameFxOverlay">
-            <canvas id="fxConfetti"></canvas>
-          </div>
+          <div id="gameFxOverlay"></div>
         `);
       }
     }
+  }
+
+  // Upewnij się że DOM jest gotowy — retry jeśli elementy jeszcze nie istnieją
+  function ensureDOMRetry(cb, retries = 20, interval = 100) {
+    const check = () => {
+      ensureDOM();
+      const ok = document.getElementById("serveIndicatorA") &&
+                 document.getElementById("serveIndicatorB") &&
+                 document.getElementById("gameFxOverlay");
+      if (ok) { cb(); return; }
+      if (retries-- > 0) setTimeout(check, interval);
+    };
+    check();
   }
 
   /* -------------------------------------------------- */
   /*  Logika serwisu                                    */
   /*  Kto zdobył ostatni punkt → ten serwuje            */
   /* -------------------------------------------------- */
+
+  // Fallback: śledzimy poprzedni wynik żeby wykryć kto właśnie zdobył punkt
+  let prevScore = { a: -1, b: -1, setIdx: -1 };
+
   function getServingSide(match) {
     if (!match) return null;
     const m = ENG.emptyMatchPatch(match);
-    // Z event loga – ostatni event to ostatni zdobyty punkt
+
+    // Metoda 1: event log (preferowana)
     const events = Array.isArray(m.events) ? m.events : [];
-    if (!events.length) return null;
-    // Sortuj po ts, weź ostatni
-    const sorted = events.slice().sort((a, b) => (+a.ts || 0) - (+b.ts || 0));
-    return sorted[sorted.length - 1]?.side || null;
+    if (events.length > 0) {
+      const sorted = events.slice().sort((a, b) => (+a.ts || 0) - (+b.ts || 0));
+      const last = sorted[sorted.length - 1];
+      if (last?.side === "a" || last?.side === "b") {
+        console.debug("[GameFX] serve via events:", last.side, "total events:", events.length);
+        return last.side;
+      }
+    }
+
+    // Metoda 2: porównaj z poprzednim stanem (działa gdy brak eventów)
+    const idx = ENG.currentSetIndex(m);
+    const s = m.sets[idx];
+    const a = +s.a || 0;
+    const b = +s.b || 0;
+
+    let side = null;
+    if (prevScore.setIdx === idx) {
+      if (a > prevScore.a) side = "a";
+      else if (b > prevScore.b) side = "b";
+    }
+
+    // Zaktualizuj prev (tylko jeśli punkt faktycznie się zmienił lub nowy set)
+    if (prevScore.setIdx !== idx || a !== prevScore.a || b !== prevScore.b) {
+      prevScore = { a, b, setIdx: idx };
+    }
+
+    if (side) console.debug("[GameFX] serve via score diff:", side);
+    return side;
+  }
+
+  // Zapamiętaj ostatni znany serwis (żeby nie gubić wskaźnika gdy stan nie zmienia sich)
+  let lastKnownServe = null;
+
+  function getServingSideCached(match) {
+    const side = getServingSide(match);
+    if (side) lastKnownServe = side;
+    return lastKnownServe;
   }
 
   function renderServe(side) {
@@ -436,7 +484,7 @@
     }
 
     // Serwis
-    const servingSide = getServingSide(pm);
+    const servingSide = getServingSideCached(pm);
     renderServe(servingSide);
 
     // Zwycięzca seta/meczu
@@ -456,13 +504,31 @@
   /* -------------------------------------------------- */
   function init() {
     ensureStyle();
-    ensureDOM();
 
     const slug = (() => { try { return UI.getSlug(); } catch { return ""; } })();
     if (!slug) return;
 
-    STORE.subscribeState(slug, snap => onState(snap?.state || {}));
-    STORE.fetchState(slug).then(snap => onState(snap?.state || {})).catch(() => {});
+    // Subskrybuj od razu, ale DOM wstrzyknij z retry (overlay.js może jeszcze nie wyrenderował HUDu)
+    let pendingState = null;
+
+    ensureDOMRetry(() => {
+      // DOM gotowy — jeśli mieliśmy już stan, zastosuj go
+      if (pendingState) onState(pendingState);
+    });
+
+    STORE.subscribeState(slug, snap => {
+      const state = snap?.state || {};
+      pendingState = state;
+      ensureDOM(); // spróbuj wstrzyknąć przy każdej zmianie (bezpieczne — idempotentne)
+      onState(state);
+    });
+
+    STORE.fetchState(slug).then(snap => {
+      const state = snap?.state || {};
+      pendingState = state;
+      ensureDOM();
+      onState(state);
+    }).catch(() => {});
   }
 
   if (document.readyState === "loading") {
