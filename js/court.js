@@ -54,7 +54,6 @@
   // ensure court filter UI exists (older court.html may not have it)
   function ensureCourtFilterUI() {
     if (els.court) return;
-    // Try to insert after groupWrap
     const host = els.groupWrap ? els.groupWrap.parentElement : null;
     if (!host) return;
 
@@ -69,7 +68,6 @@
         </select>
       </div>
     `;
-    // Insert after groupWrap if possible
     if (els.groupWrap && els.groupWrap.nextSibling) host.insertBefore(wrap, els.groupWrap.nextSibling);
     else host.appendChild(wrap);
 
@@ -85,7 +83,6 @@
 
     const cur = els.court.value || "";
     els.court.innerHTML = `<option value="">Wszystkie</option>` + courts.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-    // restore selection if still exists
     if ([...els.court.options].some(o=>o.value===cur)) els.court.value = cur;
   }
 
@@ -107,9 +104,7 @@
   }
 
   function renderFilters() {
-    // stages
     els.stage.innerHTML = UI.STAGES.map(s=>`<option value="${s.key}">${s.label}</option>`).join("");
-    // groups derived from teams
     const groupsSet = new Set((current?.state?.teams||[]).map(t => (t.group||"").trim()).filter(Boolean));
     const list = Array.from(groupsSet).sort((a,b)=>a.localeCompare(b,"pl"));
     els.group.innerHTML = list.length ? list.map(g=>`<option value="${g}">${g}</option>`).join("") : `<option value="">—</option>`;
@@ -188,11 +183,9 @@
     els.btnBMinus.disabled = finished || locked || s.b <= 0;
     els.btnResetSet.disabled = finished || locked;
 
-
     // Option A: results are confirmed only in Control, not on the phone.
     els.btnConfirm.style.display = "none";
 
-    // Hint for operator
     if (els.liveHint) {
       if (locked) {
         els.liveHint.innerHTML = "<b>Turniej zablokowany.</b> Edycja punktów jest wyłączona (odblokuj w Control).";
@@ -223,15 +216,12 @@
     renderFilters();
     populateCourtOptions();
 
-    // Apply court filter from URL (?court=1 or ?c=1)
     const urlCourt = getCourtFromUrl();
     if (urlCourt && els.court) {
       const exists = [...els.court.options].some(o => (o.value||"") === urlCourt);
       if (exists) els.court.value = urlCourt;
-      // If court doesn't exist yet, keep showing all.
     }
 
-    // show/hide group
     updateGroupVisibility();
     renderMatchList();
     renderLive();
@@ -250,6 +240,31 @@
       renderMatchList();
       renderLive();
     });
+
+    // ── POLLING FALLBACK ──────────────────────────────────────────────────────
+    // Telefony często zrywają połączenie WebSocket (tryb uśpienia, zmiana sieci).
+    // Co 2s sprawdzamy wersję stanu – jeśli jest nowsza, odświeżamy UI.
+    let _polling = false;
+    setInterval(async () => {
+      if (_polling) return;
+      _polling = true;
+      try {
+        const fresh = await STORE.fetchState(slug);
+        if (fresh && fresh.version != null && fresh.version !== current?.version) {
+          current = { tournamentId: fresh.tournamentId, version: fresh.version, state: fresh.state };
+          populateCourtOptions();
+          renderFilters();
+          updateGroupVisibility();
+          renderMatchList();
+          renderLive();
+        }
+      } catch (e) {
+        // ignoruj – WebSocket może nadal działać
+      } finally {
+        _polling = false;
+      }
+    }, 2000);
+    // ─────────────────────────────────────────────────────────────────────────
   }
 
   function updateGroupVisibility() {
@@ -279,7 +294,6 @@
         const m = st.matches.find(x=>x.id===matchId);
         if (!m) throw new Error("Match not found");
         if (m.claimedBy && m.claimedBy !== deviceId) throw new Error("Mecz zajęty na innym urządzeniu");
-        // release any other match claimed by this device
         for (const mm of st.matches) {
           if (mm.claimedBy === deviceId && mm.id !== matchId) {
             mm.claimedBy = null;
