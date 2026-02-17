@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demo: Sponsor Widget</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .viewport {
+      width: 1920px;
+      height: 1080px;
+      background:
+        linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.5)),
+        url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%23222"/><path d="M0 0L100 100M100 0L0 100" stroke="%23333" stroke-width="1"/></svg>');
+      background-size: cover, 50px 50px;
+      position: relative;
+      transform: scale(0.5);
+      transform-origin: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    /* Mock HUD */
+    .mockHUD {
+      position: absolute;
+      left: 60px;
+      top: 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .teamBar {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .teamPill {
+      width: 560px;
+      height: 92px;
+      border-radius: 26px;
+      background: linear-gradient(90deg, rgba(10,12,16,.92), rgba(40,42,48,.92));
+      border: 2px solid rgba(255,255,255,.08);
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+      display: flex;
+      align-items: center;
+      padding: 14px 22px;
+      gap: 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .teamName {
+      font-size: 34px;
+      font-weight: 900;
+      color: #fff;
+      flex: 1;
+    }
+
+    .score {
+      width: 120px;
+      height: 92px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.94);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      font-weight: 1000;
+      color: #0b0f16;
+      box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+
+    /* Mock ticker */
+    .mockTicker {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 55px;
+      background: linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65));
+      display: flex;
+      align-items: flex-end;
+      padding: 10px 60px;
+    }
+
+    .tickerInner {
+      width: 100%;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      backdrop-filter: blur(15px);
+      color: rgba(255,255,255,0.8);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    /* Sponsor Widget */
+    #sponsorWidget {
+      position: absolute;
+      top: 46px;
+      right: 46px;
+      width: 200px;
+      height: 70px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      opacity: 0;
+      transition: opacity 600ms ease;
+      z-index: 100;
+    }
+
+    #sponsorWidget.show {
+      opacity: 1;
+    }
+
+    #sponsorWidget img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* Controls */
+    .controls {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 200;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.95);
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 200ms;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover {
+      background: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      z-index: 200;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+    <!-- Mock HUD -->
+    <div class="mockHUD">
+      <div class="teamBar">
+        <div class="teamPill">
+          <div class="teamName">Team Alpha</div>
+        </div>
+        <div class="score">24</div>
+      </div>
+      <div class="teamBar">
+        <div class="teamPill">
+          <div class="teamName">Team Beta</div>
+        </div>
+        <div class="score">22</div>
+      </div>
+    </div>
+
+    <!-- Mock Ticker -->
+    <div class="mockTicker">
+      <div class="tickerInner">
+        Inne mecze na żywo: Dragons 25:23 Lions • Phoenix 18:21 Eagles
+      </div>
+    </div>
+
+    <!-- Sponsor Widget -->
+    <div id="sponsorWidget"></div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn" onclick="prevSponsor()">← Poprzedni</button>
+      <button class="btn" onclick="toggleRotation()">⏸ Pauza</button>
+      <button class="btn" onclick="nextSponsor()">Następny →</button>
+    </div>
+
+    <!-- Info -->
+    <div class="info" id="info">Ładowanie sponsorów...</div>
+  </div>
+
+  <script>
+    // Mock sponsors with popular brand logos
+    const sponsors = [
+      {
+        name: "Nike",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg"
+      },
+      {
+        name: "Adidas",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg"
+      },
+      {
+        name: "Puma",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/d/da/Puma_complete_logo.svg"
+      },
+      {
+        name: "Under Armour",
+        logo: "https://upload.wikimedia.org/wikipedia/commons/4/44/Under_armour_logo.svg"
+      }
+    ];
+
+    const widget = document.getElementById('sponsorWidget');
+    const info = document.getElementById('info');
+    let currentIndex = 0;
+    let isRotating = true;
+    let rotationTimer = null;
+    const INTERVAL = 5000; // 5 seconds for demo
+
+    function showSponsor(sponsor) {
+      // Fade out
+      widget.classList.remove('show');
+
+      setTimeout(() => {
+        // Update content
+        widget.innerHTML = `<img src="${sponsor.logo}" alt="${sponsor.name}" />`;
+        info.textContent = `Sponsor ${currentIndex + 1}/${sponsors.length}: ${sponsor.name}`;
+
+        // Fade in
+        widget.classList.add('show');
+      }, 300);
+    }
+
+    function nextSponsor() {
+      currentIndex = (currentIndex + 1) % sponsors.length;
+      showSponsor(sponsors[currentIndex]);
+    }
+
+    function prevSponsor() {
+      currentIndex = (currentIndex - 1 + sponsors.length) % sponsors.length;
+      showSponsor(sponsors[currentIndex]);
+    }
+
+    function startRotation() {
+      if (rotationTimer) return;
+      isRotating = true;
+      rotationTimer = setInterval(nextSponsor, INTERVAL);
+      document.querySelector('.controls .btn:nth-child(2)').textContent = '⏸ Pauza';
+    }
+
+    function stopRotation() {
+      if (rotationTimer) {
+        clearInterval(rotationTimer);
+        rotationTimer = null;
+      }
+      isRotating = false;
+      document.querySelector('.controls .btn:nth-child(2)').textContent = '▶ Wznów';
+    }
+
+    function toggleRotation() {
+      if (isRotating) {
+        stopRotation();
+      } else {
+        startRotation();
+      }
+    }
+
+    // Initialize
+    showSponsor(sponsors[0]);
+    startRotation();
+  </script>
+</body>
+</html>

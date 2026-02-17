@@ -71,6 +71,10 @@
           el("label", { style: "display:flex; gap:8px; align-items:center" }, [
             el("span", { class: "muted" }, ["Rotacja sceny sponsorów (s)"]),
             el("input", { id: "spSceneEvery", class: "input", type: "number", min: "2", max: "60", value: "5", style: "width:90px" })
+          ]),
+          el("label", { style: "display:flex; gap:8px; align-items:center" }, [
+            el("span", { class: "muted" }, ["Rotacja widgetu w rogu (s)"]),
+            el("input", { id: "spWidgetEvery", class: "input", type: "number", min: "2", max: "120", value: "8", style: "width:90px" })
           ])
         ]),
         el("div", { class: "muted", style: "margin-top:10px" }, [
@@ -87,6 +91,7 @@
     card.querySelector("#spAccentOn").addEventListener("change", onSettings);
     card.querySelector("#spAccentEvery").addEventListener("change", onSettings);
     card.querySelector("#spSceneEvery").addEventListener("change", onSettings);
+    card.querySelector("#spWidgetEvery").addEventListener("change", onSettings);
 
     card.querySelector("#spList").addEventListener("click", async (ev) => {
       const del = ev.target.closest("[data-sp-del]");
@@ -161,6 +166,7 @@
     const accentOn = !!document.getElementById("spAccentOn")?.checked;
     const accentEvery = Number(document.getElementById("spAccentEvery")?.value || 6);
     const sceneEvery = Number(document.getElementById("spSceneEvery")?.value || 5);
+    const widgetEvery = Number(document.getElementById("spWidgetEvery")?.value || 8);
 
     try {
       await STORE.mutate(slug, pin, (st) => {
@@ -169,6 +175,7 @@
         st.meta.sponsors.accentEnabled = accentOn;
         st.meta.sponsors.accentEvery = Math.min(60, Math.max(2, accentEvery || 6));
         st.meta.sponsors.sceneEvery = Math.min(60, Math.max(2, sceneEvery || 5));
+        st.meta.sponsors.widgetEvery = Math.min(120, Math.max(2, widgetEvery || 8));
         return st;
       });
     } catch (e) {
@@ -187,6 +194,7 @@
     const accentOn = !!settings.accentEnabled;
     const accentEvery = settings.accentEvery ?? 6;
     const sceneEvery = settings.sceneEvery ?? 5;
+    const widgetEvery = settings.widgetEvery ?? 8;
 
     const chk = document.getElementById("spAccentOn");
     if (chk) chk.checked = accentOn;
@@ -194,6 +202,8 @@
     if (ae) ae.value = String(accentEvery);
     const se = document.getElementById("spSceneEvery");
     if (se) se.value = String(sceneEvery);
+    const we = document.getElementById("spWidgetEvery");
+    if (we) we.value = String(widgetEvery);
 
     spList.innerHTML = "";
     if (!sponsors.length) {

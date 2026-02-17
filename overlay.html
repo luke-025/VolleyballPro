@@ -261,6 +261,31 @@
     /* Allow point pulse animation from overlay-anim.js */
     .pointsNum{ will-change: transform, filter; }
 
+    /* === SPONSOR WIDGET (top-right corner) === */
+    #sponsorWidget{
+      position: absolute;
+      top: 46px;
+      right: 46px;
+      width: 200px;
+      height: 70px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      opacity: 0;
+      transition: opacity 600ms ease;
+      z-index: 100;
+    }
+    #sponsorWidget.show{ opacity: 1; }
+    #sponsorWidget img{
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
 /* HARD FIX: Technical scene layout inside overlay */
     #sceneTechnical{
       position:absolute; inset:0;
@@ -386,6 +411,9 @@
 
       <!-- SPONSORS -->
       <div id="sceneSponsors" class="scene"></div>
+
+      <!-- SPONSOR WIDGET (top-right corner) -->
+      <div id="sponsorWidget"></div>
     </div>
   </div>
 
@@ -400,6 +428,7 @@
   <script src="js/overlay.js"></script>
   <script src="js/overlay-anim.js"></script>
   <script src="js/overlay-sponsors-rotator.js"></script>
+  <script src="js/overlay-sponsors-widget.js"></script>
 
 <script>
 (function(){
