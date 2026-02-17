@@ -325,20 +325,49 @@
   function getWinnerAlert(match, state) {
     if (!match) return null;
     const m = ENG.emptyMatchPatch(match);
-    if (m.status !== "finished" && m.status !== "confirmed") return null;
-    const wins = ENG.scoreSummary(m);
-    const winnerSide = wins.setsA >= 2 ? "a" : "b";
-    const winnerId   = winnerSide === "a" ? m.teamAId : m.teamBId;
+
     function teamName(id) {
       return (state?.teams || []).find(t => t.id === id)?.name || "—";
     }
-    return {
-      type: "winner",
-      team: teamName(winnerId),
-      setsA: wins.setsA,
-      setsB: wins.setsB,
-    };
+
+    // Mecz wygrany
+    if (m.status === "finished" || m.status === "confirmed") {
+      const wins = ENG.scoreSummary(m);
+      const winnerSide = wins.setsA >= 2 ? "a" : "b";
+      const winnerId   = winnerSide === "a" ? m.teamAId : m.teamBId;
+      return {
+        type: "winner",
+        team: teamName(winnerId),
+        setsA: wins.setsA,
+        setsB: wins.setsB,
+      };
+    }
+
+    // Set wygrany (mecz trwa dalej) — wykrywamy przez porównanie z poprzednim stanem setów
+    const wins = ENG.scoreSummary(m);
+    const totalSets = wins.setsA + wins.setsB;
+    if (totalSets > prevTotalSets && prevTotalSets >= 0) {
+      // Właśnie wygrany set — sprawdź kto go wygrał
+      const prevIdx = totalSets - 1; // indeks właśnie zakończonego seta
+      const s = m.sets[prevIdx];
+      if (s) {
+        const setWinnerSide = (+s.a || 0) > (+s.b || 0) ? "a" : "b";
+        const setWinnerId   = setWinnerSide === "a" ? m.teamAId : m.teamBId;
+        prevTotalSets = totalSets;
+        return {
+          type: "setwon",
+          team: teamName(setWinnerId),
+          setsA: wins.setsA,
+          setsB: wins.setsB,
+        };
+      }
+    }
+    prevTotalSets = totalSets;
+
+    return null;
   }
+
+  let prevTotalSets = -1;
 
   /* -------------------------------------------------- */
   /*  FX Overlay render                                 */
@@ -384,6 +413,15 @@
         <div class="fxBar" style="color:#d9ff7a"></div>
         <div class="fxTeam">${esc(alert.team)}</div>
       `;
+    } else if (alert.type === "setwon") {
+      card.innerHTML = `
+        <div class="fxKicker">Koniec seta</div>
+        <div class="fxTitle fxGreen">SET DLA</div>
+        <div class="fxBar" style="color:#d9ff7a"></div>
+        <div class="fxTeam">${esc(alert.team)}</div>
+        <div class="fxSets">${alert.setsA} – ${alert.setsB}</div>
+      `;
+      launchConfetti();
     } else if (alert.type === "matchpoint") {
       card.innerHTML = `
         <div class="fxKicker">Match Point</div>
@@ -413,7 +451,7 @@
     });
 
     // Auto-schowanie: set point po 4s, match point po 5s, winner po 8s
-    const duration = { setpoint: 4000, matchpoint: 5000, winner: 8000 }[alert.type] || 5000;
+    const duration = { setpoint: 4000, setwon: 5000, matchpoint: 5000, winner: 8000 }[alert.type] || 5000;
     fxTimer = setTimeout(() => {
       fxState = null;
       card.classList.remove("fxIn");
