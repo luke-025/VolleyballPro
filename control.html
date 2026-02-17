@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pl">
 <head>
 <meta charset="utf-8"/>
@@ -90,6 +89,12 @@
 <select id="matchTeamB"></select>
 </div>
 </div>
+<div class="formRow" style="margin-top:10px">
+<div>
+<label>Boisko (opcjonalnie)</label>
+<input id="matchCourt" placeholder="np. 1, 2, A…" style="width:100%"/>
+</div>
+</div>
 <div class="btnGroup" style="margin-top:10px">
 <button class="btn btn-primary" id="btnAddMatch">Dodaj mecz</button>
 </div>
@@ -103,7 +108,7 @@
 
 <div class="card">
 <h2>Playoff</h2>
-<div class="muted">Generuj drabinkę na podstawie tabel grupowych (tylko mecze „Grupa” + „confirmed”).</div>
+<div class="muted">Generuj drabinkę na podstawie tabel grupowych (tylko mecze „Grupa" + „confirmed").</div>
 <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
 <button class="btn btn-primary" id="btnGeneratePlayoffs">Generuj playoff</button>
 <a class="btn btn-ghost" href="playoffs.html" id="btnOpenPlayoffs">Otwórz drabinkę</a>
@@ -111,16 +116,16 @@
 <div class="muted" id="playoffsInfo" style="margin-top:10px">—</div>
 </div>
 <div class="card" style="margin-top:14px">
-<h2>Tabele grupowe (liczone tylko z etapu „Grupa” i statusu „confirmed”)</h2>
+<h2>Tabele grupowe (liczone tylko z etapu „Grupa" i statusu „confirmed")</h2>
 <div id="standingsBox"></div>
 </div>
 <div class="card" style="margin-top:14px">
 <h2>Linki</h2>
 <div class="muted small">
-        Control: <code>/control.html?t=<span class="muted">%slug%</span></code><br/>
-        Court: <code>/court.html?t=<span class="muted">%slug%</span></code><br/>
-        Overlay (OBS): <code>/overlay.html?t=<span class="muted">%slug%</span></code> (bez PIN)
-      </div>
+  Control: <code>/control.html?t=<span class="muted">%slug%</span></code><br/>
+  Court: <code>/court.html?t=<span class="muted">%slug%</span></code><br/>
+  Overlay (OBS): <code>/overlay.html?t=<span class="muted">%slug%</span></code> (bez PIN)
+</div>
 </div>
 </div>
 <!-- Supabase JS CDN -->

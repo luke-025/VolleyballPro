@@ -45,6 +45,7 @@
     matchGroup: document.getElementById("matchGroup"),
     matchTeamA: document.getElementById("matchTeamA"),
     matchTeamB: document.getElementById("matchTeamB"),
+    matchCourt: document.getElementById("matchCourt"),   // ← NOWE
     btnAddMatch: document.getElementById("btnAddMatch"),
     btnGeneratePlayoffs: document.getElementById("btnGeneratePlayoffs"),
     btnOpenPlayoffs: document.getElementById("btnOpenPlayoffs"),
@@ -56,7 +57,7 @@
   };
 
   // ---------------- Operator filters (UI) ----------------
-  
+
   function downloadJson(filename, obj) {
     const blob = new Blob([JSON.stringify(obj, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -81,16 +82,19 @@
     });
   }
 
-const filterState = {
+  const filterState = {
     q: "",
-    status: "all", // all|live|pending|finished|confirmed
-    stage: "all",  // all|group|playoffs (non-group)
-    group: "all",  // all|A|B|...
-    court: "all", // all|1|2|...
+    status: "all",
+    stage: "all",
+    group: "all",
+    court: "all",
   };
 
+  function sceneLabel(key) {
+    return ({game:"Game", break:"Break", technical:"Technical", sponsors:"Sponsors"}[key] || key);
+  }
+
   function ensureFiltersUI(state) {
-    // Insert once, above matches list
     const host = els.matchesList?.parentElement;
     if (!host) return;
     if (document.getElementById("opFilters")) return;
@@ -100,7 +104,7 @@ const filterState = {
     wrap.className = "controlFilters";
     wrap.style.marginTop = "10px";
     wrap.innerHTML = `
-      <h3>Operator — filtry</h3>
+      <h3>Operator – filtry</h3>
       <div class="formRow">
         <div>
           <label>Szukaj (drużyna)</label>
@@ -137,13 +141,13 @@ const filterState = {
           </select>
         </div>
       </div>
-      
+
       <div class="opActions" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
         <button class="btn btn-ghost" data-scene="game">SCENA: GAME</button>
         <button class="btn btn-ghost" data-scene="break">SCENA: PRZERWA</button>
         <button class="btn btn-ghost" data-scene="technical">SCENA: TECH</button>
         <button class="btn btn-ghost" data-scene="sponsors">SCENA: SPONSORZY</button>
-        <button class="btn btn-ghost" id="btnLockToggle">BLOKADA: —</button>
+        <button class="btn btn-ghost" id="btnLockToggle">BLOKADA: –</button>
         <button class="btn btn-ghost" id="btnExportState">EXPORT JSON</button>
       </div>
 
@@ -167,7 +171,7 @@ const filterState = {
         <div id="qList" style="margin-top:10px;"></div>
       </div>
 
-<div class="muted small">Tip: kliknięcie „Ustaw PROGRAM” ustawia też scenę na <b>Game</b>.</div>
+      <div class="muted small">Tip: kliknięcie „Ustaw PROGRAM" ustawia też scenę na <b>Game</b>.</div>
     `;
 
     host.insertBefore(wrap, els.matchesList);
@@ -179,8 +183,6 @@ const filterState = {
     const grpSel = document.getElementById("opGroup");
     courtSel.value = filterState.court || "all";
 
-    // Fill groups from state
-    // Fill courts from state
     const courts = new Set((state.matches || []).map(m=>String(m.court||"").trim()).filter(Boolean));
     [...courts].sort((a,b)=>a.localeCompare(b,"pl")).forEach(c=>{
       const opt = document.createElement("option");
@@ -189,8 +191,8 @@ const filterState = {
       courtSel.appendChild(opt);
     });
 
-    const groups = new Set((state.matches || []).filter(m=>m.stage==="group").map(m=>String(m.group||"").trim()).filter(Boolean));
-    [...groups].sort((a,b)=>a.localeCompare(b,"pl")).forEach(g=>{
+    const grps = new Set((state.matches || []).filter(m=>m.stage==="group").map(m=>String(m.group||"").trim()).filter(Boolean));
+    [...grps].sort((a,b)=>a.localeCompare(b,"pl")).forEach(g=>{
       const opt = document.createElement("option");
       opt.value = g;
       opt.textContent = `Grupa ${g}`;
@@ -203,7 +205,6 @@ const filterState = {
     courtSel.addEventListener("change", () => { filterState.court = courtSel.value; render(); });
     grpSel.addEventListener("change", () => { filterState.group = grpSel.value; render(); });
 
-    // defaults
     q.value = filterState.q;
     stSel.value = filterState.status;
     stageSel.value = filterState.stage;
@@ -219,19 +220,18 @@ const filterState = {
       grpSel.innerHTML = '<option value="all">Wszystkie</option>' + gArr.map(g=>`<option value="${g}">Grupa ${g}</option>`).join('');
       grpSel.value = filterState.group;
 
-      const courts = new Set();
-      (state.matches||[]).forEach(m => { const c = String((m.court||'')).trim(); if (c) courts.add(c); });
-      const cArr = Array.from(courts).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pl'));
+      const courts2 = new Set();
+      (state.matches||[]).forEach(m => { const c = String((m.court||'')).trim(); if (c) courts2.add(c); });
+      const cArr = Array.from(courts2).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pl'));
       courtSel.innerHTML = '<option value="all">Wszystkie</option>' + cArr.map(c=>`<option value="${c}">Boisko ${c}</option>`).join('');
       courtSel.value = filterState.court;
     } catch(e) {}
 
-    // --- Operator actions bindings (scene/lock/export/queue) ---
+    // --- Operator actions bindings ---
     const opWrap = document.getElementById("opFilters");
     if (opWrap && !opWrap.dataset.bound) {
       opWrap.dataset.bound = "1";
 
-      // Scene buttons
       opWrap.querySelectorAll("[data-scene]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const scene = btn.getAttribute("data-scene");
@@ -250,14 +250,13 @@ const filterState = {
         });
       });
 
-      // Lock toggle
       const btnLock = document.getElementById("btnLockToggle");
       if (btnLock) {
         btnLock.addEventListener("click", async () => {
           const pin = STORE.getPin(slug);
           if (!pin) { UI.toast("Podaj PIN w Control", "warn"); return; }
           try {
-            const locked = !!(current?.state?.meta?.locked);
+            const locked = !!current?.state?.meta?.locked;
             await STORE.mutate(slug, pin, (st) => {
               st.meta = st.meta || {};
               st.meta.locked = !locked;
@@ -269,7 +268,6 @@ const filterState = {
         });
       }
 
-      // Export
       const btnExport = document.getElementById("btnExportState");
       if (btnExport) {
         btnExport.addEventListener("click", () => {
@@ -280,12 +278,10 @@ const filterState = {
         });
       }
 
-      // Queue UI
       const qCourt = document.getElementById("qCourt");
       const qMatch = document.getElementById("qMatch");
       const qAdd = document.getElementById("qAdd");
 
-      // populate queue selects each render via renderQueue()
       if (qAdd) {
         qAdd.addEventListener("click", async () => {
           const court = (qCourt?.value || "").trim();
@@ -312,7 +308,6 @@ const filterState = {
         });
       }
 
-      // Delegated clicks in queue list
       const qList = document.getElementById("qList");
       if (qList) {
         qList.addEventListener("click", async (ev) => {
@@ -323,125 +318,78 @@ const filterState = {
           const pin = STORE.getPin(slug);
           if (!pin) { UI.toast("Podaj PIN w Control", "warn"); return; }
           const q = getQueue(current?.state?.meta);
-          if (!(idx >= 0 && idx < q.length)) return;
-
-          const item = q[idx];
+          if (!q[idx]) return;
           try {
-            if (act === "up" && idx > 0) {
-              const nq = q.slice();
-              [nq[idx-1], nq[idx]] = [nq[idx], nq[idx-1]];
-              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=nq; return st; });
-            } else if (act === "down" && idx < q.length-1) {
-              const nq = q.slice();
-              [nq[idx+1], nq[idx]] = [nq[idx], nq[idx+1]];
-              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=nq; return st; });
-            } else if (act === "del") {
-              const nq = q.filter((_,i)=>i!==idx);
-              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=nq; return st; });
-            } else if (act === "live") {
-              await STORE.setMatchStatus(slug, pin, item.matchId, "live");
-            } else if (act === "tx") {
-              // TRANSMISJA: program + scene game
-              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.programMatchId=item.matchId; st.meta.scene="game"; return st; });
+            if (act === "del") {
+              const newQ = q.filter((_,i)=>i!==idx);
+              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=newQ; return st; });
+            } else if (act === "up" && idx > 0) {
+              const newQ = [...q];
+              [newQ[idx-1], newQ[idx]] = [newQ[idx], newQ[idx-1]];
+              await STORE.mutate(slug, pin, (st)=>{ st.meta=st.meta||{}; st.meta.queue=newQ; return st; });
             }
-          } catch (e) {
-            UI.toast(e?.message || "Błąd akcji kolejki", "error");
+          } catch(e) {
+            UI.toast(e?.message || "Błąd kolejki", "error");
           }
         });
       }
     }
-
   }
 
-  function matchPassesFilters(state, m) {
-    const q = (filterState.q || "").toLowerCase();
-    const status = filterState.status;
-    const stage = filterState.stage;
-    const group = filterState.group;
+  function renderQueue(state) {
+    const qList = document.getElementById("qList");
+    const qCourt = document.getElementById("qCourt");
+    const qMatch = document.getElementById("qMatch");
+    if (!qList) return;
 
-    if (status !== "all" && m.status !== status) return false;
+    const q = getQueue(state?.meta);
+    const teams = state?.teams || [];
+    const matches = state?.matches || [];
 
-    if (stage !== "all") {
-      if (stage === "group" && m.stage !== "group") return false;
-      if (stage === "playoffs" && m.stage === "group") return false;
+    if (qCourt) {
+      const courts = Array.from(new Set(matches.map(m=>String(m.court||"").trim()).filter(Boolean))).sort();
+      const prev = qCourt.value;
+      qCourt.innerHTML = '<option value="">—</option>' + courts.map(c=>`<option value="${c}">${c}</option>`).join('');
+      if (courts.includes(prev)) qCourt.value = prev;
     }
 
-    if (group !== "all") {
-      if (m.stage !== "group") return false;
-      if (String(m.group || "").trim() !== group) return false;
+    if (qMatch) {
+      const pending = matches.filter(m=>m.status==="pending"||m.status==="live");
+      const prev = qMatch.value;
+      qMatch.innerHTML = '<option value="">—</option>' + pending.map(m=>{
+        const ta = teams.find(t=>t.id===m.teamAId)?.name||"?";
+        const tb = teams.find(t=>t.id===m.teamBId)?.name||"?";
+        return `<option value="${m.id}">${ta} vs ${tb}</option>`;
+      }).join('');
+      if (pending.some(m=>m.id===prev)) qMatch.value = prev;
     }
 
-    if (q) {
-      const ta = (state.teams || []).find(x => x.id === m.teamAId)?.name || "";
-      const tb = (state.teams || []).find(x => x.id === m.teamBId)?.name || "";
-      const hay = (ta + " " + tb).toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-
-    return true;
+    if (!q.length) { qList.innerHTML = '<div class="muted small">Kolejka pusta.</div>'; return; }
+    qList.innerHTML = q.map((item,i)=>{
+      const m = matches.find(x=>x.id===item.matchId);
+      const ta = m ? (teams.find(t=>t.id===m.teamAId)?.name||"?") : "?";
+      const tb = m ? (teams.find(t=>t.id===m.teamBId)?.name||"?") : "?";
+      return `<div class="row" style="gap:8px">
+        <span class="muted">${i+1}.</span>
+        <span>Boisko <b>${item.court}</b> – ${ta} vs ${tb}</span>
+        ${i>0?`<button class="btn btn-ghost" data-qact="up" data-idx="${i}">↑</button>`:""}
+        <button class="btn btn-danger" data-qact="del" data-idx="${i}">Usuń</button>
+      </div>`;
+    }).join('');
   }
 
-
-  function getBaseUrl() {
-    // e.g. https://volleyball-pro-eight.vercel.app
-    return location.origin;
-  }
-
-  function sceneLabel(key){
-    return ({game:"Game", break:"Break", technical:"Technical", sponsors:"Sponsors"}[key] || key);
-  }
-
-  function bindSceneUI(){
-    const card = document.getElementById("sceneCard");
-    if (!card) return;
-    card.querySelectorAll("[data-scene]").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const scene = btn.getAttribute("data-scene");
-        const pin = STORE.getPin(slug);
-        if (!pin) { UI.toast("Podaj PIN", "warn"); return; }
-        try{
-          await STORE.mutate(slug, pin, (st) => {
-            st.meta = st.meta || {};
-            st.meta.scene = scene;
-            return st;
-          });
-          UI.toast("Ustawiono scenę: " + sceneLabel(scene), "success");
-        }catch(e){
-          UI.toast(e.message || "Błąd zmiany sceny", "error");
-        }
-      });
-    });
-
-    // Fill links
-    const base = getBaseUrl();
-    const t = encodeURIComponent(slug);
-    const set = (id, url) => { const el=document.getElementById(id); if(el) el.textContent=url; };
-    set("linkGame", `${base}/overlay.html?t=${t}`);
-    set("linkBreak", `${base}/break.html?t=${t}`);
-    set("linkTech", `${base}/technical.html?t=${t}`);
-    set("linkSponsors", `${base}/sponsors.html?t=${t}`);
-  }
-
-  function renderSceneStatus(st){
-    const s = (st?.meta?.scene) || "game";
+  function renderSceneStatus(state) {
+    const s = (state?.meta?.scene) || "game";
     const el = document.getElementById("sceneStatus");
     if (el) el.innerHTML = `Aktualna scena: <span class="kbd">${sceneLabel(s)}</span>`;
-  }
 
-
-
-  els.titleSlug.textContent = slug;
-
-  function requirePin() {
-    const pin = STORE.getPin(slug);
-    if (!pin) {
-      UI.toast("Wpisz PIN turnieju (Control)", "warn");
-      return null;
+    const btnLock = document.getElementById("btnLockToggle");
+    if (btnLock) {
+      const locked = !!state?.meta?.locked;
+      btnLock.textContent = locked ? "BLOKADA: ON 🔒" : "BLOKADA: OFF";
     }
-    return pin;
   }
 
-  
   function formatSetPreview(m) {
     const parts = [];
     const mm = ENG.emptyMatchPatch(m);
@@ -455,11 +403,12 @@ const filterState = {
     return parts.join(", ");
   }
 
-function render() {
+  function render() {
     if (!current) return;
     const state = current.state;
     renderSceneStatus(state);
     ensureFiltersUI(state);
+
     // teams
     els.teamsList.innerHTML = "";
     for (const t of state.teams || []) {
@@ -476,24 +425,15 @@ function render() {
     const matchesAll = (state.matches || []).map(m => ENG.emptyMatchPatch(m));
 
     const matches = matchesAll.filter((m) => {
-      // status filter
       if (filterState.status !== "all" && m.status !== filterState.status) return false;
-
-      // stage filter
       if (filterState.stage === "group" && m.stage !== "group") return false;
       if (filterState.stage === "playoffs" && m.stage === "group") return false;
-
-      // group filter
       if (filterState.group !== "all") {
         if (String(m.group || "").trim() !== filterState.group) return false;
       }
-
-      // court filter
       if (filterState.court !== "all") {
         if (String(m.court || "").trim() !== filterState.court) return false;
       }
-
-      // search query
       const q = (filterState.q || "").toLowerCase();
       if (q) {
         const ta = (state.teams || []).find(x=>x.id===m.teamAId)?.name || "";
@@ -577,15 +517,37 @@ function render() {
       }
     }
 
-    // update match dropdowns
-    const teamOpts = (state.teams||[]).map(t=>`<option value="${t.id}">${t.name} (${t.group||"—"})</option>`).join("");
-    els.matchTeamA.innerHTML = `<option value="">—</option>` + teamOpts;
-    els.matchTeamB.innerHTML = `<option value="">—</option>` + teamOpts;
-
-    // group list (dynamic)
+    // ── update match dropdowns – grupy ──────────────────────────────────────
     const groupsSet = new Set((state.teams||[]).map(t=> (t.group||"").trim()).filter(Boolean));
     const list = Array.from(groupsSet).sort((a,b)=>a.localeCompare(b,"pl"));
     els.matchGroup.innerHTML = `<option value="">—</option>` + list.map(g=>`<option value="${g}">${g}</option>`).join("");
+
+    // update team dropdowns – filtruj po wybranej grupie (dla etapu Grupa)
+    function refreshTeamDropdowns() {
+      const stage = els.matchStage.value;
+      const grp = (els.matchGroup.value||"").trim();
+      let teams = state.teams || [];
+      if (stage === "group" && grp) {
+        teams = teams.filter(t => (t.group||"").trim() === grp);
+      }
+      const prevA = els.matchTeamA.value;
+      const prevB = els.matchTeamB.value;
+      const opts = teams.map(t=>`<option value="${t.id}">${t.name}${stage !== "group" ? ` (${t.group||"—"})` : ""}</option>`).join("");
+      els.matchTeamA.innerHTML = `<option value="">—</option>` + opts;
+      els.matchTeamB.innerHTML = `<option value="">—</option>` + opts;
+      if (teams.some(t=>t.id===prevA)) els.matchTeamA.value = prevA;
+      if (teams.some(t=>t.id===prevB)) els.matchTeamB.value = prevB;
+    }
+    refreshTeamDropdowns();
+
+    // bind listeners raz (guard żeby nie duplikować przy każdym render())
+    if (!els.matchGroup._vpBound) {
+      els.matchGroup._vpBound = true;
+      els.matchGroup.addEventListener("change", refreshTeamDropdowns);
+      els.matchStage.addEventListener("change", refreshTeamDropdowns);
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     // playoffs info
     if (els.playoffsInfo) {
       if (state.playoffs?.generated) {
@@ -598,13 +560,15 @@ function render() {
         els.playoffsInfo.textContent = "Playoff nie został jeszcze wygenerowany.";
       }
     }
+
+    renderQueue(state);
   }
 
   async function ensureTournament() {
     els.status.textContent = "Ładowanie…";
     const tid = await STORE.getTournamentId(slug);
     if (!tid) {
-      els.status.innerHTML = "<b>Turniej nie istnieje.</b> Uzupełnij nazwę i PIN, a potem kliknij „Utwórz turniej”.";
+      els.status.innerHTML = "<b>Turniej nie istnieje.</b> Uzupełnij nazwę i PIN, a potem kliknij „Utwórz turniej".";
       els.btnCreate.disabled = false;
       return;
     }
@@ -678,15 +642,34 @@ function render() {
     }
   });
 
-  // Add match
+  // Add match – z walidacją grupy i boiskiem
   els.btnAddMatch.addEventListener("click", async () => {
     const pin = requirePin(); if (!pin) return;
     const stage = els.matchStage.value;
     const group = (els.matchGroup.value||"").trim();
     const teamAId = els.matchTeamA.value;
     const teamBId = els.matchTeamB.value;
-    if (!teamAId || !teamBId || teamAId === teamBId) { UI.toast("Wybierz dwie różne drużyny", "warn"); return; }
+    const court = (els.matchCourt ? (els.matchCourt.value||"").trim() : "");
+
+    // Walidacja: wybrano drużyny
+    if (!teamAId || !teamBId) { UI.toast("Wybierz obie drużyny", "warn"); return; }
+    // Walidacja: drużyna nie gra sama ze sobą
+    if (teamAId === teamBId) { UI.toast("Drużyna A i B muszą być różne", "warn"); return; }
+    // Walidacja: etap grupy wymaga grupy
     if (stage === "group" && !group) { UI.toast("Wybierz grupę dla meczu grupowego", "warn"); return; }
+
+    // Walidacja: przy etapie Grupa – obie drużyny muszą należeć do wybranej grupy
+    if (stage === "group" && group) {
+      const state = current?.state || {};
+      const teamA = (state.teams||[]).find(t=>t.id===teamAId);
+      const teamB = (state.teams||[]).find(t=>t.id===teamBId);
+      if (teamA && (teamA.group||"").trim() !== group) {
+        UI.toast(`${teamA.name} nie należy do grupy ${group}`, "warn"); return;
+      }
+      if (teamB && (teamB.group||"").trim() !== group) {
+        UI.toast(`${teamB.name} nie należy do grupy ${group}`, "warn"); return;
+      }
+    }
 
     try {
       await STORE.mutate(slug, pin, (st) => {
@@ -697,6 +680,7 @@ function render() {
           group: stage==="group" ? group : "",
           teamAId,
           teamBId,
+          court: court || "",
           status: "pending",
           sets: [{a:0,b:0},{a:0,b:0},{a:0,b:0}],
           claimedBy: null,
@@ -705,7 +689,8 @@ function render() {
         });
         return st;
       });
-      UI.toast("Dodano mecz", "success");
+      UI.toast("Dodano mecz" + (court ? ` (boisko ${court})` : ""), "success");
+      if (els.matchCourt) els.matchCourt.value = "";
     } catch (e) {
       UI.toast("Błąd: " + (e.message||e), "error");
     }
@@ -721,13 +706,11 @@ function render() {
       const pin = requirePin(); if (!pin) return;
 
       const teamId = btn.getAttribute("data-del-team");
-      const state = last?.state || {};
+      const state = current?.state || {};
       const team = (state.teams || []).find(t => t.id === teamId);
       const name = team?.name || "tę drużynę";
 
-      if (!confirm(`Usunąć "${name}"?
-
-Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
+      if (!confirm(`Usunąć "${name}"?\n\nUwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
 
       try {
         await STORE.mutate(slug, pin, (st) => {
@@ -735,15 +718,12 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
           st.matches = (st.matches || []).filter(m => m.teamAId !== teamId && m.teamBId !== teamId);
 
           st.meta = st.meta || {};
-          // clear program if points to removed match
           if (st.meta.programMatchId && !(st.matches || []).some(m => m.id === st.meta.programMatchId)) {
             st.meta.programMatchId = null;
           }
-          // remove from queue if present
           if (Array.isArray(st.meta.queue)) {
             st.meta.queue = st.meta.queue.filter(it => (st.matches || []).some(m => m.id === it.matchId));
           }
-          // playoffs may become stale
           if (st.playoffs) st.playoffs.generated = false;
 
           return st;
@@ -754,7 +734,6 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
       }
     });
   }
-
 
   // click handlers (program/live/unclaim/delete)
   els.matchesList.addEventListener("click", async (ev) => {
@@ -812,7 +791,6 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
           return st;
         });
         UI.toast("Cofnięto do live", "success");
-    
       } else if (courtId) {
         const val = prompt("Numer/nazwa boiska dla tego meczu (np. 1, 2, A). Zostaw puste, żeby usunąć:", "");
         if (val === null) return;
@@ -821,8 +799,7 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
           return st;
         });
         UI.toast("Zapisano boisko", "success");
-
-    } else if (unclaimId) {
+      } else if (unclaimId) {
         await STORE.mutate(slug, pin, (st) => {
           st.matches = (st.matches||[]).map(m => m.id===unclaimId ? ({...m, claimedBy:null, claimedAt:null}) : m);
           return st;
@@ -849,7 +826,6 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
     document.getElementById("matchGroupWrap").style.display = isGroup ? "" : "none";
   });
 
-
   // Playoffs
   if (els.btnOpenPlayoffs) {
     els.btnOpenPlayoffs.href = `playoffs.html?t=${encodeURIComponent(slug)}`;
@@ -864,7 +840,6 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
       }
       try {
         await STORE.mutate(slug, pin, (state) => {
-          // remove old playoff matches if regenerate
           let st = JSON.parse(JSON.stringify(state||{}));
           const old = st.playoffs?.bracket;
           if (already && old) {
@@ -883,9 +858,20 @@ Uwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
     });
   }
 
+  function requirePin() {
+    const pin = STORE.getPin(slug);
+    if (!pin) {
+      UI.toast("Wpisz PIN turnieju (Control)", "warn");
+      return null;
+    }
+    return pin;
+  }
+
   // init stage options
   els.matchStage.innerHTML = UI.STAGES.map(s=>`<option value="${s.key}">${s.label}</option>`).join("");
   document.getElementById("matchGroupWrap").style.display = "";
+
+  els.titleSlug.textContent = slug;
 
   ensureTournament().catch(e => {
     console.error(e);
