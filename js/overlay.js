@@ -1,4 +1,4 @@
-// js/overlay.js — PRO Overlay (SAFE build)
+// js/overlay.js – PRO Overlay (SAFE build)
 // - game HUD (TV style)
 // - stage+set pills
 // - static ticker (max 2 live matches)
@@ -36,15 +36,28 @@
     technical: $("sceneTechnical"),
     sponsors: $("sceneSponsors"),
   };
-  let activeScene = "game";
+  let activeScene = null; // null forces first render to always apply
+
+  const sponsorWidget = $("sponsorWidget");
 
   function setActiveScene(scene) {
     const target = scenes[scene] ? scene : "game";
-    if (target === activeScene) return;
 
+    // Always update DOM classes (removed early-return so re-renders always happen)
     Object.keys(scenes).forEach((k) => {
       if (scenes[k]) scenes[k].classList.toggle("active", k === target);
     });
+
+    // Hide sponsor widget on non-game scenes
+    if (sponsorWidget) {
+      if (target === "game") {
+        sponsorWidget.style.display = "";
+      } else {
+        sponsorWidget.classList.remove("show");
+        sponsorWidget.style.display = "none";
+      }
+    }
+
     activeScene = target;
   }
 
@@ -60,7 +73,6 @@
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
   };
-
 
   // ----- BREAK elements -----
   const elBreak = {
@@ -82,86 +94,55 @@
     clock: document.getElementById("clock") || document.getElementById("techClock"),
   };
 
-
   function teamName(state, id) {
     const t = (state.teams || []).find((x) => x.id === id);
     return t ? t.name : "—";
   }
 
-
   function fmtTime(d) {
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    const ss = String(d.getSeconds()).padStart(2, "0");
     return `${hh}:${mm}:${ss}`;
   }
 
-  function matchLabel(st, m) {
-    const ta = teamName(st, m.teamAId);
-    const tb = teamName(st, m.teamBId);
-    return `${ta} vs ${tb}`;
-  }
-
-  function matchScoreNow(m) {
-    const pm = ENG.emptyMatchPatch(m);
-    const idx = ENG.currentSetIndex(pm);
-    const s = pm.sets[idx];
-    const sum = ENG.scoreSummary(pm);
-    return { a: s.a, b: s.b, setsA: sum.setsA, setsB: sum.setsB };
-  }
-
+  // ----- TICKER -----
   function renderTicker(state) {
     if (!elGame.ticker) return;
-    const st = state || {};
-    const pid = st.meta?.programMatchId;
-
-    const live = (st.matches || [])
-      .map((m) => ENG.emptyMatchPatch(m))
-      .filter((m) => m.status === "live" && m.id !== pid);
-
+    const live = (state.matches || []).filter((m) => m.status === "live").slice(0, 2);
     if (!live.length) {
-      elGame.ticker.innerHTML = `<span class="muted">Brak innych meczów na żywo</span>`;
+      elGame.ticker.innerHTML = `<span class="tickerItem muted">Brak meczów na żywo</span>`;
       return;
     }
-
-    elGame.ticker.innerHTML = live.slice(0, 2).map((m) => {
-      const ta = teamName(st, m.teamAId);
-      const tb = teamName(st, m.teamBId);
-      const idx = ENG.currentSetIndex(m);
-      const s = m.sets[idx];
-      const score = `${s.a}:${s.b}`;
-      return `
-        <div class="tickItem">
-          <span class="tickTeams">${ta}</span>
-          <span class="tickScore">${score}</span>
-          <span class="tickTeams">${tb}</span>
-        </div>
-      `;
-    }).join("");
+    elGame.ticker.innerHTML = live.map((m) => {
+      const pm = ENG.emptyMatchPatch(m);
+      const ta = teamName(state, pm.teamAId);
+      const tb = teamName(state, pm.teamBId);
+      const idx = ENG.currentSetIndex(pm);
+      const s = pm.sets[idx];
+      const sum = ENG.scoreSummary(pm);
+      return `<span class="tickerItem"><b>${ta}</b> ${s.a}:${s.b} <b>${tb}</b> <span class="tickerSets">(${sum.setsA}:${sum.setsB})</span></span>`;
+    }).join('<span class="tickerSep">·</span>');
   }
 
+  // ----- META (stage/set pills) -----
   function renderMeta(state, match) {
-    if (!elGame.metaStage || !elGame.metaSet) return;
-
-    if (!match) {
-      elGame.metaStage.textContent = "—";
-      elGame.metaSet.textContent = "SET —/3";
-      return;
+    if (elGame.metaSet) {
+      if (match) {
+        const idx = ENG.currentSetIndex(ENG.emptyMatchPatch(match));
+        elGame.metaSet.textContent = `SET ${idx + 1}/3`;
+      } else {
+        elGame.metaSet.textContent = "SET —/3";
+      }
     }
-
-    const idx = ENG.currentSetIndex(match);
-    elGame.metaSet.textContent = `SET ${idx + 1}/3`;
-
-    if (match.stage === "group" && match.group) {
-      elGame.metaStage.textContent = `GRUPA ${String(match.group).toUpperCase()}`;
-      return;
+    if (elGame.metaStage) {
+      const stage = match ? (match.stage || "group") : (state.meta?.currentStage || "group");
+      const stageLabel = UI.stageLabel ? UI.stageLabel(stage) : stage;
+      elGame.metaStage.textContent = String(stageLabel || "—").toUpperCase();
     }
-
-    const stage = match.stage || "";
-    const stageLabel = (UI && typeof UI.stageLabel === "function") ? UI.stageLabel(stage) : stage;
-    elGame.metaStage.textContent = String(stageLabel || "—").toUpperCase();
   }
 
+  // ----- GAME -----
   function renderGame(state) {
     const st = state || {};
     const pmId = st.meta?.programMatchId || null;
@@ -198,28 +179,39 @@
     if (elGame.bScore) elGame.bScore.textContent = String(s.b);
   }
 
-  // ----- BREAK / TECHNICAL / SPONSORS -----
-  // We keep these scenes alive (so scene switching works), but we don't change their existing rendering here.
+  // ----- BREAK -----
+  function matchLabel(st, m) {
+    return `${teamName(st, m.teamAId)} vs ${teamName(st, m.teamBId)}`;
+  }
+
+  function matchScoreNow(m) {
+    const pm = ENG.emptyMatchPatch(m);
+    const idx = ENG.currentSetIndex(pm);
+    const s = pm.sets[idx];
+    const sum = ENG.scoreSummary(pm);
+    return { a: s.a, b: s.b, setsA: sum.setsA, setsB: sum.setsB };
+  }
 
   function renderBreak(state) {
     const st = state || {};
+
     // Header
     if (elBreak.btName) elBreak.btName.textContent = String(st.meta?.name || "VolleyballPro");
     if (elBreak.btSlug) elBreak.btSlug.textContent = String(slug || "");
     if (elBreak.btClock) elBreak.btClock.textContent = fmtTime(new Date());
 
-    // Tables (group standings from confirmed group matches)
+    // ── Group standings tables (fix: always re-render from fresh state) ──
     if (elBreak.tables) {
       const groups = ENG.computeStandings(st) || {};
-      const keys = Object.keys(groups).filter(k => k !== "").sort((a,b)=>String(a).localeCompare(String(b),"pl"));
+      const keys = Object.keys(groups).filter(k => k !== "").sort((a, b) => String(a).localeCompare(String(b), "pl"));
       if (!keys.length) {
-        elBreak.tables.innerHTML = `<div class="muted">Brak danych do tabel (dodaj mecze grupowe i ustaw status confirmed).</div>`;
+        elBreak.tables.innerHTML = `<div class="muted">Brak danych do tabel (mecze grupowe muszą mieć status <b>confirmed</b>).</div>`;
       } else {
         elBreak.tables.innerHTML = keys.map((g) => {
           const rows = groups[g] || [];
           const body = rows.map((r, i) => `
             <tr>
-              <td class="pos">${i+1}</td>
+              <td class="pos">${i + 1}</td>
               <td class="name">${UI ? UI.esc(r.name) : r.name}</td>
               <td>${r.played}</td>
               <td>${r.wins}</td>
@@ -249,14 +241,14 @@
     // Last results (latest confirmed)
     if (elBreak.last) {
       const confirmed = (st.matches || []).filter(m => m.status === "confirmed");
-      confirmed.sort((a,b) => {
+      confirmed.sort((a, b) => {
         const ta = Date.parse(a.updated_at || a.updatedAt || a.created_at || a.createdAt || 0) || 0;
         const tb = Date.parse(b.updated_at || b.updatedAt || b.created_at || b.createdAt || 0) || 0;
         return tb - ta;
       });
       const items = confirmed.slice(0, 4).map(m => {
-        const s = matchScoreNow(m);
-        return `<div class="breakItem"><span>${matchLabel(st,m)}</span><b>${s.setsA}:${s.setsB}</b></div>`;
+        const sc = matchScoreNow(m);
+        return `<div class="breakItem"><span>${matchLabel(st, m)}</span><b>${sc.setsA}:${sc.setsB}</b></div>`;
       }).join("");
       elBreak.last.innerHTML = items || `<div class="muted">Brak zakończonych meczów.</div>`;
     }
@@ -264,7 +256,7 @@
     // Next matches (pending)
     if (elBreak.next) {
       const pending = (st.matches || []).filter(m => m.status === "pending");
-      const items = pending.slice(0, 4).map(m => `<div class="breakItem"><span>${matchLabel(st,m)}</span><b>—</b></div>`).join("");
+      const items = pending.slice(0, 4).map(m => `<div class="breakItem"><span>${matchLabel(st, m)}</span><b>–</b></div>`).join("");
       elBreak.next.innerHTML = items || `<div class="muted">Brak zaplanowanych meczów.</div>`;
     }
 
@@ -277,28 +269,25 @@
       } else {
         const sc = matchScoreNow(m);
         elBreak.program.innerHTML = `
-          <div class="breakItem"><span>${matchLabel(st,m)}</span><b>${sc.setsA}:${sc.setsB} • ${sc.a}:${sc.b}</b></div>
+          <div class="breakItem"><span>${matchLabel(st, m)}</span><b>${sc.setsA}:${sc.setsB} • ${sc.a}:${sc.b}</b></div>
         `;
       }
     }
   }
 
+  // ----- TECHNICAL -----
   function renderTechnical(state) {
-    // Keep clock ticking even if no state
     if (elTech.clock) elTech.clock.textContent = fmtTime(new Date());
-    // Optional: show tournament name
-    const name = state?.meta?.name || "VolleyballPro";
     if (elTech.subtitle && !elTech.subtitle.textContent) {
       elTech.subtitle.textContent = "Trwają przygotowania do kolejnego meczu";
     }
     if (elTech.title && !elTech.title.textContent) {
       elTech.title.textContent = "ZARAZ WRACAMY";
     }
-    // No further updates needed.
   }
 
   function renderOtherScenes(_state) {
-    // no-op: your existing break/technical/sponsors UI remains in HTML/CSS/other scripts (if any)
+    // no-op
   }
 
   // ----- Start -----
@@ -319,14 +308,13 @@
       if (scene === "game") renderGame(st);
       else if (scene === "break") renderBreak(st);
       else if (scene === "technical") renderTechnical(st);
-      else if (scene === "sponsors") { /* no-op */ }
+      else if (scene === "sponsors") { /* handled by overlay-sponsors-rotator.js */ }
       renderOtherScenes(st);
     };
 
     renderAll();
 
-
-    // Clock tick for Break/Technical even if state doesn't change
+    // Clock tick for Break/Technical
     setInterval(() => {
       const st2 = current?.state || {};
       const scene2 = st2.meta?.scene || "game";
@@ -334,15 +322,12 @@
       if (scene2 === "technical") renderTechnical(st2);
     }, 1000);
 
-
     STORE.subscribeState(slug, (snap) => {
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
       renderAll();
     });
 
-
-    // Fallback: if Realtime delivery is flaky (mobile hotspot etc.), poll state every 2s.
-    // This keeps scene switching and scores in sync even when websocket drops.
+    // Fallback polling – gdy WebSocket na telefonie/OBS się urwie
     let _polling = false;
     setInterval(async () => {
       if (_polling) return;
@@ -354,12 +339,11 @@
           renderAll();
         }
       } catch (e) {
-        // ignore; realtime may still be active
+        // ignore
       } finally {
         _polling = false;
       }
     }, 2000);
-
   }
 
   start().catch((e) => console.error("overlay start error", e));
