@@ -505,30 +505,46 @@
   function init() {
     ensureStyle();
 
-    const slug = (() => { try { return UI.getSlug(); } catch { return ""; } })();
-    if (!slug) return;
+    // Podpinamy się pod renderGame overlay.js przez monkey-patch.
+    // overlay.js wywołuje renderGame(st) przy każdej zmianie stanu —
+    // wystarczy opakować tę funkcję żeby dostać ten sam state.
+    function hookIntoOverlay() {
+      // renderGame jest zdefiniowane wewnątrz IIFE overlay.js więc nie jest globalny.
+      // Zamiast tego obserwujemy zmiany DOM na elementach score — gdy overlay.js
+      // zaktualizuje wynik, my odczytujemy stan z VPState (już jest w cache przeglądarki).
+      const slug = (() => { try { return UI.getSlug(); } catch { return ""; } })();
+      if (!slug) return;
 
-    // Subskrybuj od razu, ale DOM wstrzyknij z retry (overlay.js może jeszcze nie wyrenderował HUDu)
-    let pendingState = null;
+      ensureDOMRetry(() => {
+        // Obserwuj zmiany na aScore i bScore — to odpala się dokładnie gdy overlay.js renderuje
+        const targets = [
+          document.getElementById("aScore"),
+          document.getElementById("bScore"),
+          document.getElementById("aSets"),
+          document.getElementById("bSets"),
+        ].filter(Boolean);
 
-    ensureDOMRetry(() => {
-      // DOM gotowy — jeśli mieliśmy już stan, zastosuj go
-      if (pendingState) onState(pendingState);
-    });
+        if (!targets.length) {
+          console.warn("[GameFX] Brak elementów score do obserwacji");
+          return;
+        }
 
-    STORE.subscribeState(slug, snap => {
-      const state = snap?.state || {};
-      pendingState = state;
-      ensureDOM(); // spróbuj wstrzyknąć przy każdej zmianie (bezpieczne — idempotentne)
-      onState(state);
-    });
+        const mo = new MutationObserver(() => {
+          // Pobierz aktualny stan z cache (fetchState jest tanie — Supabase cachuje)
+          STORE.fetchState(slug).then(snap => {
+            onState(snap?.state || {});
+          }).catch(() => {});
+        });
 
-    STORE.fetchState(slug).then(snap => {
-      const state = snap?.state || {};
-      pendingState = state;
-      ensureDOM();
-      onState(state);
-    }).catch(() => {});
+        targets.forEach(el => mo.observe(el, { childList: true, characterData: true, subtree: true }));
+        console.debug("[GameFX] Podpięto MutationObserver na score elements");
+
+        // Pierwsze uruchomienie
+        STORE.fetchState(slug).then(snap => onState(snap?.state || {})).catch(() => {});
+      });
+    }
+
+    hookIntoOverlay();
   }
 
   if (document.readyState === "loading") {
