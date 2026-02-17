@@ -568,7 +568,7 @@
     els.status.textContent = "Ładowanie…";
     const tid = await STORE.getTournamentId(slug);
     if (!tid) {
-      els.status.innerHTML = "<b>Turniej nie istnieje.</b> Uzupełnij nazwę i PIN, a potem kliknij „Utwórz turniej".";
+      els.status.innerHTML = "<b>Turniej nie istnieje.</b> Uzupełnij nazwę i PIN, a potem kliknij 'Utwórz turniej'.";
       els.btnCreate.disabled = false;
       return;
     }
