@@ -49,7 +49,10 @@
       /* === FX Overlay (Set Point / Match Point / Winner) === */
       #gameFxOverlay {
         position: absolute;
-        inset: 0;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -145,9 +148,12 @@
       }
 
       /* === Konfetti === */
-      #fxConfetti {
+      #gameFxOverlay .confettiWrap {
         position: absolute;
-        inset: 0;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
         pointer-events: none;
         overflow: hidden;
       }
@@ -470,6 +476,14 @@
     const overlay = document.getElementById("gameFxOverlay");
     if (!overlay) return;
 
+    // Osobny kontener na konfetti żeby nie mieszać z kartą
+    let wrap = overlay.querySelector(".confettiWrap");
+    if (!wrap) {
+      wrap = document.createElement("div");
+      wrap.className = "confettiWrap";
+      overlay.appendChild(wrap);
+    }
+
     const count = 90;
     for (let i = 0; i < count; i++) {
       const el = document.createElement("div");
@@ -488,8 +502,7 @@
         animation-delay: ${delay}s;
         border-radius: ${Math.random() > 0.5 ? "50%" : "2px"};
       `;
-      overlay.appendChild(el);
-      // Usuń po zakończeniu animacji
+      wrap.appendChild(el);
       setTimeout(() => el.remove(), (delay + dur + 0.2) * 1000);
     }
   }
