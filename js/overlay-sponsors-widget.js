@@ -132,7 +132,7 @@
         : "";
 
       widget.innerHTML = `
-        <div class="sw-label">Partner</div>
+        <div class="sw-label">${sponsor.role ? esc(sponsor.role) : "Sponsor"}</div>
         <div class="sw-logo">${logoHtml}</div>
         ${nameHtml}
       `;

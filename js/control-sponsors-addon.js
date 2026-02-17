@@ -34,7 +34,6 @@
     if (mounted) return;
     mounted = true;
 
-    // Try to place near existing operator filters or at top of main column
     const host =
       document.getElementById("opFilters") ||
       document.querySelector(".opFilters") ||
@@ -49,13 +48,24 @@
       ]),
       el("div", { class: "cardBody" }, [
         el("div", { style: "display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end" }, [
-          el("div", { style: "flex:1; min-width:220px" }, [
+          el("div", { style: "flex:1; min-width:200px" }, [
             el("label", { class: "muted", for: "spName" }, ["Nazwa"]),
             el("input", { id: "spName", class: "input", placeholder: "np. Partner Główny" })
           ]),
-          el("div", { style: "flex:2; min-width:320px" }, [
+          el("div", { style: "flex:2; min-width:300px" }, [
             el("label", { class: "muted", for: "spLogo" }, ["Logo URL"]),
             el("input", { id: "spLogo", class: "input", placeholder: "https://.../logo.png" })
+          ]),
+          el("div", { style: "flex:1; min-width:160px" }, [
+            el("label", { class: "muted", for: "spRole" }, ["Rola"]),
+            el("select", { id: "spRole", class: "input" }, [
+              el("option", { value: "" }, ["— brak —"]),
+              el("option", { value: "Sponsor Główny" }, ["Sponsor Główny"]),
+              el("option", { value: "Sponsor" }, ["Sponsor"]),
+              el("option", { value: "Partner" }, ["Partner"]),
+              el("option", { value: "Organizator" }, ["Organizator"]),
+              el("option", { value: "Patron Medialny" }, ["Patron Medialny"]),
+            ])
           ]),
           el("button", { class: "btn", id: "spAddBtn", type: "button" }, ["Dodaj"])
         ]),
@@ -137,21 +147,25 @@
     if (!slug) return toast("Brak slug turnieju.", "warn");
     if (!pin) return toast("Podaj PIN w Control, żeby dodawać sponsorów.", "warn");
 
-    const name = document.getElementById("spName")?.value?.trim() || "";
+    const name    = document.getElementById("spName")?.value?.trim() || "";
     const logoUrl = document.getElementById("spLogo")?.value?.trim() || "";
+    const role    = document.getElementById("spRole")?.value?.trim() || "";
+
     if (!name && !logoUrl) return toast("Wpisz nazwę lub logo URL.", "warn");
     if (logoUrl && !/^https?:\/\//i.test(logoUrl)) return toast("Logo URL musi zaczynać się od http(s)://", "warn");
 
     try {
       await STORE.mutate(slug, pin, (st) => {
         st.sponsors = st.sponsors || [];
-        st.sponsors.push({ id: uid(), name, logoUrl, enabled: true });
+        st.sponsors.push({ id: uid(), name, logoUrl, role, enabled: true });
         st.meta = st.meta || {};
         st.meta.sponsors = st.meta.sponsors || {};
         return st;
       });
       document.getElementById("spName").value = "";
       document.getElementById("spLogo").value = "";
+      const roleEl = document.getElementById("spRole");
+      if (roleEl) roleEl.value = "";
       toast("Dodano sponsora.", "ok");
     } catch (e) {
       toast("Błąd: " + (e?.message || e), "err");
@@ -163,9 +177,9 @@
     const pin = getPin(slug);
     if (!slug || !pin) return;
 
-    const accentOn = !!document.getElementById("spAccentOn")?.checked;
+    const accentOn   = !!document.getElementById("spAccentOn")?.checked;
     const accentEvery = Number(document.getElementById("spAccentEvery")?.value || 6);
-    const sceneEvery = Number(document.getElementById("spSceneEvery")?.value || 5);
+    const sceneEvery  = Number(document.getElementById("spSceneEvery")?.value || 5);
     const widgetEvery = Number(document.getElementById("spWidgetEvery")?.value || 8);
 
     try {
@@ -173,9 +187,9 @@
         st.meta = st.meta || {};
         st.meta.sponsors = st.meta.sponsors || {};
         st.meta.sponsors.accentEnabled = accentOn;
-        st.meta.sponsors.accentEvery = Math.min(60, Math.max(2, accentEvery || 6));
-        st.meta.sponsors.sceneEvery = Math.min(60, Math.max(2, sceneEvery || 5));
-        st.meta.sponsors.widgetEvery = Math.min(120, Math.max(2, widgetEvery || 8));
+        st.meta.sponsors.accentEvery   = Math.min(60, Math.max(2, accentEvery || 6));
+        st.meta.sponsors.sceneEvery    = Math.min(60, Math.max(2, sceneEvery || 5));
+        st.meta.sponsors.widgetEvery   = Math.min(120, Math.max(2, widgetEvery || 8));
         return st;
       });
     } catch (e) {
@@ -190,10 +204,10 @@
     const spList = document.getElementById("spList");
     if (!spList) return;
 
-    const settings = st.meta?.sponsors || {};
-    const accentOn = !!settings.accentEnabled;
+    const settings  = st.meta?.sponsors || {};
+    const accentOn  = !!settings.accentEnabled;
     const accentEvery = settings.accentEvery ?? 6;
-    const sceneEvery = settings.sceneEvery ?? 5;
+    const sceneEvery  = settings.sceneEvery  ?? 5;
     const widgetEvery = settings.widgetEvery ?? 8;
 
     const chk = document.getElementById("spAccentOn");
@@ -211,19 +225,22 @@
       return;
     }
 
-    sponsors.forEach((s, idx) => {
+    sponsors.forEach((s) => {
       const row = el("div", { class: "row", style: "display:flex; gap:10px; align-items:center; justify-content:space-between" }, [
         el("div", { style: "display:flex; gap:10px; align-items:center; min-width:0; flex:1" }, [
           el("div", { style: "width:44px; height:28px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:center; overflow:hidden" }, [
-            s.logoUrl ? el("img", { src: s.logoUrl, alt: s.name || "logo", style: "max-width:100%; max-height:100%; object-fit:contain" }) : el("span", { class: "muted" }, ["—"])
+            s.logoUrl
+              ? el("img", { src: s.logoUrl, alt: s.name || "logo", style: "max-width:100%; max-height:100%; object-fit:contain" })
+              : el("span", { class: "muted" }, ["—"])
           ]),
           el("div", { style: "min-width:0" }, [
             el("b", { style: "display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis" }, [s.name || "(bez nazwy)"]),
+            s.role ? el("div", { class: "muted", style: "font-size:11px; margin-top:1px" }, [s.role]) : el("span"),
             el("div", { class: "muted", style: "white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:520px" }, [s.logoUrl || ""])
           ])
         ]),
         el("div", { style: "display:flex; gap:8px; align-items:center" }, [
-          el("button", { class: "btn small", type: "button", "data-sp-up": "1", "data-id": s.id, title: "Wyżej" }, ["▲"]),
+          el("button", { class: "btn small", type: "button", "data-sp-up": "1",   "data-id": s.id, title: "Wyżej" }, ["▲"]),
           el("button", { class: "btn small", type: "button", "data-sp-down": "1", "data-id": s.id, title: "Niżej" }, ["▼"]),
           el("button", { class: "btn small danger", type: "button", "data-sp-del": "1", "data-id": s.id }, ["Usuń"])
         ])
