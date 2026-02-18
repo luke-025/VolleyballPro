@@ -5,7 +5,8 @@ window.VP_UI = {
     { key: "quarterfinal", label: "Ćwierćfinał" },
     { key: "semifinal", label: "Półfinał" },
     { key: "thirdplace", label: "Mecz o 3 miejsce" },
-    { key: "final", label: "Finał" }
+    { key: "final", label: "Finał" },
+    { key: "place9", label: "Miejsca 9–12" },
   ],
   stageLabel(key) {
     return (this.STAGES.find(s => s.key === key)?.label) || key;

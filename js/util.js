@@ -7,8 +7,9 @@ window.VP_UTIL = {
     semifinal: "Półfinał",
     thirdplace: "Mecz o 3 miejsce",
     final: "Finał",
+    place9: "Miejsca 9–12",
   },
-  stages() { return ["group","quarterfinal","semifinal","thirdplace","final"]; },
+  stages() { return ["group","quarterfinal","semifinal","thirdplace","final","place9"]; },
   groupsFromTeams(teams) {
     const set = new Set();
     (teams||[]).forEach(t => t.group && set.add(t.group));

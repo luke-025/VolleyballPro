@@ -555,7 +555,7 @@
         const br = state.playoffs.bracket || {};
         const qfN = (br.qf||[]).length;
         const sfN = (br.sf||[]).length;
-        els.playoffsInfo.textContent = `Wygenerowano: ${gAt} • QF: ${qfN} • SF: ${sfN} • Finał: ${br.final ? "tak" : "nie"}`;
+        els.playoffsInfo.textContent = `Wygenerowano: ${gAt} • QF: ${qfN} • SF: ${sfN} • Finał: ${br.final ? "tak" : "nie"} • 9-12: ${(br.place9||[]).length ? "tak" : "nie"}`;
       } else {
         els.playoffsInfo.textContent = "Playoff nie został jeszcze wygenerowany.";
       }
@@ -773,6 +773,9 @@
           st.matches[idx] = ENG.confirmMatch(mm);
           st.matches[idx].claimedBy = null;
           st.matches[idx].claimedAt = null;
+          if (st.playoffs?.generated) {
+              st = ENG.applyPlayoffsProgression(st);
+          }
           return st;
         });
         UI.toast("Wynik zatwierdzony", "success");
@@ -843,7 +846,7 @@
           let st = JSON.parse(JSON.stringify(state||{}));
           const old = st.playoffs?.bracket;
           if (already && old) {
-            const removeIds = new Set([...(old.qf||[]), ...(old.sf||[]), old.final, old.third].filter(Boolean));
+            const removeIds = new Set([...(old.qf||[]), ...(old.sf||[]), ...(old.place9||[]), old.final, old.third].filter(Boolean));
             st.matches = (st.matches||[]).filter(m => !removeIds.has(m.id));
           }
           st = ENG.generatePlayoffs(st, { force: true });
