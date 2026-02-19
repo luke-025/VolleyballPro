@@ -159,7 +159,6 @@
       letter-spacing:.5px;
     }
 
-                
     /* === Ticker === */
     .ticker{
       position:absolute;
@@ -206,7 +205,6 @@
     .tickItem{ display:flex; gap:14px; align-items:center; }
     .tickSep{ opacity:.55; color:#fff; font-weight:700; }
 
-
     /* Smaller HUD */
     .gameHUD{ left:46px; top:46px; gap:14px; }
     .teamPill{ width: 500px; height: 78px; border-radius: 22px; padding: 12px 16px 12px 18px; gap: 14px; }
@@ -215,10 +213,6 @@
     .setsVal{ font-size: 20px; }
     .pointsPill{ width: 104px; height: 78px; border-radius: 18px; font-size: 34px; }
     .teamRow{ gap: 14px; }
-                
-          50%  { transform: translateY(-1px) scale(1.08) rotate(4deg); filter: brightness(1.15); }
-      100% { transform: translateY(0) scale(1) rotate(-4deg); filter: brightness(1); }
-    }
 
     /* Marquee ticker */
     .tickerItems{ overflow:hidden; }
@@ -235,8 +229,6 @@
       from { transform: translateX(0); }
       to   { transform: translateX(-50%); }
     }
-
-    
 
     /* === FIX: Break/Technical inside scaled stage === */
     .scene-break{
@@ -270,7 +262,6 @@
       overflow:hidden;
     }
 
-
     /* Allow point pulse animation from overlay-anim.js */
     .pointsNum{ will-change: transform, filter; }
 
@@ -299,7 +290,7 @@
       object-fit: contain;
     }
 
-/* HARD FIX: Technical scene layout inside overlay */
+    /* HARD FIX: Technical scene layout inside overlay */
     #sceneTechnical{
       position:absolute; inset:0;
       display:flex; align-items:center; justify-content:center;
@@ -318,7 +309,13 @@
       background: rgba(8,12,24,.55); border:1px solid rgba(255,255,255,.14); box-shadow: 0 18px 50px rgba(0,0,0,.45); backdrop-filter: blur(12px); }
     #sceneTechnical .techClock{ font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace); font-size:22px; font-weight:900; color: var(--text, rgba(255,255,255,.95)); }
     #sceneTechnical .techHint{ font-size:14px; color: var(--muted, rgba(255,255,255,.7)); }
-  
+
+    /* == STAŁE TŁA — tylko te 3 linie się zmieniły == */
+    .scene-break          { background: #070A12 !important; }
+    .scene-technical,
+    #sceneTechnical       { background: #070A12 !important; }
+    #sceneSponsors        { background: #070A12 !important; }
+
   </style>
 </head>
 <body>
@@ -333,7 +330,6 @@
             <div class="metaPill" id="metaSet">SET —/3</div>
           </div>
           
-          
           <div class="teamRow" id="rowA">
             <div class="teamPill">
               <div class="teamName" id="aName">—</div>
@@ -344,9 +340,8 @@
             </div>
             <div class="pointsPill">
               <div class="pointsNum scoreBox" id="aScore">0</div>
-</div>
+            </div>
           </div>
-
 
           <div class="teamRow" id="rowB">
             <div class="teamPill">
@@ -358,14 +353,14 @@
             </div>
             <div class="pointsPill">
               <div class="pointsNum scoreBox" id="bScore">0</div>
-</div>
+            </div>
           </div>
         </div>
 
         <div class="ticker">
           <div class="tickerInner">
             <div class="tickerLabel">Inne mecze na żywo:</div>
-            <div class="tickerItems" id="liveTicker"></div></div></div>
+            <div class="tickerItems" id="liveTicker"></div>
           </div>
         </div>
       </div>
@@ -437,26 +432,26 @@
   <script src="js/ui-shared.js"></script>
   <script src="js/engine.js"></script>
   <script src="js/state.js"></script>
-<script src="js/break.js"></script>
+  <script src="js/break.js"></script>
   <script src="js/overlay.js"></script>
   <script src="js/overlay-anim.js"></script>
   <script src="js/overlay-sponsors-rotator.js"></script>
   <script src="js/overlay-sponsors-widget.js"></script>
   <script src="js/overlay-game-fx.js"></script>
 
-<script>
-(function(){
-  const el = document.getElementById("techClock");
-  function tick(){
-    const d=new Date();
-    const hh=String(d.getHours()).padStart(2,'0');
-    const mm=String(d.getMinutes()).padStart(2,'0');
-    const ss=String(d.getSeconds()).padStart(2,'0');
-    if(el) el.textContent = `${hh}:${mm}:${ss}`;
-  }
-  tick(); setInterval(tick,1000);
-})();
-</script>
+  <script>
+  (function(){
+    const el = document.getElementById("techClock");
+    function tick(){
+      const d=new Date();
+      const hh=String(d.getHours()).padStart(2,'0');
+      const mm=String(d.getMinutes()).padStart(2,'0');
+      const ss=String(d.getSeconds()).padStart(2,'0');
+      if(el) el.textContent = `${hh}:${mm}:${ss}`;
+    }
+    tick(); setInterval(tick,1000);
+  })();
+  </script>
 
 </body>
 </html>
