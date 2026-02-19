@@ -114,13 +114,16 @@
 
       if (sw.a === 2 || sw.b === 2) {
         m.status = "confirmed";
-        m.winner = (sw.a > sw.b) ? "A" : "B";
+        m.winner = (sw.a > sw.b) ? "a" : "b"; // FIX: mała litera — spójnie z engine.js
       } else {
         m.status = m.status || "live";
         m.winner = null;
       }
 
-      if (st.playoffs) st.playoffs.generated = false;
+      // FIX: wywołaj progresję playoff zamiast niszczyć st.playoffs.generated
+      if (st.playoffs?.generated && window.VPEngine?.applyPlayoffsProgression) {
+        st = window.VPEngine.applyPlayoffsProgression(st);
+      }
 
       return st;
     });
