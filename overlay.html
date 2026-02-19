@@ -315,6 +315,279 @@
     .scene-technical,
     #sceneTechnical       { background: #070A12 !important; }
     #sceneSponsors        { background: #070A12 !important; }
+    
+    <!-- ================================================
+     WKLEJ ten blok <style> do sekcji <style> w overlay.html
+     (np. tuż przed zamykającym </style>)
+     ================================================ -->
+<style>
+  /* ── Break scene ── */
+  #sceneBreak {
+    position: absolute; inset: 0;
+    background: #070A12 !important;
+    font-family: var(--sans);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header */
+  .brkHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 52px 20px;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    flex-shrink: 0;
+  }
+  .brkHeaderLeft {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .brkBadge {
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: rgba(106,228,255,.15);
+    border: 1px solid rgba(106,228,255,.3);
+    color: var(--accent, #6AE4FF);
+  }
+  .brkTournament {
+    font-size: 22px;
+    font-weight: 900;
+    color: rgba(255,255,255,.92);
+    letter-spacing: .3px;
+  }
+  .brkClock {
+    font-family: var(--mono, monospace);
+    font-size: 22px;
+    font-weight: 900;
+    color: rgba(255,255,255,.5);
+    letter-spacing: 2px;
+  }
+
+  /* Body */
+  .brkBody {
+    display: flex;
+    flex: 1;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  /* Left – tables */
+  .brkLeft {
+    flex: 1;
+    padding: 24px 28px 24px 52px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .brkSectionLabel {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brkSectionLabel::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 12px;
+    border-radius: 2px;
+    background: var(--accent, #6AE4FF);
+  }
+
+  .brkTablesGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    flex: 1;
+  }
+
+  .brkGroup {
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    padding: 14px 16px;
+    overflow: hidden;
+  }
+  .brkGroupTitle {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent, #6AE4FF);
+    margin-bottom: 10px;
+  }
+  .brkTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11.5px;
+  }
+  .brkTable thead tr {
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .brkTable th {
+    font-size: 9px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.35);
+    padding: 0 6px 6px;
+    text-align: center;
+  }
+  .brkTable th.name { text-align: left; }
+  .brkTable td {
+    padding: 5px 6px;
+    text-align: center;
+    color: rgba(255,255,255,.82);
+    border-bottom: 1px solid rgba(255,255,255,.04);
+  }
+  .brkTable td.pos {
+    color: rgba(255,255,255,.35);
+    font-weight: 700;
+    font-size: 10px;
+    width: 18px;
+  }
+  .brkTable td.name {
+    text-align: left;
+    font-weight: 700;
+    color: rgba(255,255,255,.95);
+    max-width: 110px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .brkTable tbody tr:first-child td { padding-top: 8px; }
+  .brkTable tbody tr:last-child td  { border-bottom: none; }
+
+  /* Right panel */
+  .brkRight {
+    width: 360px;
+    flex-shrink: 0;
+    border-left: 1px solid rgba(255,255,255,.07);
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden;
+  }
+
+  .brkPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .brkItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    font-size: 13px;
+  }
+  .brkItem:last-child { border-bottom: none; }
+  .brkItem span {
+    color: rgba(255,255,255,.82);
+    font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .brkItem b {
+    color: #d9ff7a;
+    font-weight: 900;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* Program box */
+  .brkProgramBox {
+    background: rgba(106,228,255,.07);
+    border: 1px solid rgba(106,228,255,.18);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-top: 4px;
+  }
+  .brkProgramTeams {
+    font-size: 15px;
+    font-weight: 900;
+    color: rgba(255,255,255,.95);
+    line-height: 1.3;
+  }
+  .brkProgramScore {
+    font-size: 32px;
+    font-weight: 900;
+    color: #6AE4FF;
+    margin-top: 6px;
+    letter-spacing: 2px;
+  }
+  .brkProgramSets {
+    font-size: 12px;
+    color: rgba(255,255,255,.45);
+    margin-top: 2px;
+  }
+</style>
+
+<!-- ================================================
+     ZAMIEŃ cały blok <!-- BREAK --> w overlay.html
+     ================================================ -->
+
+<!-- BREAK -->
+<div class="scene scene-break" id="sceneBreak">
+  <!-- Header -->
+  <div class="brkHeader">
+    <div class="brkHeaderLeft">
+      <span class="brkBadge">Przerwa</span>
+      <span class="brkTournament" id="btName">VolleyballPro</span>
+    </div>
+    <div class="brkClock" id="btClock">--:--:--</div>
+  </div>
+
+  <!-- Body -->
+  <div class="brkBody">
+
+    <!-- Left: tabele -->
+    <div class="brkLeft">
+      <div class="brkSectionLabel">Tabele grup</div>
+      <div class="brkTablesGrid" id="breakTables"></div>
+    </div>
+
+    <!-- Right: wyniki / następne / transmisja -->
+    <div class="brkRight">
+
+      <div class="brkPanel">
+        <div class="brkSectionLabel">Ostatnie wyniki</div>
+        <div id="breakLast"></div>
+      </div>
+
+      <div class="brkPanel">
+        <div class="brkSectionLabel">Następne mecze</div>
+        <div id="breakNext"></div>
+      </div>
+
+      <div class="brkPanel">
+        <div class="brkSectionLabel">Na transmisji</div>
+        <div id="breakProgram"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="overlayNotice" id="breakNotice" style="display:none"></div>
+</div>
 
   </style>
 </head>
