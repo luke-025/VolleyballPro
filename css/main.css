@@ -247,7 +247,8 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 
 /* Tables (TV) */
 .scene-break .breakTable,
-.breakPage .breakTable{
+.breakPage .breakTable,
+.breakOverlay .breakTable{
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
@@ -258,7 +259,8 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 }
 
 .scene-break .breakTable thead th,
-.breakPage .breakTable thead th{
+.breakPage .breakTable thead th,
+.breakOverlay .breakTable thead th{
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -270,7 +272,8 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 }
 
 .scene-break .breakTable tbody td,
-.breakPage .breakTable tbody td{
+.breakPage .breakTable tbody td,
+.breakOverlay .breakTable tbody td{
   font-size: 14px;
   padding: 10px 10px;
   text-align: center;
@@ -278,12 +281,14 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 }
 
 .scene-break .breakTable tbody tr:nth-child(odd),
-.breakPage .breakTable tbody tr:nth-child(odd){
+.breakPage .breakTable tbody tr:nth-child(odd),
+.breakOverlay .breakTable tbody tr:nth-child(odd){
   background: rgba(255,255,255,.02);
 }
 
 .scene-break .breakTable tbody tr:first-child,
-.breakPage .breakTable tbody tr:first-child{
+.breakPage .breakTable tbody tr:first-child,
+.breakOverlay .breakTable tbody tr:first-child{
   background: rgba(215,255,94,.06);
 }
 
@@ -291,7 +296,9 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .scene-break .breakTable th.colTeam,
 .scene-break .breakTable td.colTeam,
 .breakPage .breakTable th.colTeam,
-.breakPage .breakTable td.colTeam{
+.breakPage .breakTable td.colTeam,
+.breakOverlay .breakTable th.colTeam,
+.breakOverlay .breakTable td.colTeam{
   text-align: left;
   padding-left: 12px;
   width: 42%;
@@ -304,7 +311,9 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .scene-break .breakTable th.colRank,
 .scene-break .breakTable td.colRank,
 .breakPage .breakTable th.colRank,
-.breakPage .breakTable td.colRank{
+.breakPage .breakTable td.colRank,
+.breakOverlay .breakTable th.colRank,
+.breakOverlay .breakTable td.colRank{
   width: 8%;
   opacity: .75;
 }
@@ -312,14 +321,18 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .scene-break .breakTable th.colMWP,
 .scene-break .breakTable td.colMWP,
 .breakPage .breakTable th.colMWP,
-.breakPage .breakTable td.colMWP{
+.breakPage .breakTable td.colMWP,
+.breakOverlay .breakTable th.colMWP,
+.breakOverlay .breakTable td.colMWP{
   width: 6%;
 }
 
 .scene-break .breakTable th.colPts,
 .scene-break .breakTable td.colPts,
 .breakPage .breakTable th.colPts,
-.breakPage .breakTable td.colPts{
+.breakPage .breakTable td.colPts,
+.breakOverlay .breakTable th.colPts,
+.breakOverlay .breakTable td.colPts{
   width: 10%;
   font-weight: 900;
   color: #d7ff5e;
@@ -328,7 +341,9 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .scene-break .breakTable th.colSets,
 .scene-break .breakTable td.colSets,
 .breakPage .breakTable th.colSets,
-.breakPage .breakTable td.colSets{
+.breakPage .breakTable td.colSets,
+.breakOverlay .breakTable th.colSets,
+.breakOverlay .breakTable td.colSets{
   width: 14%;
   opacity: .92;
 }
@@ -336,7 +351,9 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .scene-break .breakTable th.colPoints,
 .scene-break .breakTable td.colPoints,
 .breakPage .breakTable th.colPoints,
-.breakPage .breakTable td.colPoints{
+.breakPage .breakTable td.colPoints,
+.breakOverlay .breakTable th.colPoints,
+.breakOverlay .breakTable td.colPoints{
   width: 14%;
   opacity: .92;
 }
