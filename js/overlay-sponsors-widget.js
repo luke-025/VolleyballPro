@@ -98,12 +98,24 @@
     }
   }
 
+  function isSponsorsSceneActive() {
+    const active = document.querySelector('.scene.active');
+    return active && active.id === 'sceneSponsors';
+  }
+
   function showSponsor(sponsor) {
     if (!widget) return;
+
+    // Nie pokazuj jeśli aktywna scena to sponsorzy
+    if (isSponsorsSceneActive()) return;
+
     widget.style.display = "";
     widget.classList.remove("show");
 
     setTimeout(() => {
+      // Sprawdź ponownie po opóźnieniu (race condition)
+      if (isSponsorsSceneActive()) return;
+
       widget.innerHTML = `<img src="${escapeHtml(sponsor.logo)}" alt="${escapeHtml(sponsor.name)}" />`;
       widget.classList.add("show");
     }, 300);

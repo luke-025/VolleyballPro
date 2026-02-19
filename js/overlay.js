@@ -48,9 +48,7 @@
       if (scenes[k]) scenes[k].classList.toggle("active", k === target);
     });
 
-    // Klasa na body — pozwala CSS ukryć widget na scenie sponsorów
-    document.body.classList.remove("scene-game", "scene-break", "scene-technical", "scene-sponsors");
-    document.body.classList.add(`scene-${target}`);
+
 
     // Hide sponsor widget on non-game scenes
     if (sponsorWidget) {

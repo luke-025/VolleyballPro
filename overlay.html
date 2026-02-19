@@ -290,13 +290,6 @@
       object-fit: contain;
     }
 
-    /* Ukryj widget gdy aktywna scena sponsorów (zabezpieczenie przed race condition) */
-    body.scene-sponsors #sponsorWidget {
-      opacity: 0 !important;
-      display: none !important;
-      pointer-events: none !important;
-    }
-
     /* HARD FIX: Technical scene layout inside overlay */
     #sceneTechnical{
       position:absolute; inset:0;
