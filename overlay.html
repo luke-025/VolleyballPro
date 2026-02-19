@@ -316,7 +316,7 @@
     #sceneTechnical       { background: #070A12 !important; }
     #sceneSponsors        { background: #070A12 !important; }
     
-    <!-- ================================================
+<!-- ================================================
      WKLEJ ten blok <style> do sekcji <style> w overlay.html
      (np. tuż przed zamykającym </style>)
      ================================================ -->
@@ -336,7 +336,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 28px 52px 20px;
+    padding: 22px 52px 18px;
     border-bottom: 1px solid rgba(255,255,255,.08);
     flex-shrink: 0;
   }
@@ -355,12 +355,6 @@
     background: rgba(106,228,255,.15);
     border: 1px solid rgba(106,228,255,.3);
     color: var(--accent, #6AE4FF);
-  }
-  .brkTournament {
-    font-size: 22px;
-    font-weight: 900;
-    color: rgba(255,255,255,.92);
-    letter-spacing: .3px;
   }
   .brkClock {
     font-family: var(--mono, monospace);
@@ -437,17 +431,17 @@
     border-bottom: 1px solid rgba(255,255,255,.08);
   }
   .brkTable th {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 900;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     color: rgba(255,255,255,.35);
-    padding: 0 6px 6px;
+    padding: 0 8px 8px;
     text-align: center;
   }
   .brkTable th.name { text-align: left; }
   .brkTable td {
-    padding: 5px 6px;
+    padding: 7px 8px;
     text-align: center;
     color: rgba(255,255,255,.82);
     border-bottom: 1px solid rgba(255,255,255,.04);
@@ -549,10 +543,7 @@
 <div class="scene scene-break" id="sceneBreak">
   <!-- Header -->
   <div class="brkHeader">
-    <div class="brkHeaderLeft">
-      <span class="brkBadge">Przerwa</span>
-      <span class="brkTournament" id="btName">VolleyballPro</span>
-    </div>
+    <span class="brkBadge">Przerwa</span>
     <div class="brkClock" id="btClock">--:--:--</div>
   </div>
 
@@ -588,7 +579,6 @@
 
   <div class="overlayNotice" id="breakNotice" style="display:none"></div>
 </div>
-
   </style>
 </head>
 <body>
