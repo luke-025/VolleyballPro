@@ -760,11 +760,18 @@
         UI.toast("Ustawiono PROGRAM", "success");
       } else if (liveId) {
         await STORE.mutate(slug, pin, (st) => {
-          st.matches = (st.matches||[]).map(m => m.id===liveId ? ENG.markLive(m) : m);
-          return st;
+            st.matches = (st.matches||[]).map(m => {
+                if (m.id !== liveId) return m;
+                if (m.status === "live") {
+                    return { ...m, status: "pending", updatedAt: new Date().toISOString() };
+                }
+                return ENG.markLive(m);
         });
-        UI.toast("Ustawiono live", "success");
-      } else if (confirmId) {
+        return st;
+    });
+    const isNowLive = (current?.state?.matches||[]).find(m=>m.id===liveId)?.status !== "live";
+    UI.toast(isNowLive ? "Ustawiono live" : "Cofnięto do pending", "success");
+    } else if (confirmId) {
         if (!UI.confirmDialog("Zatwierdzić wynik?", "Po zatwierdzeniu mecz wpłynie na tabelę (tylko etap Grupa).")) return;
         await STORE.mutate(slug, pin, (st) => {
           const idx = (st.matches||[]).findIndex(m => m.id === confirmId);
