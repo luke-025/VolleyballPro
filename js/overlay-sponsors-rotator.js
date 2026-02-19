@@ -23,7 +23,7 @@
       /* Scope EVERYTHING to #sceneSponsors so we never affect other scenes */
       #sceneSponsors{
         position:absolute; inset:0;
-        background: transparent !important;
+        background: #070A12 !important;
         overflow:hidden;
         pointer-events:none;
       }
