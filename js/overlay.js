@@ -1,4 +1,4 @@
-// js/overlay.js – PRO Overlay (SAFE build)
+// js/overlay.js â€" PRO Overlay (SAFE build)
 // - game HUD (TV style)
 // - stage+set pills
 // - static ticker (max 2 live matches)
@@ -48,6 +48,9 @@
       if (scenes[k]) scenes[k].classList.toggle("active", k === target);
     });
 
+    // Klasa na body — pozwala CSS ukryć widget na scenie sponsorów
+    document.body.className = `scene-${target}`;
+
     // Hide sponsor widget on non-game scenes
     if (sponsorWidget) {
       if (target === "game") {
@@ -96,7 +99,7 @@
 
   function teamName(state, id) {
     const t = (state.teams || []).find((x) => x.id === id);
-    return t ? t.name : "—";
+    return t ? t.name : "â€"";
   }
 
   function fmtTime(d) {
@@ -111,7 +114,7 @@
     if (!elGame.ticker) return;
     const live = (state.matches || []).filter((m) => m.status === "live").slice(0, 2);
     if (!live.length) {
-      elGame.ticker.innerHTML = `<span class="tickerItem muted">Brak meczów na żywo</span>`;
+      elGame.ticker.innerHTML = `<span class="tickerItem muted">Brak meczÃ³w na Å¼ywo</span>`;
       return;
     }
     elGame.ticker.innerHTML = live.map((m) => {
@@ -122,7 +125,7 @@
       const s = pm.sets[idx];
       const sum = ENG.scoreSummary(pm);
       return `<span class="tickerItem"><b>${ta}</b> ${s.a}:${s.b} <b>${tb}</b> <span class="tickerSets">(${sum.setsA}:${sum.setsB})</span></span>`;
-    }).join('<span class="tickerSep">·</span>');
+    }).join('<span class="tickerSep">Â·</span>');
   }
 
   // ----- META (stage/set pills) -----
@@ -132,13 +135,13 @@
         const idx = ENG.currentSetIndex(ENG.emptyMatchPatch(match));
         elGame.metaSet.textContent = `SET ${idx + 1}/3`;
       } else {
-        elGame.metaSet.textContent = "SET —/3";
+        elGame.metaSet.textContent = "SET â€"/3";
       }
     }
     if (elGame.metaStage) {
       const stage = match ? (match.stage || "group") : (state.meta?.currentStage || "group");
       const stageLabel = UI.stageLabel ? UI.stageLabel(stage) : stage;
-      elGame.metaStage.textContent = String(stageLabel || "—").toUpperCase();
+      elGame.metaStage.textContent = String(stageLabel || "â€"").toUpperCase();
     }
   }
 
@@ -152,8 +155,8 @@
 
     if (!pmId || !pm0) {
       renderMeta(st, null);
-      if (elGame.aName) elGame.aName.textContent = "—";
-      if (elGame.bName) elGame.bName.textContent = "—";
+      if (elGame.aName) elGame.aName.textContent = "â€"";
+      if (elGame.bName) elGame.bName.textContent = "â€"";
       if (elGame.aSets) elGame.aSets.textContent = "0";
       if (elGame.bSets) elGame.bSets.textContent = "0";
       if (elGame.aScore) elGame.aScore.textContent = "0";
@@ -200,12 +203,12 @@
     if (elBreak.btSlug) elBreak.btSlug.textContent = String(slug || "");
     if (elBreak.btClock) elBreak.btClock.textContent = fmtTime(new Date());
 
-    // ── Group standings tables (fix: always re-render from fresh state) ──
+    // â"€â"€ Group standings tables (fix: always re-render from fresh state) â"€â"€
     if (elBreak.tables) {
       const groups = ENG.computeStandings(st) || {};
       const keys = Object.keys(groups).filter(k => k !== "").sort((a, b) => String(a).localeCompare(String(b), "pl"));
       if (!keys.length) {
-        elBreak.tables.innerHTML = `<div class="muted">Brak danych do tabel (mecze grupowe muszą mieć status <b>confirmed</b>).</div>`;
+        elBreak.tables.innerHTML = `<div class="muted">Brak danych do tabel (mecze grupowe muszÄ… mieÄ‡ status <b>confirmed</b>).</div>`;
       } else {
         elBreak.tables.innerHTML = keys.map((g) => {
           const rows = groups[g] || [];
@@ -227,7 +230,7 @@
               <table class="breakTable">
                 <thead>
                   <tr>
-                    <th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>P</th><th>PKT</th><th>Sety</th><th>Punkty</th>
+                    <th>#</th><th>DruÅ¼yna</th><th>M</th><th>W</th><th>P</th><th>PKT</th><th>Sety</th><th>Punkty</th>
                   </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -250,14 +253,14 @@
         const sc = matchScoreNow(m);
         return `<div class="breakItem"><span>${matchLabel(st, m)}</span><b>${sc.setsA}:${sc.setsB}</b></div>`;
       }).join("");
-      elBreak.last.innerHTML = items || `<div class="muted">Brak zakończonych meczów.</div>`;
+      elBreak.last.innerHTML = items || `<div class="muted">Brak zakoÅ„czonych meczÃ³w.</div>`;
     }
 
     // Next matches (pending)
     if (elBreak.next) {
       const pending = (st.matches || []).filter(m => m.status === "pending");
-      const items = pending.slice(0, 4).map(m => `<div class="breakItem"><span>${matchLabel(st, m)}</span><b>–</b></div>`).join("");
-      elBreak.next.innerHTML = items || `<div class="muted">Brak zaplanowanych meczów.</div>`;
+      const items = pending.slice(0, 4).map(m => `<div class="breakItem"><span>${matchLabel(st, m)}</span><b>â€"</b></div>`).join("");
+      elBreak.next.innerHTML = items || `<div class="muted">Brak zaplanowanych meczÃ³w.</div>`;
     }
 
     // Program match
@@ -265,11 +268,11 @@
       const pid = st.meta?.programMatchId;
       const m = (st.matches || []).find(x => x.id === pid);
       if (!m) {
-        elBreak.program.innerHTML = `<div class="muted">Nie wybrano meczu na transmisję.</div>`;
+        elBreak.program.innerHTML = `<div class="muted">Nie wybrano meczu na transmisjÄ™.</div>`;
       } else {
         const sc = matchScoreNow(m);
         elBreak.program.innerHTML = `
-          <div class="breakItem"><span>${matchLabel(st, m)}</span><b>${sc.setsA}:${sc.setsB} • ${sc.a}:${sc.b}</b></div>
+          <div class="breakItem"><span>${matchLabel(st, m)}</span><b>${sc.setsA}:${sc.setsB} â€¢ ${sc.a}:${sc.b}</b></div>
         `;
       }
     }
@@ -279,7 +282,7 @@
   function renderTechnical(state) {
     if (elTech.clock) elTech.clock.textContent = fmtTime(new Date());
     if (elTech.subtitle && !elTech.subtitle.textContent) {
-      elTech.subtitle.textContent = "Trwają przygotowania do kolejnego meczu";
+      elTech.subtitle.textContent = "TrwajÄ… przygotowania do kolejnego meczu";
     }
     if (elTech.title && !elTech.title.textContent) {
       elTech.title.textContent = "ZARAZ WRACAMY";
@@ -327,7 +330,7 @@
       renderAll();
     });
 
-    // Fallback polling – gdy WebSocket na telefonie/OBS się urwie
+    // Fallback polling â€" gdy WebSocket na telefonie/OBS siÄ™ urwie
     let _polling = false;
     setInterval(async () => {
       if (_polling) return;

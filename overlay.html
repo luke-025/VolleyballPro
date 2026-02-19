@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>VolleyballPro • Overlay</title>
+  <title>VolleyballPro â€¢ Overlay</title>
   <link rel="stylesheet" href="css/main.css" />
   <style>
 
@@ -246,7 +246,7 @@
       overflow:hidden;
     }
 
-    /* technical.html uses .tech { position: fixed } — override when embedded */
+    /* technical.html uses .tech { position: fixed } â€" override when embedded */
     .scene-technical{
       background:
         radial-gradient(1100px 700px at 15% 10%, rgba(106,228,255,.18), transparent 62%),
@@ -290,6 +290,13 @@
       object-fit: contain;
     }
 
+    /* Ukryj widget gdy aktywna scena sponsorów (zabezpieczenie przed race condition) */
+    body.scene-sponsors #sponsorWidget {
+      opacity: 0 !important;
+      display: none !important;
+      pointer-events: none !important;
+    }
+
     /* HARD FIX: Technical scene layout inside overlay */
     #sceneTechnical{
       position:absolute; inset:0;
@@ -310,7 +317,7 @@
     #sceneTechnical .techClock{ font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace); font-size:22px; font-weight:900; color: var(--text, rgba(255,255,255,.95)); }
     #sceneTechnical .techHint{ font-size:14px; color: var(--muted, rgba(255,255,255,.7)); }
 
-    /* == STAŁE TŁA — tylko te 3 linie się zmieniły == */
+    /* == STAÅE TÅA â€" tylko te 3 linie siÄ™ zmieniÅ‚y == */
     .scene-break          { background: #070A12 !important; }
     .scene-technical,
     #sceneTechnical       { background: #070A12 !important; }
@@ -326,13 +333,13 @@
         <div class="gameHUD">
 
           <div class="gameMeta">
-            <div class="metaPill" id="metaStage">—</div>
-            <div class="metaPill" id="metaSet">SET —/3</div>
+            <div class="metaPill" id="metaStage">â€"</div>
+            <div class="metaPill" id="metaSet">SET â€"/3</div>
           </div>
           
           <div class="teamRow" id="rowA">
             <div class="teamPill">
-              <div class="teamName" id="aName">—</div>
+              <div class="teamName" id="aName">â€"</div>
               <div class="setsBox">
                 <div>wygrane sety</div>
                 <div class="setsVal" id="aSets">0</div>
@@ -345,7 +352,7 @@
 
           <div class="teamRow" id="rowB">
             <div class="teamPill">
-              <div class="teamName" id="bName">—</div>
+              <div class="teamName" id="bName">â€"</div>
               <div class="setsBox">
                 <div>wygrane sety</div>
                 <div class="setsVal" id="bSets">0</div>
@@ -359,7 +366,7 @@
 
         <div class="ticker">
           <div class="tickerInner">
-            <div class="tickerLabel">Inne mecze na żywo:</div>
+            <div class="tickerLabel">Inne mecze na Å¼ywo:</div>
             <div class="tickerItems" id="liveTicker"></div>
           </div>
         </div>
@@ -391,7 +398,7 @@
                 <div id="breakLast" class="breakList"></div>
               </div>
               <div class="card breakPanel">
-                <div class="breakSectionTitle">Następne mecze</div>
+                <div class="breakSectionTitle">NastÄ™pne mecze</div>
                 <div id="breakNext" class="breakList"></div>
               </div>
               <div class="card breakPanel">
@@ -409,10 +416,10 @@
       <div class="scene scene-technical" id="sceneTechnical">
         <div class="techInner">
           <div class="techTitle" id="techTitle">ZARAZ WRACAMY</div>
-          <div class="techSub" id="techSubtitle">Trwają przygotowania do kolejnego meczu</div>
+          <div class="techSub" id="techSubtitle">TrwajÄ… przygotowania do kolejnego meczu</div>
           <div class="techBar">
             <div class="techClock" id="techClock">--:--:--</div>
-            <div class="techHint">Ekran techniczny • VolleyballPro</div>
+            <div class="techHint">Ekran techniczny â€¢ VolleyballPro</div>
           </div>
         </div>
       </div>
