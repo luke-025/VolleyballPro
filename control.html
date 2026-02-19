@@ -5,130 +5,254 @@
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>VolleyballPro • Control</title>
 <link href="css/main.css" rel="stylesheet"/>
+<style>
+  /* ── Match card ── */
+  .matchCard {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    border: 1px solid rgba(255,255,255,.08);
+    margin-bottom: 6px;
+  }
+  .matchCard:hover { border-color: rgba(255,255,255,.16); }
+  .matchInfo { flex: 1; min-width: 0; }
+  .matchTeams { font-weight: 800; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .matchMeta  { font-size: 11px; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .matchActions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+  .matchActions .btn { padding: 5px 10px; font-size: 12px; border-radius: 10px; }
+
+  /* ── Status badge ── */
+  .statusBadge {
+    font-size: 10px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+  }
+  .statusBadge.pending   { background: rgba(255,255,255,.10); color: rgba(255,255,255,.55); }
+  .statusBadge.live      { background: rgba(255,80,80,.25);   color: #ff6b6b; }
+  .statusBadge.finished  { background: rgba(255,200,0,.18);   color: #ffd166; }
+  .statusBadge.confirmed { background: rgba(45,255,158,.15);  color: #2dff9e; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 2px; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .tab  { padding: 7px 16px; border-radius: 10px 10px 0 0; font-size: 13px; font-weight: 700;
+          cursor: pointer; color: var(--muted); background: transparent; border: none; transition: all 180ms; }
+  .tab:hover  { color: var(--text); }
+  .tab.active { color: var(--text); background: rgba(255,255,255,.07); border-bottom: 2px solid var(--accent); }
+  .tabPane    { display: none; }
+  .tabPane.active { display: block; }
+
+  /* ── Scene buttons ── */
+  .sceneBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .sceneBtn  {
+    padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 800;
+    letter-spacing: .3px; text-transform: uppercase; cursor: pointer;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12);
+    color: var(--text); transition: all 180ms;
+  }
+  .sceneBtn:hover  { background: rgba(255,255,255,.13); }
+  .sceneBtn.sceneActive { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* ── Program box ── */
+  .programBox {
+    padding: 10px 14px; border-radius: 12px; margin-bottom: 10px;
+    background: rgba(106,228,255,.07); border: 1px solid rgba(106,228,255,.18);
+    font-size: 13px;
+  }
+
+  /* ── Compact form ── */
+  .formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 600px) { .formGrid { grid-template-columns: 1fr; } }
+
+  /* ── Filters row ── */
+  .filtersRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 10px; }
+  .filtersRow > div { display: flex; flex-direction: column; gap: 3px; }
+  .filtersRow label { font-size: 11px; color: var(--muted); }
+  .filtersRow input, .filtersRow select { font-size: 12px; padding: 5px 8px; }
+
+  /* ── Section header ── */
+  .sectionHead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .sectionHead h2 { margin: 0; font-size: 15px; }
+
+  /* ── Scene status ── */
+  #sceneStatus { font-size: 12px; color: var(--muted); }
+  #sceneStatus .kbd { background: rgba(255,255,255,.1); border-radius: 6px; padding: 2px 7px; color: var(--text); font-weight: 700; }
+</style>
 </head>
 <body>
 <div class="container">
-<div class="header">
-<div class="brand">
-<h1>Control</h1>
-<div class="muted">Turniej: <b id="slug"></b> • panel organizatora</div>
-</div>
-<div class="badge">PIN wymagany do zmian</div>
-</div>
-<div class="card">
-<h2>Połączenie</h2>
-<div class="muted" id="status">—</div>
-<div class="formRow" style="margin-top:10px">
-<div>
-<label>Nazwa turnieju (tylko przy tworzeniu)</label>
-<input id="inpName" placeholder="np. Liga 2026"/>
-</div>
-<div>
-<label>PIN (do zapisu zmian)</label>
-<input id="inpPin" placeholder="min 3 znaki"/>
-</div>
-</div>
-<div class="btnGroup" style="margin-top:10px">
-<button class="btn btn-primary" disabled="" id="btnCreate">Utwórz turniej</button>
-<button class="btn" id="btnSetPin">Zapisz PIN na tę sesję</button>
-</div>
-<div class="card inner" style="margin-top:12px">
-<h3>Zmień PIN</h3>
-<div class="formRow">
-<div>
-<label>Stary PIN</label>
-<input id="inpOldPin" placeholder="stary PIN"/>
-</div>
-<div>
-<label>Nowy PIN</label>
-<input id="inpNewPin" placeholder="nowy PIN"/>
-</div>
-</div>
-<div class="btnGroup" style="margin-top:10px">
-<button class="btn" id="btnChangePin">Zmień PIN</button>
-</div>
-</div>
-</div>
-<div class="grid" style="margin-top:14px">
-<div class="card">
-<h2>Drużyny</h2>
-<div class="formRow">
-<div>
-<label>Nazwa drużyny</label>
-<input id="teamName" placeholder="np. Orły"/>
-</div>
-<div>
-<label>Grupa (dowolna, np. A)</label>
-<input id="teamGroup" placeholder="A"/>
-</div>
-</div>
-<div class="btnGroup" style="margin-top:10px">
-<button class="btn btn-primary" id="btnAddTeam">Dodaj drużynę</button>
-</div>
-<div id="teamsList" style="margin-top:10px"></div>
-</div>
-<div class="card">
-<h2>Mecze</h2>
-<div class="formRow">
-<div>
-<label>Etap</label>
-<select id="matchStage"></select>
-</div>
-<div id="matchGroupWrap">
-<label>Grupa (dla etapu Grupa)</label>
-<select id="matchGroup"></select>
-</div>
-</div>
-<div class="formRow" style="margin-top:10px">
-<div>
-<label>Drużyna A</label>
-<select id="matchTeamA"></select>
-</div>
-<div>
-<label>Drużyna B</label>
-<select id="matchTeamB"></select>
-</div>
-</div>
-<div class="formRow" style="margin-top:10px">
-<div>
-<label>Boisko (opcjonalnie)</label>
-<input id="matchCourt" placeholder="np. 1, 2, A…" style="width:100%"/>
-</div>
-</div>
-<div class="btnGroup" style="margin-top:10px">
-<button class="btn btn-primary" id="btnAddMatch">Dodaj mecz</button>
-</div>
-<div class="card inner" style="margin-top:12px">
-<h3>PROGRAM (na overlay)</h3>
-<div class="muted" id="programBox">—</div>
-</div>
-<div id="matchesList" style="margin-top:10px"></div>
-</div>
-</div>
 
-<div class="card">
-<h2>Playoff</h2>
-<div class="muted">Generuj drabinkę na podstawie tabel grupowych (tylko mecze „Grupa" + „confirmed").</div>
-<div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
-<button class="btn btn-primary" id="btnGeneratePlayoffs">Generuj playoff</button>
-<a class="btn btn-ghost" href="playoffs.html" id="btnOpenPlayoffs">Otwórz drabinkę</a>
-</div>
-<div class="muted" id="playoffsInfo" style="margin-top:10px">—</div>
-</div>
-<div class="card" style="margin-top:14px">
-<h2>Tabele grupowe (liczone tylko z etapu „Grupa" i statusu „confirmed")</h2>
-<div id="standingsBox"></div>
-</div>
-<div class="card" style="margin-top:14px">
-<h2>Linki</h2>
-<div class="muted small">
-  Control: <code>/control.html?t=<span class="muted">%slug%</span></code><br/>
-  Court: <code>/court.html?t=<span class="muted">%slug%</span></code><br/>
-  Overlay (OBS): <code>/overlay.html?t=<span class="muted">%slug%</span></code> (bez PIN)
-</div>
-</div>
-</div>
-<!-- Supabase JS CDN -->
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <h1>VolleyballPro Control</h1>
+      <div class="muted">Turniej: <b id="slug"></b></div>
+    </div>
+    <div id="sceneStatus">Scena: <span class="kbd">—</span></div>
+  </div>
+
+  <!-- PIN -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="sectionHead"><h2>Połączenie</h2></div>
+    <div class="muted" id="status" style="margin-bottom:10px">—</div>
+    <div class="formGrid">
+      <div><label>Nazwa turnieju (tylko przy tworzeniu)</label><input id="inpName" placeholder="np. Liga 2026"/></div>
+      <div><label>PIN</label><input id="inpPin" placeholder="min 3 znaki" type="password"/></div>
+    </div>
+    <div class="btnGroup" style="margin-top:10px">
+      <button class="btn btn-primary" disabled id="btnCreate">Utwórz turniej</button>
+      <button class="btn" id="btnSetPin">Zapisz PIN na tę sesję</button>
+    </div>
+    <details style="margin-top:10px">
+      <summary class="muted small" style="cursor:pointer">Zmień PIN</summary>
+      <div class="formGrid" style="margin-top:8px">
+        <div><label>Stary PIN</label><input id="inpOldPin" type="password" placeholder="stary PIN"/></div>
+        <div><label>Nowy PIN</label><input id="inpNewPin" type="password" placeholder="nowy PIN"/></div>
+      </div>
+      <button class="btn" style="margin-top:8px" id="btnChangePin">Zmień PIN</button>
+    </details>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="matches">⚽ Mecze</button>
+    <button class="tab" data-tab="teams">👥 Drużyny</button>
+    <button class="tab" data-tab="broadcast">📡 Transmisja</button>
+    <button class="tab" data-tab="playoffs">🏆 Playoff</button>
+    <button class="tab" data-tab="standings">📊 Tabele</button>
+  </div>
+
+  <!-- TAB: Mecze -->
+  <div class="tabPane active" id="tab-matches">
+
+    <!-- Dodaj mecz -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="sectionHead"><h2>Dodaj mecz</h2></div>
+      <div class="formGrid">
+        <div><label>Etap</label><select id="matchStage"></select></div>
+        <div id="matchGroupWrap"><label>Grupa</label><select id="matchGroup"></select></div>
+      </div>
+      <div class="formGrid" style="margin-top:8px">
+        <div><label>Drużyna A</label><select id="matchTeamA"></select></div>
+        <div><label>Drużyna B</label><select id="matchTeamB"></select></div>
+      </div>
+      <div style="margin-top:8px; max-width:220px">
+        <label>Boisko (opcjonalnie)</label>
+        <input id="matchCourt" placeholder="np. 1, 2…"/>
+      </div>
+      <button class="btn btn-primary" style="margin-top:10px" id="btnAddMatch">Dodaj mecz</button>
+    </div>
+
+    <!-- Program -->
+    <div class="programBox" id="programBox">Brak ustawionego meczu PROGRAM.</div>
+
+    <!-- Filtry -->
+    <div class="filtersRow" id="matchFilters">
+      <div>
+        <label>Szukaj</label>
+        <input id="opQ" placeholder="drużyna…" style="width:140px"/>
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="opStatus">
+          <option value="all">Wszystkie</option>
+          <option value="live">Live</option>
+          <option value="pending">Pending</option>
+          <option value="finished">Finished</option>
+          <option value="confirmed">Confirmed</option>
+        </select>
+      </div>
+      <div>
+        <label>Etap</label>
+        <select id="opStage">
+          <option value="all">Wszystkie</option>
+          <option value="group">Grupa</option>
+          <option value="playoffs">Playoffy</option>
+        </select>
+      </div>
+      <div>
+        <label>Boisko</label>
+        <select id="opCourt"><option value="all">Wszystkie</option></select>
+      </div>
+      <div>
+        <label>Grupa</label>
+        <select id="opGroup"><option value="all">Wszystkie</option></select>
+      </div>
+    </div>
+
+    <!-- Lista meczów -->
+    <div id="matchesList"></div>
+
+    <div class="muted small" style="margin-top:8px">Tip: kliknięcie „TRANSMISJA" ustawia też scenę na Game.</div>
+  </div>
+
+  <!-- TAB: Drużyny -->
+  <div class="tabPane" id="tab-teams">
+    <div class="card">
+      <div class="sectionHead"><h2>Dodaj drużynę</h2></div>
+      <div class="formGrid">
+        <div><label>Nazwa</label><input id="teamName" placeholder="np. Orły"/></div>
+        <div><label>Grupa</label><input id="teamGroup" placeholder="A"/></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:10px" id="btnAddTeam">Dodaj drużynę</button>
+      <div id="teamsList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- TAB: Transmisja -->
+  <div class="tabPane" id="tab-broadcast">
+    <div class="card" style="margin-bottom:12px">
+      <div class="sectionHead"><h2>Aktywna scena</h2></div>
+      <div class="sceneBtns">
+        <button class="sceneBtn" data-scene="game">🎮 Game</button>
+        <button class="sceneBtn" data-scene="break">☕ Przerwa</button>
+        <button class="sceneBtn" data-scene="technical">⚙️ Technical</button>
+        <button class="sceneBtn" data-scene="sponsors">🏷️ Sponsorzy</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px">
+      <div class="sectionHead"><h2>Kolejka spotkań</h2></div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="min-width:100px"><label>Boisko</label><select id="qCourt"><option value="">—</option></select></div>
+        <div style="flex:1; min-width:180px"><label>Mecz</label><select id="qMatch"><option value="">—</option></select></div>
+        <button class="btn btn-primary" id="qAdd">Dodaj</button>
+      </div>
+      <div id="qList" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <div class="sectionHead"><h2>Narzędzia</h2></div>
+      <div class="btnGroup">
+        <button class="btn btn-ghost" id="btnLockToggle">BLOKADA: —</button>
+        <button class="btn btn-ghost" id="btnExportState">Export JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Playoff -->
+  <div class="tabPane" id="tab-playoffs">
+    <div class="card">
+      <div class="sectionHead"><h2>Playoff</h2></div>
+      <div class="muted" style="margin-bottom:10px">Generuj drabinkę na podstawie tabel grupowych (mecze „Grupa" + „confirmed").</div>
+      <div class="btnGroup">
+        <button class="btn btn-primary" id="btnGeneratePlayoffs">Generuj playoff</button>
+        <a class="btn btn-ghost" href="playoffs.html" id="btnOpenPlayoffs">Otwórz drabinkę</a>
+      </div>
+      <div class="muted" id="playoffsInfo" style="margin-top:10px">—</div>
+    </div>
+  </div>
+
+  <!-- TAB: Tabele -->
+  <div class="tabPane" id="tab-standings">
+    <div class="card">
+      <div class="sectionHead"><h2>Tabele grupowe</h2></div>
+      <div class="muted small" style="margin-bottom:10px">Liczone z etapu „Grupa" i statusu „confirmed".</div>
+      <div id="standingsBox"></div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
@@ -138,5 +262,17 @@
 <script src="js/control.js"></script>
 <script src="js/control-manual-result.js"></script>
 <script src="js/control-sponsors-addon.js"></script>
+
+<script>
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tabPane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+</script>
 </body>
 </html>
