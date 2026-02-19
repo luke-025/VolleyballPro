@@ -312,11 +312,11 @@
       return w === m.teamAId ? m.teamBId : m.teamAId;
     }
     function setTeams(matchId, aId, bId) {
-      const m = idToMatch.get(matchId);
-      if (!m) return;
-      if (aId !== undefined) m.teamAId = aId || null;
-      if (bId !== undefined) m.teamBId = bId || null;
-      m.updatedAt = new Date().toISOString);
+        const m = idToMatch.get(matchId);
+        if (!m) return;
+        if (aId !== undefined) m.teamAId = aId || null;
+        if (bId !== undefined) m.teamBId = bId || null;
+        m.updatedAt = new Date().toISOString();
     }
 
     // QF -> SF
