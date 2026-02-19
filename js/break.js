@@ -41,56 +41,44 @@
     return { a: s.a, b: s.b, setsA: sum.setsA, setsB: sum.setsB };
   }
 
-function renderTables(st) {
+  function renderTables(st) {
     if (!el.tables) return;
     const groups = ENG.computeStandings(st) || {};
-    const keys = Object.keys(groups).filter((k) => k !== "").sort((a, b) => String(a).localeCompare(String(b), "pl"));
+    const keys   = Object.keys(groups).filter(k => k !== "")
+                         .sort((a, b) => String(a).localeCompare(String(b), "pl"));
 
     if (!keys.length) {
-      el.tables.innerHTML = `<div class="muted">Brak danych do tabel (mecze grupowe muszą mieć status <b>confirmed</b>).</div>`;
+      el.tables.innerHTML = `<div class="muted" style="grid-column:1/-1">Brak danych do tabel (mecze grupowe muszą mieć status <b>confirmed</b>).</div>`;
       return;
     }
 
-    el.tables.innerHTML = keys
-      .map((g) => {
-        const rows = groups[g] || [];
-        const body = rows
-          .map(
-            (r, i) => `
-          <tr>
-            <td class="colRank">${i + 1}</td>
-            <td class="colTeam">${esc(r.name)}</td>
-            <td class="colMWP">${r.played}</td>
-            <td class="colMWP">${r.wins}</td>
-            <td class="colMWP">${r.losses}</td>
-            <td class="colPts">${r.tablePoints}</td>
-            <td class="colSets">${r.setsWon}:${r.setsLost}</td>
-            <td class="colPoints">${r.pointsWon}:${r.pointsLost}</td>
-          </tr>`
-          )
-          .join("");
+    el.tables.innerHTML = keys.map(g => {
+      const rows = (groups[g] || []).map((r, i) => `
+        <tr>
+          <td class="pos">${i + 1}</td>
+          <td class="name">${esc(r.name)}</td>
+          <td>${r.played}</td>
+          <td>${r.wins}</td>
+          <td>${r.losses}</td>
+          <td>${r.tablePoints}</td>
+          <td>${r.setsWon}:${r.setsLost}</td>
+          <td>${r.pointsWon}:${r.pointsLost}</td>
+        </tr>`).join("");
 
-        return `
-        <div class="breakGroup">
-          <div class="breakGroupTitle">GRUPA ${esc(String(g).toUpperCase())}</div>
-          <table class="breakTable">
+      return `
+        <div class="brkGroup">
+          <div class="brkGroupTitle">Grupa ${esc(String(g).toUpperCase())}</div>
+          <table class="brkTable">
             <thead>
               <tr>
-                <th class="colRank">#</th>
-                <th class="colTeam">Drużyna</th>
-                <th class="colMWP">M</th>
-                <th class="colMWP">W</th>
-                <th class="colMWP">P</th>
-                <th class="colPts">PKT</th>
-                <th class="colSets">Sety</th>
-                <th class="colPoints">Małe</th>
+                <th>#</th><th class="name">Drużyna</th>
+                <th>M</th><th>W</th><th>P</th><th>PKT</th><th>Sety</th><th>Małe</th>
               </tr>
             </thead>
-            <tbody>${body}</tbody>
+            <tbody>${rows}</tbody>
           </table>
         </div>`;
-      })
-      .join("");
+    }).join("");
   }
 
   function renderLast(st) {
