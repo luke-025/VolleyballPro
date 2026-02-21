@@ -96,17 +96,21 @@
     }
   }
 
-async function saveManualResult(matchId, sets) {
+  async function saveManualResult(matchId, sets) {
     const slug = getSlug();
     if (!slug) return toast("Brak slug turnieju.", "warn");
     const pin = getPin(slug);
     if (!pin) return toast("Podaj PIN w Control, żeby zapisywać wyniki.", "warn");
 
+    // Uzupełnij do dokładnie 3 setów (wymagane przez emptyMatchPatch w engine.js)
+    const paddedSets = sets.map(s => ({ a: s.a, b: s.b }));
+    while (paddedSets.length < 3) paddedSets.push({ a: 0, b: 0 });
+
     await STORE.mutate(slug, pin, (st) => {
       const m = (st.matches || []).find(x => x.id === matchId);
       if (!m) throw new Error("Nie znaleziono meczu.");
 
-      m.sets = sets.map(s => ({ a: s.a, b: s.b }));
+      m.sets = paddedSets;
 
       const sw = computeSetsWon(m.sets);
       m.setsWonA = sw.a;
