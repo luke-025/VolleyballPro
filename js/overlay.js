@@ -200,7 +200,7 @@
     if (elBreak.btSlug) elBreak.btSlug.textContent = String(slug || "");
     if (elBreak.btClock) elBreak.btClock.textContent = fmtTime(new Date());
 
-    // ── Group standings tables (fix: always re-render from fresh state) ──
+    // ── Group standings tables ──
     if (elBreak.tables) {
       const groups = ENG.computeStandings(st) || {};
       const keys = Object.keys(groups).filter(k => k !== "").sort((a, b) => String(a).localeCompare(String(b), "pl"));
@@ -211,23 +211,30 @@
           const rows = groups[g] || [];
           const body = rows.map((r, i) => `
             <tr>
-              <td class="pos">${i + 1}</td>
-              <td class="name">${UI ? UI.esc(r.name) : r.name}</td>
-              <td>${r.played}</td>
-              <td>${r.wins}</td>
-              <td>${r.losses}</td>
-              <td>${r.tablePoints}</td>
-              <td>${r.setsWon}:${r.setsLost}</td>
-              <td>${r.pointsWon}:${r.pointsLost}</td>
+              <td class="colRank">${i + 1}</td>
+              <td class="colTeam">${UI ? UI.esc(r.name) : r.name}</td>
+              <td class="colMWP">${r.played}</td>
+              <td class="colMWP">${r.wins}</td>
+              <td class="colMWP">${r.losses}</td>
+              <td class="colPts">${r.tablePoints}</td>
+              <td class="colSets">${r.setsWon}:${r.setsLost}</td>
+              <td class="colPoints">${r.pointsWon}:${r.pointsLost}</td>
             </tr>
           `).join("");
           return `
             <div class="breakGroup">
-              <div class="breakGroupTitle">GRUPA ${UI ? UI.esc(String(g)) : String(g)}</div>
+              <div class="breakGroupTitle">GRUPA ${UI ? UI.esc(String(g).toUpperCase()) : String(g).toUpperCase()}</div>
               <table class="breakTable">
                 <thead>
                   <tr>
-                    <th>#</th><th>Drużyna</th><th>M</th><th>W</th><th>P</th><th>PKT</th><th>Sety</th><th>Punkty</th>
+                    <th class="colRank">#</th>
+                    <th class="colTeam">Drużyna</th>
+                    <th class="colMWP">M</th>
+                    <th class="colMWP">W</th>
+                    <th class="colMWP">P</th>
+                    <th class="colPts">PKT</th>
+                    <th class="colSets">Sety</th>
+                    <th class="colPoints">Małe</th>
                   </tr>
                 </thead>
                 <tbody>${body}</tbody>
