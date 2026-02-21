@@ -96,7 +96,7 @@
     }
   }
 
-  async function saveManualResult(matchId, sets) {
+async function saveManualResult(matchId, sets) {
     const slug = getSlug();
     if (!slug) return toast("Brak slug turnieju.", "warn");
     const pin = getPin(slug);
@@ -112,18 +112,18 @@
       m.setsWonA = sw.a;
       m.setsWonB = sw.b;
 
+      // Upewnij się że stage jest ustawiony — bez tego mecz nie pojawi się w tabeli grup
+      if (!m.stage) m.stage = "group";
+
       if (sw.a === 2 || sw.b === 2) {
         m.status = "confirmed";
-        m.winner = (sw.a > sw.b) ? "a" : "b"; // mała litera — spójnie z engine.js
+        m.winner = (sw.a > sw.b) ? "A" : "B";
       } else {
         m.status = m.status || "live";
         m.winner = null;
       }
 
-      // Wywołaj progresję playoff zamiast niszczyć st.playoffs.generated
-      if (st.playoffs?.generated && window.VPEngine?.applyPlayoffsProgression) {
-        st = window.VPEngine.applyPlayoffsProgression(st);
-      }
+      if (st.playoffs) st.playoffs.generated = false;
 
       return st;
     });
