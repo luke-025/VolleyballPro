@@ -139,7 +139,9 @@
       const row = btn.closest(".matchRow, .row, li, tr, .card") || btn.parentElement;
       if (!row) continue;
 
-      if (row.querySelector("[data-manual-result]")) continue;
+      // Szukaj w całej karcie meczu, nie tylko w bezpośrednim rodzicu przycisku
+      const card = row.closest(".matchCard") || row;
+      if (card.querySelector("[data-manual-result]")) continue;
 
       const actions =
         row.querySelector(".matchActions") ||
@@ -190,13 +192,15 @@
 
       if (sw.setsA === 2 || sw.setsB === 2) {
         m.status = "confirmed";
-        m.winner = (sw.setsA > sw.setsB) ? "A" : "B";
+        m.winner = (sw.setsA > sw.setsB) ? "a" : "b";
       } else {
         m.status = m.status || "live";
         m.winner = null;
       }
 
-      if (st.playoffs) st.playoffs.generated = false;
+      // NIE resetujemy playoffs.generated — ręczny wynik nie niszczy drabinki
+      // Propagujemy zwycięzców do kolejnej rundy (QF → SF → Finał itd.)
+      if (st.playoffs?.generated) st = ENG.applyPlayoffsProgression(st);
 
       return st;
     });
