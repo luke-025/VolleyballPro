@@ -70,9 +70,10 @@
 
     .gameCardInfo {
       flex: 1;
-      padding: 16px 18px 16px 22px;
+      padding: 20px 24px;
       display: flex;
       align-items: center;
+      justify-content: center;
       min-width: 0;
     }
 
@@ -85,7 +86,12 @@
       overflow: hidden;
       text-overflow: ellipsis;
       flex: 1;
+      text-align: center;
     }
+
+    /* ── Kolory drużyn (A = zielony, B = cyjan — zgodne z belką momentum) */
+    #rowA .teamName { color: #2DFF9E; }
+    #rowB .teamName { color: #6AE4FF; }
 
     .gameCardMeta {
       width: 80px;
@@ -96,6 +102,7 @@
       justify-content: center;
       gap: 2px;
       padding: 10px 8px;
+      text-align: center;
     }
     .setsLabel {
       font-size: 10px;
@@ -103,11 +110,13 @@
       text-transform: lowercase;
       color: rgba(255,255,255,.35);
       letter-spacing: .3px;
+      text-align: center;
     }
     .setsVal {
       font-size: 24px;
       font-weight: 900;
       color: #fff;
+      text-align: center;
     }
 
     .gameCardScore {
