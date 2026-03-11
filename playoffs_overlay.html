@@ -101,6 +101,7 @@
       grid-template-columns: 2fr 1.4fr 1fr 1fr;
       gap: 20px;
       min-height: 0;
+      position: relative; /* needed for SVG connector overlay */
     }
 
     /* ── COLUMN ── */
@@ -253,6 +254,26 @@
     .col.place9 .teamName { font-size: 13px; }
     .col.place9 .teamScore { font-size: 15px; }
 
+    /* ── SVG Connector lines ──────────────────────────────────────────── */
+    #bracketSVG path.connector {
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 0.5s;
+    }
+
+    /* ── Winner / Loser row highlight ────────────────────────────────── */
+    .teamRow.winner .teamName {
+      color: var(--gold);
+      animation: winnerGlow 2.2s ease-in-out infinite;
+    }
+    @keyframes winnerGlow {
+      0%, 100% { text-shadow: 0 0 8px rgba(255,209,102,.4); }
+      50%       { text-shadow: 0 0 22px rgba(255,209,102,.9), 0 0 44px rgba(255,209,102,.3); }
+    }
+    .teamRow.loser {
+      opacity: 0.38;
+    }
+
     /* ── NO PLAYOFF ── */
     .noPlayoff {
       display: flex;
@@ -329,7 +350,7 @@
       const isW = winnerSide === side;
       const isL = winnerSide && winnerSide !== side && !isTbd;
       return `
-        <div class="teamRow">
+        <div class="teamRow ${isW?"winner":""} ${isL?"loser":""}">
           <div class="teamName ${isTbd?"tbd":""} ${isW?"winner":""}">${esc(name||"TBD")}</div>
           <div class="teamScore ${isW?"winner":""} ${isL?"loser":""}">${isTbd?"–":score}</div>
         </div>`;
@@ -410,6 +431,86 @@
     }
 
     grid.innerHTML = html;
+
+    // Re-add SVG overlay (cleared by innerHTML) and draw connectors
+    let svgEl = document.getElementById("bracketSVG");
+    if (!svgEl) {
+      svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svgEl.id = "bracketSVG";
+      svgEl.style.cssText = "position:absolute;top:0;left:0;pointer-events:none;overflow:visible;z-index:1";
+      svgEl.setAttribute("width", "0");
+      svgEl.setAttribute("height", "0");
+    }
+    grid.appendChild(svgEl);
+
+    // Draw after layout (setTimeout ensures DOM has been painted)
+    const _byId = byId;
+    const _br = br;
+    setTimeout(() => drawConnectors(_byId, _br), 0);
+  }
+
+  function drawConnectors(byId, bracket) {
+    const svg = document.getElementById("bracketSVG");
+    if (!svg || !grid) return;
+
+    const gridRect = grid.getBoundingClientRect();
+    svg.setAttribute("width",  gridRect.width);
+    svg.setAttribute("height", gridRect.height);
+    svg.innerHTML = "";
+
+    function midY(el) {
+      const r = el.getBoundingClientRect();
+      return r.top + r.height / 2 - gridRect.top;
+    }
+    function rightX(el) { return el.getBoundingClientRect().right - gridRect.left; }
+    function leftX(el)  { return el.getBoundingClientRect().left  - gridRect.left; }
+
+    function isConfirmed(matchId) {
+      const m = byId.get(matchId);
+      return m && (m.status === "confirmed" || m.status === "finished");
+    }
+
+    function addPath(x1, y1, x2, y2, confirmed) {
+      const mx = x1 + (x2 - x1) * 0.5;
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("class", "connector");
+      path.setAttribute("d", `M${x1},${y1} H${mx} V${y2} H${x2}`);
+      path.setAttribute("stroke", confirmed ? "rgba(45,255,158,.55)" : "rgba(255,255,255,.12)");
+      path.setAttribute("stroke-width", "2");
+      path.setAttribute("fill", "none");
+      svg.appendChild(path);
+    }
+
+    const qfCards = [...document.querySelectorAll(".col.qf .matchCard")];
+    const sfCards = [...document.querySelectorAll(".col.sf .matchCard")];
+    const finalCards = [...document.querySelectorAll(".col.final .matchCard")];
+    const finalCard = finalCards[0] || null;
+    const thirdCard = finalCards[1] || null;
+
+    // QF[0] + QF[1] → SF[0]
+    if (qfCards[0] && qfCards[1] && sfCards[0]) {
+      const sfMid = midY(sfCards[0]);
+      addPath(rightX(qfCards[0]), midY(qfCards[0]), leftX(sfCards[0]), sfMid, isConfirmed((bracket.qf||[])[0]));
+      addPath(rightX(qfCards[1]), midY(qfCards[1]), leftX(sfCards[0]), sfMid, isConfirmed((bracket.qf||[])[1]));
+    }
+    // QF[2] + QF[3] → SF[1]
+    if (qfCards[2] && qfCards[3] && sfCards[1]) {
+      const sfMid = midY(sfCards[1]);
+      addPath(rightX(qfCards[2]), midY(qfCards[2]), leftX(sfCards[1]), sfMid, isConfirmed((bracket.qf||[])[2]));
+      addPath(rightX(qfCards[3]), midY(qfCards[3]), leftX(sfCards[1]), sfMid, isConfirmed((bracket.qf||[])[3]));
+    }
+    // SF[0] + SF[1] → Finał
+    if (sfCards[0] && sfCards[1] && finalCard) {
+      const fMid = midY(finalCard);
+      addPath(rightX(sfCards[0]), midY(sfCards[0]), leftX(finalCard), fMid, isConfirmed((bracket.sf||[])[0]));
+      addPath(rightX(sfCards[1]), midY(sfCards[1]), leftX(finalCard), fMid, isConfirmed((bracket.sf||[])[1]));
+    }
+    // SF[0] + SF[1] → Mecz o 3. miejsce
+    if (sfCards[0] && sfCards[1] && thirdCard && thirdCard !== finalCard) {
+      const tMid = midY(thirdCard);
+      addPath(rightX(sfCards[0]), midY(sfCards[0]), leftX(thirdCard), tMid, isConfirmed((bracket.sf||[])[0]));
+      addPath(rightX(sfCards[1]), midY(sfCards[1]), leftX(thirdCard), tMid, isConfirmed((bracket.sf||[])[1]));
+    }
   }
 
   async function init(){
@@ -444,6 +545,13 @@
 
   init().catch(e => {
     grid.innerHTML = `<div class="noPlayoff">Błąd: ${e.message||e}</div>`;
+  });
+
+  window.addEventListener("resize", () => {
+    if (!current?.state?.playoffs?.generated) return;
+    const s = current.state;
+    const byId = new Map((s.matches||[]).map(m => [m.id, m]));
+    drawConnectors(byId, s.playoffs.bracket || {});
   });
 })();
 </script>

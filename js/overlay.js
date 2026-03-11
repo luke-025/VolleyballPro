@@ -48,6 +48,15 @@
       if (scenes[k]) scenes[k].classList.toggle("active", k === target);
     });
 
+    // Reset animacji tabel przy każdym wejściu do break scene
+    if (target === "break" && scenes.break) {
+      scenes.break.querySelectorAll(".breakGroup").forEach(g => {
+        g.style.animation = "none";
+        void g.offsetWidth; // force reflow
+        g.style.animation = "";
+      });
+    }
+
     // Hide sponsor widget on non-game scenes
     if (sponsorWidget) {
       if (target === "game") {
@@ -72,6 +81,13 @@
     ticker: $("liveTicker"),
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
+    serveA:       $("serveA"),
+    serveB:       $("serveB"),
+    setHistory:   $("setHistory"),
+    momentumWrap: $("momentumWrap"),
+    momentumA:    $("momentumA"),
+    momentumB:    $("momentumB"),
+    momentumLbl:  $("momentumLabel"),
   };
 
   // ----- BREAK elements -----
@@ -179,6 +195,42 @@
     if (elGame.bSets) elGame.bSets.textContent = String(sum.setsB);
     if (elGame.aScore) elGame.aScore.textContent = String(s.a);
     if (elGame.bScore) elGame.bScore.textContent = String(s.b);
+
+    // ── Wskaźnik serwującego ──────────────────────────────────────────────
+    const events = (pm.events || []);
+    const lastEv = events.length ? events[events.length - 1] : null;
+    const serve  = lastEv ? lastEv.side : null;
+    if (elGame.serveA) elGame.serveA.classList.toggle("active", serve === "a");
+    if (elGame.serveB) elGame.serveB.classList.toggle("active", serve === "b");
+
+    // ── Historia setów ────────────────────────────────────────────────────
+    if (elGame.setHistory) {
+      const curSetIdx = ENG.currentSetIndex(pm);
+      const pills = pm.sets.slice(0, curSetIdx).map((sv, i) => {
+        const min = i === 2 ? 15 : 25;
+        if (!(Math.abs(sv.a - sv.b) >= 2 && (sv.a >= min || sv.b >= min))) return "";
+        const winA = sv.a > sv.b;
+        return `<span class="setPill ${winA ? "winA" : "winB"}">${sv.a}:${sv.b}</span>`;
+      }).filter(Boolean).join("");
+      elGame.setHistory.innerHTML = pills || "";
+    }
+
+    // ── Belka momentum (ostatnie 7 punktów bieżącego seta) ───────────────
+    if (elGame.momentumA && elGame.momentumB) {
+      const curSetIdx = ENG.currentSetIndex(pm);
+      const setEvs = events.filter(e => e.set === curSetIdx).slice(-7);
+      if (setEvs.length >= 2) {
+        const aCount = setEvs.filter(e => e.side === "a").length;
+        const total  = setEvs.length;
+        const aPct   = Math.round((aCount / total) * 100);
+        elGame.momentumA.style.width = aPct + "%";
+        elGame.momentumB.style.width = (100 - aPct) + "%";
+        if (elGame.momentumWrap) elGame.momentumWrap.classList.add("show");
+        if (elGame.momentumLbl) elGame.momentumLbl.textContent = `Ostatnie ${total} pkt`;
+      } else {
+        if (elGame.momentumWrap) elGame.momentumWrap.classList.remove("show");
+      }
+    }
   }
 
   // ----- BREAK -----

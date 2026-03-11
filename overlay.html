@@ -274,6 +274,99 @@
     .brkProgramScore { font-size: 38px; font-weight: 900; color: #6AE4FF; margin-top: 8px; letter-spacing: 2px; }
     .brkProgramSets  { font-size: 13px; color: rgba(255,255,255,.45); margin-top: 4px; }
 
+    /* ── Animacje score — właściwe keyframes ──────────────────────────────── */
+    @keyframes vb-pulse {
+      0%   { transform: scale(1);    filter: brightness(1); }
+      25%  { transform: scale(1.32); filter: brightness(2.0) drop-shadow(0 0 16px #fff); }
+      65%  { transform: scale(1.12); filter: brightness(1.4); }
+      100% { transform: scale(1);    filter: brightness(1); }
+    }
+    .vb-pulse { animation: vb-pulse 0.5s cubic-bezier(.2,0,.3,1) forwards; }
+
+    @keyframes vb-flash {
+      0%   { background: rgba(255,255,255,.00); }
+      15%  { background: rgba(255,255,255,.20); }
+      100% { background: rgba(255,255,255,.00); }
+    }
+    .vb-flash { animation: vb-flash 0.75s ease-out forwards; }
+
+    /* ── Wskaźnik serwującego ─────────────────────────────────────────────── */
+    .serveIndicator {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #2DFF9E; box-shadow: 0 0 8px #2DFF9E;
+      flex-shrink: 0; margin-right: 6px;
+      opacity: 0; transform: scale(0.5);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .serveIndicator.active {
+      opacity: 1; transform: scale(1);
+      animation: servePulse 1.4s ease-in-out infinite;
+    }
+    @keyframes servePulse {
+      0%, 100% { box-shadow: 0 0 6px #2DFF9E; }
+      50%       { box-shadow: 0 0 16px #2DFF9E, 0 0 30px rgba(45,255,158,.4); }
+    }
+
+    /* ── Historia setów ───────────────────────────────────────────────────── */
+    .setHistory {
+      display: flex; gap: 8px; margin-top: 10px; min-height: 28px; flex-wrap: wrap;
+    }
+    .setPill {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 8px; padding: 3px 14px;
+      font-size: 16px; font-family: var(--mono, monospace);
+      color: rgba(255,255,255,.5);
+    }
+    .setPill.winA { border-color: rgba(45,255,158,.40); color: #2DFF9E; background: rgba(45,255,158,.08); }
+    .setPill.winB { border-color: rgba(106,228,255,.40); color: #6AE4FF; background: rgba(106,228,255,.08); }
+
+    /* ── Belka momentum ───────────────────────────────────────────────────── */
+    .momentumWrap {
+      margin-top: 12px; opacity: 0; transition: opacity 0.5s; width: 628px;
+    }
+    .momentumWrap.show { opacity: 1; }
+    .momentumBar {
+      display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+      background: rgba(255,255,255,.06);
+    }
+    .momentumFill { transition: width 0.7s cubic-bezier(.4,0,.2,1); min-width: 0; }
+    .momentumA { background: #2DFF9E; }
+    .momentumSep { width: 2px; background: rgba(255,255,255,.15); flex-shrink: 0; }
+    .momentumB { background: #6AE4FF; }
+    .momentumLabel {
+      margin-top: 5px; font-size: 12px;
+      color: rgba(255,255,255,.35); letter-spacing: .3px;
+    }
+
+    /* ── Break scene — animowane wejście tabel ────────────────────────────── */
+    @keyframes brkGroupIn {
+      from { opacity: 0; transform: translateX(-28px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    #sceneBreak .breakGroup {
+      opacity: 0;
+    }
+    #sceneBreak.active .breakGroup {
+      animation: brkGroupIn 0.45s ease forwards;
+    }
+    #sceneBreak.active .breakGroup:nth-child(1) { animation-delay: 0.05s; }
+    #sceneBreak.active .breakGroup:nth-child(2) { animation-delay: 0.15s; }
+    #sceneBreak.active .breakGroup:nth-child(3) { animation-delay: 0.25s; }
+    #sceneBreak.active .breakGroup:nth-child(4) { animation-delay: 0.35s; }
+
+    /* Fix: overlay.js generuje .breakGroup/.breakGroupTitle (nie .brkGroup) */
+    .breakGroup {
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+      padding: 12px 20px; overflow: hidden;
+      display: flex; flex-direction: column; min-height: 0;
+    }
+    .breakGroupTitle {
+      font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--accent, #6AE4FF); margin-bottom: 6px; flex-shrink: 0;
+    }
+
   </style>
 </head>
 <body>
@@ -289,6 +382,7 @@
           </div>
           <div class="teamRow" id="rowA">
             <div class="teamPill">
+              <div class="serveIndicator" id="serveA"></div>
               <div class="teamName" id="aName">—</div>
               <div class="setsBox">
                 <div>wygrane sety</div>
@@ -301,6 +395,7 @@
           </div>
           <div class="teamRow" id="rowB">
             <div class="teamPill">
+              <div class="serveIndicator" id="serveB"></div>
               <div class="teamName" id="bName">—</div>
               <div class="setsBox">
                 <div>wygrane sety</div>
@@ -310,6 +405,17 @@
             <div class="pointsPill">
               <div class="pointsNum scoreBox" id="bScore">0</div>
             </div>
+          </div>
+          <!-- Historia setów -->
+          <div class="setHistory" id="setHistory"></div>
+          <!-- Belka momentum -->
+          <div class="momentumWrap" id="momentumWrap">
+            <div class="momentumBar">
+              <div class="momentumFill momentumA" id="momentumA" style="width:50%"></div>
+              <div class="momentumSep"></div>
+              <div class="momentumFill momentumB" id="momentumB" style="width:50%"></div>
+            </div>
+            <div class="momentumLabel" id="momentumLabel"></div>
           </div>
         </div>
         <div class="ticker">
