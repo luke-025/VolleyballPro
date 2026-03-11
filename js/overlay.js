@@ -78,11 +78,8 @@
     bSets: $("bSets"),
     aScore: $("aScore"),
     bScore: $("bScore"),
-    ticker: $("liveTicker"),
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
-    serveA:       $("serveA"),
-    serveB:       $("serveB"),
     setHistory:   $("setHistory"),
     momentumWrap: $("momentumWrap"),
     momentumA:    $("momentumA"),
@@ -122,27 +119,6 @@
     return `${hh}:${mm}:${ss}`;
   }
 
-  // ----- TICKER -----
-  function renderTicker(state) {
-    if (!elGame.ticker) return;
-    const tickerWrap = elGame.ticker.closest(".ticker") || elGame.ticker.parentElement;
-    const live = (state.matches || []).filter((m) => m.status === "live").slice(0, 2);
-    if (!live.length) {
-      if (tickerWrap) tickerWrap.style.display = "none";
-      return;
-    }
-    if (tickerWrap) tickerWrap.style.display = "";
-    elGame.ticker.innerHTML = live.map((m) => {
-      const pm = ENG.emptyMatchPatch(m);
-      const ta = teamName(state, pm.teamAId);
-      const tb = teamName(state, pm.teamBId);
-      const idx = ENG.currentSetIndex(pm);
-      const s = pm.sets[idx];
-      const sum = ENG.scoreSummary(pm);
-      return `<span class="tickerItem"><b>${ta}</b> ${s.a}:${s.b} <b>${tb}</b> <span class="tickerSets">(${sum.setsA}:${sum.setsB})</span></span>`;
-    }).join('<span class="tickerSep">·</span>');
-  }
-
   // ----- META (stage/set pills) -----
   function renderMeta(state, match) {
     if (elGame.metaSet) {
@@ -166,8 +142,6 @@
     const pmId = st.meta?.programMatchId || null;
     const pm0 = (st.matches || []).find((m) => m.id === pmId) || null;
 
-    renderTicker(st);
-
     if (!pmId || !pm0) {
       renderMeta(st, null);
       if (elGame.aName) elGame.aName.textContent = "—";
@@ -176,6 +150,8 @@
       if (elGame.bSets) elGame.bSets.textContent = "0";
       if (elGame.aScore) elGame.aScore.textContent = "0";
       if (elGame.bScore) elGame.bScore.textContent = "0";
+      const cb = document.getElementById("gameCardBottom");
+      if (cb) cb.style.display = "none";
       return;
     }
 
@@ -196,26 +172,24 @@
     if (elGame.aScore) elGame.aScore.textContent = String(s.a);
     if (elGame.bScore) elGame.bScore.textContent = String(s.b);
 
-    // ── Wskaźnik serwującego ──────────────────────────────────────────────
     const events = (pm.events || []);
-    const lastEv = events.length ? events[events.length - 1] : null;
-    const serve  = lastEv ? lastEv.side : null;
-    if (elGame.serveA) elGame.serveA.classList.toggle("active", serve === "a");
-    if (elGame.serveB) elGame.serveB.classList.toggle("active", serve === "b");
 
     // ── Historia setów ────────────────────────────────────────────────────
+    let hasHistory = false;
     if (elGame.setHistory) {
       const curSetIdx = ENG.currentSetIndex(pm);
       const pills = pm.sets.slice(0, curSetIdx).map((sv, i) => {
         const min = i === 2 ? 15 : 25;
         if (!(Math.abs(sv.a - sv.b) >= 2 && (sv.a >= min || sv.b >= min))) return "";
         const winA = sv.a > sv.b;
-        return `<span class="setPill ${winA ? "winA" : "winB"}">${sv.a}:${sv.b}</span>`;
-      }).filter(Boolean).join("");
-      elGame.setHistory.innerHTML = pills || "";
+        return `<span class="setPill ${winA ? "winA" : "winB"}"><span class="setNum">S${i + 1}</span>${sv.a}:${sv.b}</span>`;
+      }).filter(Boolean);
+      elGame.setHistory.innerHTML = pills.join("") || "";
+      hasHistory = pills.length > 0;
     }
 
     // ── Belka momentum (ostatnie 7 punktów bieżącego seta) ───────────────
+    let hasMomentum = false;
     if (elGame.momentumA && elGame.momentumB) {
       const curSetIdx = ENG.currentSetIndex(pm);
       const setEvs = events.filter(e => e.set === curSetIdx).slice(-7);
@@ -225,12 +199,17 @@
         const aPct   = Math.round((aCount / total) * 100);
         elGame.momentumA.style.width = aPct + "%";
         elGame.momentumB.style.width = (100 - aPct) + "%";
-        if (elGame.momentumWrap) elGame.momentumWrap.classList.add("show");
+        if (elGame.momentumWrap) elGame.momentumWrap.style.display = "";
         if (elGame.momentumLbl) elGame.momentumLbl.textContent = `Ostatnie ${total} pkt`;
+        hasMomentum = true;
       } else {
-        if (elGame.momentumWrap) elGame.momentumWrap.classList.remove("show");
+        if (elGame.momentumWrap) elGame.momentumWrap.style.display = "none";
       }
     }
+
+    // ── Pokaż/ukryj bottom strip ──────────────────────────────────────────
+    const cardBottom = document.getElementById("gameCardBottom");
+    if (cardBottom) cardBottom.style.display = (hasHistory || hasMomentum) ? "" : "none";
   }
 
   // ----- BREAK -----
