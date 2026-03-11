@@ -24,6 +24,5 @@ window.VP_UTIL = {
     }
     return v;
   },
-  nowIso(){ return new Date().toISOString(); },
   deepClone(obj){ return JSON.parse(JSON.stringify(obj)); },
 };

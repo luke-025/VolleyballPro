@@ -109,11 +109,13 @@
   // ----- TICKER -----
   function renderTicker(state) {
     if (!elGame.ticker) return;
+    const tickerWrap = elGame.ticker.closest(".ticker") || elGame.ticker.parentElement;
     const live = (state.matches || []).filter((m) => m.status === "live").slice(0, 2);
     if (!live.length) {
-      elGame.ticker.innerHTML = `<span class="tickerItem muted">Brak meczów na żywo</span>`;
+      if (tickerWrap) tickerWrap.style.display = "none";
       return;
     }
+    if (tickerWrap) tickerWrap.style.display = "";
     elGame.ticker.innerHTML = live.map((m) => {
       const pm = ENG.emptyMatchPatch(m);
       const ta = teamName(state, pm.teamAId);
@@ -224,7 +226,7 @@
           return `
             <div class="breakGroup">
               <div class="breakGroupTitle">GRUPA ${UI ? UI.esc(String(g).toUpperCase()) : String(g).toUpperCase()}</div>
-              <table class="breakTable">
+              <table class="brkTable">
                 <thead>
                   <tr>
                     <th class="colRank">#</th>
@@ -322,21 +324,21 @@
     renderAll();
 
     // Clock tick for Break/Technical
-    setInterval(() => {
+    let _clockId = setInterval(() => {
       const st2 = current?.state || {};
       const scene2 = st2.meta?.scene || "game";
       if (scene2 === "break") renderBreak(st2);
       if (scene2 === "technical") renderTechnical(st2);
     }, 1000);
 
-    STORE.subscribeState(slug, (snap) => {
+    const unsub = STORE.subscribeState(slug, (snap) => {
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
       renderAll();
     });
 
     // Fallback polling – gdy WebSocket na telefonie/OBS się urwie
     let _polling = false;
-    setInterval(async () => {
+    let _pollId = setInterval(async () => {
       if (_polling) return;
       _polling = true;
       try {
@@ -351,6 +353,12 @@
         _polling = false;
       }
     }, 2000);
+
+    window.addEventListener("beforeunload", () => {
+      if (unsub) unsub();
+      clearInterval(_clockId);
+      clearInterval(_pollId);
+    });
   }
 
   start().catch((e) => console.error("overlay start error", e));

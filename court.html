@@ -5,6 +5,75 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VolleyballPro • Court</title>
   <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ── Live card layout ── */
+    .liveCard { padding:0; overflow:hidden; }
+
+    .liveHeader { display:flex; align-items:center; gap:10px; padding:12px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08); }
+    .liveBack { font-size:12px; padding:5px 10px; flex-shrink:0; }
+    .liveCtx  { font-size:12px; color:var(--muted); }
+
+    /* 3-column score grid */
+    .scoreArea { display:grid; grid-template-columns:1fr 48px 1fr; min-height:260px; }
+
+    .teamCol { display:flex; flex-direction:column; align-items:center;
+      gap:10px; padding:20px 16px; }
+    .teamName { font-size:15px; font-weight:800; text-align:center;
+      word-break:break-word; color:var(--text); }
+
+    .btnScore { width:100%; padding:22px 10px; font-size:22px; font-weight:900;
+      letter-spacing:1px; border-radius:14px; flex-shrink:0; }
+    .btnScoreMinus { width:100%; padding:10px; font-size:15px; flex-shrink:0;
+      border-radius:10px; }
+
+    .scoreBig { font-family:var(--mono); font-size:72px; font-weight:900;
+      color:var(--accent); line-height:1; text-align:center; }
+
+    /* Center column */
+    .scoreCenter { display:flex; flex-direction:column; align-items:center;
+      justify-content:center; gap:12px; padding:16px 0;
+      border-left:1px solid rgba(255,255,255,.06);
+      border-right:1px solid rgba(255,255,255,.06); }
+    .scoreSep { font-family:var(--mono); font-size:32px; font-weight:900;
+      color:rgba(255,255,255,.25); line-height:1; }
+
+    /* Set tracker (vertical in center) */
+    .setTracker { display:flex; flex-direction:column; gap:6px; align-items:center; }
+    .setPill { min-width:44px; padding:3px 8px; border-radius:16px;
+      font:700 11px var(--mono); text-align:center;
+      border:1px solid rgba(255,255,255,.12); color:var(--muted); }
+    .setPill.active { border-color:var(--accent); color:var(--accent);
+      background:rgba(106,228,255,.10); }
+    .setPill.done   { border-color:rgba(255,255,255,.18); color:var(--text); }
+    .setPill.empty  { opacity:.35; }
+
+    /* Footer */
+    .liveFooter { display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+      padding:10px 16px; border-top:1px solid rgba(255,255,255,.08); }
+    .liveRule { font-size:10px; flex:1; text-align:center; }
+
+    /* Score flash */
+    @keyframes scoreFlash {
+      0%   { color:#fff; transform:scale(1.12); text-shadow:0 0 20px rgba(106,228,255,.9); }
+      100% { color:var(--accent); transform:scale(1); text-shadow:none; }
+    }
+    .scoreFlash { animation: scoreFlash 0.35s ease-out; }
+
+    /* State banner */
+    .stateBanner { display:none; margin:8px 16px 0; border-radius:10px;
+      padding:8px 12px; font-size:13px; font-weight:700; }
+    .stateBanner:not(:empty) { display:block; }
+    .stateBanner.state-locked    { background:rgba(255,77,109,.12); border:1px solid rgba(255,77,109,.35); color:#FF4D6D; }
+    .stateBanner.state-finished  { background:rgba(45,255,158,.10); border:1px solid rgba(45,255,158,.30); color:var(--ok); }
+    .stateBanner.state-confirmed { background:rgba(106,228,255,.10); border:1px solid rgba(106,228,255,.30); color:var(--accent); }
+
+    /* Mobile */
+    @media (max-width:500px) {
+      .scoreBig { font-size:56px; }
+      .btnScore { padding:18px 8px; font-size:18px; }
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -46,46 +115,48 @@
         <div id="matches" style="margin-top:10px"></div>
       </div>
 
-      <div class="card" id="liveBox" style="display:none">
-        <h2>Mecz</h2>
-        <div class="row">
-          <div class="grow">
-            <div class="muted small">Drużyna A</div>
-            <div id="aName" style="font-size:18px;font-weight:800"></div>
+      <div class="card liveCard" id="liveBox" style="display:none">
+        <!-- Header -->
+        <div class="liveHeader">
+          <button class="btn btn-ghost btn-sm liveBack" id="btnLiveBack">← Zmień mecz</button>
+          <div id="matchContext" class="liveCtx muted small"></div>
+        </div>
+
+        <!-- 3-column score area -->
+        <div class="scoreArea">
+          <!-- Team A -->
+          <div class="teamCol">
+            <div id="aName" class="teamName"></div>
+            <button class="btn btn-primary btnScore" id="btnAPlus">+1</button>
+            <div class="scoreBig" id="aScore">0</div>
+            <button class="btn btn-ghost btnScoreMinus" id="btnAMinus">−1</button>
           </div>
-          <div class="scoreMono" id="aScore">0</div>
-        </div>
 
-        <div class="row">
-          <div class="grow">
-            <div class="muted small">Drużyna B</div>
-            <div id="bName" style="font-size:18px;font-weight:800"></div>
+          <!-- Center: colon + set tracker -->
+          <div class="scoreCenter">
+            <div class="scoreSep">:</div>
+            <div id="setTracker" class="setTracker"></div>
           </div>
-          <div class="scoreMono" id="bScore">0</div>
+
+          <!-- Team B -->
+          <div class="teamCol">
+            <div id="bName" class="teamName"></div>
+            <button class="btn btn-primary btnScore" id="btnBPlus">+1</button>
+            <div class="scoreBig" id="bScore">0</div>
+            <button class="btn btn-ghost btnScoreMinus" id="btnBMinus">−1</button>
+          </div>
         </div>
 
-        <div class="row">
-          <div class="grow muted small" id="setInfo">—</div>
-          <div class="muted small">Sety: <span class="scoreMono" id="sets">0:0</span></div>
-        </div>
+        <!-- State banner -->
+        <div id="stateBanner" class="stateBanner"></div>
+        <div id="liveHint" class="muted small" style="padding:0 16px;margin-top:6px"></div>
 
-        <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
-          <button class="btn btn-primary" id="btnAPlus">A +1</button>
-          <button class="btn" id="btnAMinus">A −1</button>
-          <button class="btn btn-primary" id="btnBPlus">B +1</button>
-          <button class="btn" id="btnBMinus">B −1</button>
-        </div>
-
-        <div class="btnGroup" style="margin-top:10px; justify-content:flex-start">
-          <button class="btn btn-ghost" id="btnResetSet">Reset bieżącego seta</button>
-          <button class="btn btn-danger" id="btnRelease">Zwolnij mecz</button>
-          <button class="btn btn-primary" id="btnConfirm" style="display:none">Zatwierdź wynik</button>
-        </div>
-
-        <div id="liveHint" class="muted small" style="margin-top:10px"></div>
-
-        <div class="muted small" style="margin-top:10px">
-          Set kończy się automatycznie: set 1–2 do 25, set 3 do 15, zawsze min. 2 punkty przewagi.
+        <!-- Footer -->
+        <div class="liveFooter">
+          <button class="btn btn-ghost btn-sm" id="btnResetSet">Reset seta</button>
+          <div class="muted small liveRule">Set 1–2 do 25 · Set 3 do 15 · min. 2 pkt przewagi</div>
+          <button class="btn btn-danger btn-sm" id="btnRelease">Zwolnij mecz</button>
+          <button class="btn btn-primary btn-sm" id="btnConfirm" style="display:none">Zatwierdź wynik</button>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@
   <script src="/js/util.js"></script>
   <script src="/js/engine.js"></script>
   <script src="/js/state.js"></script>
+  <script src="/js/ui-shared.js"></script>
   <script src="/js/break.js"></script>
   <title>VolleyballPro • Przerwa</title>
 </head>
@@ -21,10 +22,11 @@
         <div class="breakTournament" id="btName">VolleyballPro</div>
       </div>
       <div class="breakMeta">
-        <div class="breakPill" id="btSlug"></div>
         <div class="breakClock" id="btClock"></div>
       </div>
     </div>
+
+    <div class="breakHero" id="breakProgram"></div>
 
     <div class="breakGrid">
       <div class="breakLeft card">
@@ -40,10 +42,6 @@
         <div class="card breakPanel">
           <div class="breakSectionTitle">Następne mecze</div>
           <div id="breakNext" class="breakList"></div>
-        </div>
-        <div class="card breakPanel">
-          <div class="breakSectionTitle">Mecz na transmisji</div>
-          <div id="breakProgram" class="breakProgram"></div>
         </div>
       </div>
     </div>

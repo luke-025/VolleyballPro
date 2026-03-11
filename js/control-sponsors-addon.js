@@ -16,15 +16,6 @@
     return n;
   };
 
-  function toast(msg, kind) {
-    try { UI.toast(msg, kind || "info"); } catch { console.log(msg); }
-  }
-  function getSlug() {
-    try { return UI.getSlug(); } catch { return ""; }
-  }
-  function getPin(slug) {
-    try { return STORE.getPin(slug) || ""; } catch { return ""; }
-  }
   const uid = () => (crypto?.randomUUID ? crypto.randomUUID() : ("sp_" + Math.random().toString(16).slice(2)));
 
   let current = null;
@@ -42,11 +33,11 @@
       document.body;
 
     const card = el("div", { class: "card", id: "sponsorsCard", style: "margin-top:14px" }, [
-      el("div", { class: "cardHead" }, [
-        el("h3", { style: "margin:0" }, ["Sponsorzy"]),
-        el("div", { class: "muted", style: "margin-top:6px" }, ["Scena SPONSORZY + opcjonalny akcent w transmisji."])
-      ]),
-      el("div", { class: "cardBody" }, [
+      el("details", { class: "collapsibleSection" }, [
+        el("summary", { style: "display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none" }, [
+          el("h3", { style: "margin:0; font-size:12px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)" }, ["Sponsorzy"]),
+        ]),
+      el("div", { class: "cardBody", style: "margin-top:10px" }, [
         el("div", { style: "display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end" }, [
           el("div", { style: "flex:1; min-width:200px" }, [
             el("label", { class: "muted", for: "spName" }, ["Nazwa"]),
@@ -92,6 +83,7 @@
         ]),
         el("div", { id: "spList", style: "margin-top:12px; display:flex; flex-direction:column; gap:10px" }, [])
       ])
+      ]) // close details
     ]);
 
     host.appendChild(card);
@@ -107,19 +99,23 @@
       const del = ev.target.closest("[data-sp-del]");
       const up = ev.target.closest("[data-sp-up]");
       const down = ev.target.closest("[data-sp-down]");
-      const id = (del || up || down)?.getAttribute("data-id");
+      const btn = del || up || down;
+      const id = btn?.getAttribute("data-id");
       if (!id) return;
 
       ev.preventDefault();
       ev.stopPropagation();
 
-      const slug = getSlug();
-      const pin = getPin(slug);
-      if (!pin) return toast("Podaj PIN w Control, żeby edytować sponsorów.", "warn");
+      const slug = UI.getSlug();
+      const pin = STORE.getPin(slug);
+      if (!pin) return UI.toast("Podaj PIN w Control, żeby edytować sponsorów.", "warn");
 
-      try {
+      if (del) {
+        if (!await UI.confirmDialog("Usunąć sponsora?", "")) return;
+      }
+
+      UI.withLoading(btn, async () => {
         if (del) {
-          if (!confirm("Usunąć sponsora?")) return;
           await STORE.mutate(slug, pin, (st) => {
             st.sponsors = (st.sponsors || []).filter(s => s.id !== id);
             return st;
@@ -135,26 +131,25 @@
             return st;
           });
         }
-      } catch (e) {
-        toast("Błąd: " + (e?.message || e), "err");
-      }
+      }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
     }, true);
   }
 
-  async function onAdd() {
-    const slug = getSlug();
-    const pin = getPin(slug);
-    if (!slug) return toast("Brak slug turnieju.", "warn");
-    if (!pin) return toast("Podaj PIN w Control, żeby dodawać sponsorów.", "warn");
+  function onAdd() {
+    const slug = UI.getSlug();
+    const pin = STORE.getPin(slug);
+    if (!slug) return UI.toast("Brak slug turnieju.", "warn");
+    if (!pin) return UI.toast("Podaj PIN w Control, żeby dodawać sponsorów.", "warn");
 
     const name    = document.getElementById("spName")?.value?.trim() || "";
     const logoUrl = document.getElementById("spLogo")?.value?.trim() || "";
     const role    = document.getElementById("spRole")?.value?.trim() || "";
 
-    if (!name && !logoUrl) return toast("Wpisz nazwę lub logo URL.", "warn");
-    if (logoUrl && !/^https?:\/\//i.test(logoUrl)) return toast("Logo URL musi zaczynać się od http(s)://", "warn");
+    if (!name && !logoUrl) return UI.toast("Wpisz nazwę lub logo URL.", "warn");
+    if (logoUrl && !/^https?:\/\//i.test(logoUrl)) return UI.toast("Logo URL musi zaczynać się od http(s)://", "warn");
 
-    try {
+    const addBtn = document.getElementById("spAddBtn");
+    UI.withLoading(addBtn, async () => {
       await STORE.mutate(slug, pin, (st) => {
         st.sponsors = st.sponsors || [];
         st.sponsors.push({ id: uid(), name, logoUrl, role, enabled: true });
@@ -166,15 +161,13 @@
       document.getElementById("spLogo").value = "";
       const roleEl = document.getElementById("spRole");
       if (roleEl) roleEl.value = "";
-      toast("Dodano sponsora.", "ok");
-    } catch (e) {
-      toast("Błąd: " + (e?.message || e), "err");
-    }
+      UI.toast("Dodano sponsora.", "success");
+    }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
   }
 
   async function onSettings() {
-    const slug = getSlug();
-    const pin = getPin(slug);
+    const slug = UI.getSlug();
+    const pin = STORE.getPin(slug);
     if (!slug || !pin) return;
 
     const accentOn   = !!document.getElementById("spAccentOn")?.checked;
@@ -193,7 +186,7 @@
         return st;
       });
     } catch (e) {
-      toast("Błąd ustawień: " + (e?.message || e), "err");
+      UI.toast("Błąd ustawień: " + UI.fmtError(e), "error");
     }
   }
 
@@ -250,7 +243,7 @@
   }
 
   async function start() {
-    const slug = getSlug();
+    const slug = UI.getSlug();
     if (!slug) return;
 
     ensureMount();

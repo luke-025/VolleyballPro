@@ -4,24 +4,6 @@
   const UI = window.VP_UI;
   const STORE = window.VPState;
 
-  function esc(s) {
-    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-  }
-
-  function getSlug() {
-    try { return UI.getSlug(); } catch (e) { return ""; }
-  }
-
-  function getPin(slug) {
-    try { return STORE.getPin(slug) || ""; } catch (e) { return ""; }
-  }
-
-  function toast(msg, kind) {
-    try { UI.toast(msg, kind || "info"); } catch (e) { console.log(msg); }
-  }
-
   function bind() {
     const root = document.getElementById("teamsList");
     if (!root) return;
@@ -33,16 +15,16 @@
       ev.preventDefault();
       ev.stopPropagation();
 
-      const slug = getSlug();
-      if (!slug) return toast("Brak slug turnieju.", "warn");
+      const slug = UI.getSlug();
+      if (!slug) return UI.toast("Brak slug turnieju.", "warn");
 
       const teamId = btn.getAttribute("data-del-team");
       const teamName = (btn.closest(".row")?.querySelector("b")?.textContent || "").trim() || "drużynę";
 
-      if (!confirm(`Usunąć "${teamName}"?\n\nUwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
+      if (!await UI.confirmDialog(`Usunąć "${teamName}"?`, "Uwaga: usunięte zostaną też mecze z jej udziałem.")) return;
 
-      const pin = getPin(slug);
-      if (!pin) return toast("Podaj PIN w Control (pole PIN), żeby usuwać.", "warn");
+      const pin = STORE.getPin(slug);
+      if (!pin) return UI.toast("Podaj PIN w Control (pole PIN), żeby usuwać.", "warn");
 
       btn.disabled = true;
 
@@ -74,9 +56,9 @@
           return st;
         });
 
-        toast(`Usunięto: ${teamName}`, "ok");
+        UI.toast(`Usunięto: ${teamName}`, "success");
       } catch (e) {
-        toast("Błąd usuwania: " + (e?.message || e), "err");
+        UI.toast(UI.fmtError(e), "error");
       } finally {
         btn.disabled = false;
       }
