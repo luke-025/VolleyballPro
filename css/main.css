@@ -95,7 +95,7 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
 .matchRow:first-child{border-top:none}
 .matchTitle{font-size:14px}
 
-.scoreMono{font-family:var(--mono); font-size:18px}
+.scoreMono{font-family:var(--mono); font-size:40px; font-weight:900; color:var(--accent); min-width:56px; text-align:right; line-height:1}
 .tbl{width:100%; border-collapse:collapse; font-size:12px}
 .tbl th, .tbl td{padding:7px 8px; border-bottom:1px solid rgba(255,255,255,.08)}
 .tbl th{color:var(--muted); font-weight:700}
@@ -110,9 +110,62 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   font-size:13px;
 }
 .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+.toast-info{border-color: rgba(106,228,255,.35)}
 .toast-warn{border-color: rgba(255,185,79,.35)}
 .toast-error{border-color: rgba(255,77,109,.35)}
 .toast-success{border-color: rgba(45,255,158,.35)}
+
+.confirmOverlay{
+  position:fixed; inset:0; z-index:9999;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(4px);
+  display:flex; align-items:center; justify-content:center;
+}
+.confirmModal{
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  border:1px solid rgba(255,255,255,.14);
+  border-radius: var(--radius);
+  padding: 22px 24px 18px;
+  max-width: 380px; width: 90%;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55);
+}
+.confirmTitle{font-size:16px; font-weight:700; margin-bottom:8px}
+.confirmMsg{font-size:13px; color:var(--muted); line-height:1.5; margin-bottom:18px}
+.confirmBtns{display:flex; gap:10px; justify-content:flex-end}
+
+/* ── Broadcast Bar ─────────────────────────────────────────────────────── */
+.broadcastBar{
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  padding:10px 16px; margin-bottom:12px;
+  background:rgba(0,0,0,.40);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:var(--radius);
+  position:sticky; top:0; z-index:50;
+  backdrop-filter:blur(8px);
+}
+.broadcastBarScene{ display:flex; align-items:center; gap:10px; }
+.broadcastBarLabel{ font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+.broadcastBtns{ display:flex; gap:6px; flex-wrap:wrap; }
+.broadcastBtns .sceneBtn{ font-size:12px; padding:5px 11px; }
+.broadcastBarDivider{ width:1px; height:26px; background:rgba(255,255,255,.12); flex-shrink:0; }
+.broadcastBarProgram{ font-size:13px; color:var(--text); min-width:0; }
+
+/* ── Score entry modal ─────────────────────────────────────────────────── */
+.scoreModal{ max-width:440px; }
+.scoreModalMatch{ font-size:13px; color:var(--muted); margin-bottom:16px; }
+.scoreGrid{
+  display:grid; grid-template-columns:auto 1fr 28px 1fr; gap:8px 10px;
+  align-items:center; margin-bottom:16px;
+}
+.scoreGrid .scoreSetLabel{ font-size:13px; color:var(--muted); white-space:nowrap; }
+.scoreGrid .scoreInput{
+  width:100%; padding:7px 10px; font-size:15px; text-align:center; font-weight:600;
+  background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.15);
+  border-radius:8px; color:var(--text); font-family:var(--mono);
+}
+.scoreGrid .scoreInput:disabled{ opacity:.35; }
+.scoreGrid .scoreSep{ text-align:center; color:var(--muted); font-size:14px; }
+.scoreWarnings{ font-size:12px; color:#f5a623; margin-bottom:14px; line-height:1.6; }
 
 .kbd{
   font-family:var(--mono);
@@ -408,25 +461,11 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   margin-bottom: 18px;
 }
 
-.breakOverlay .breakTop .breakTitle,
-.breakOverlay .breakTop .breakMeta{
-  display:none !important;
-}
+.breakOverlay .breakTop .breakTitle { display:flex; align-items:center; gap:12px; }
+.breakOverlay .breakTop .breakMeta  { display:flex; align-items:center; }
 
-/* One clean title line */
-.breakOverlay .breakTop::before{
-  content: "Przerwa. Aktualne tabele";
-  display:inline-flex;
-  align-items:center;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.10);
-  font-weight: 800;
-  letter-spacing: .6px;
-  color: rgba(255,255,255,.92);
-  box-shadow: 0 16px 45px rgba(0,0,0,.40);
-}
+/* No static badge pseudo-element */
+.breakOverlay .breakTop::before { content: none; }
 
 /* Main grid: left = tables, right = panels */
 .breakOverlay .breakGrid{
@@ -512,12 +551,7 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
    Scoped to Break only
    ========================================================= */
 
-/* Badge a bit richer */
-.breakOverlay .breakTop::before{
-  background: linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-  border: 1px solid rgba(255,255,255,.14);
-  box-shadow: 0 18px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.12);
-}
+/* (breakTop::before removed — real tournament name shown instead) */
 
 /* Cards: deeper, but safe */
 .breakOverlay .breakLeft.card,
@@ -584,3 +618,168 @@ label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
   background: rgba(255,255,255,.03);
   border: 1px dashed rgba(255,255,255,.08);
 }
+
+/* =========================================================
+   UI REDESIGN — global polish + court + break overrides
+   ========================================================= */
+
+/* Input / select / textarea focus — cyan glow */
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(106,228,255,.50) !important;
+  box-shadow: 0 0 0 3px rgba(106,228,255,.10);
+}
+
+/* Card — subtle top-edge accent */
+.card { border-top-color: rgba(255,255,255,.15); }
+
+/* btn-primary — hover glow */
+.btn-primary:not(:disabled):hover {
+  box-shadow: 0 0 16px rgba(106,228,255,.20);
+}
+
+/* Break — clock display */
+.breakClock { font-size: 28px; font-weight: 900; font-family: var(--mono); }
+
+/* Break — TV table: larger text for readability */
+.breakOverlay .breakTable tbody td { font-size: 16px; padding: 12px 10px; }
+.breakOverlay .breakTable thead th { font-size: 12px; padding: 12px 10px; }
+.breakOverlay .breakTable td.colTeam { font-weight: 700; font-size: 15px; }
+
+/* Break — gold / silver / bronze row highlights */
+.breakOverlay .breakGroup .breakTable tbody tr:nth-child(1) td { background: rgba(215,177,58,.08); }
+.breakOverlay .breakGroup .breakTable tbody tr:nth-child(2) td { background: rgba(180,180,180,.06); }
+.breakOverlay .breakGroup .breakTable tbody tr:nth-child(3) td { background: rgba(176,125,70,.06); }
+
+/* Court — mobile: bigger score numbers and touch targets */
+@media (max-width: 680px) {
+  #btnAPlus, #btnBPlus  { padding: 14px 20px; font-size: 15px; flex: 1; }
+  #btnAMinus, #btnBMinus { padding: 14px 16px; flex: 0 0 auto; }
+  #aName, #bName { font-size: 20px !important; }
+  .btnGroup { flex-wrap: wrap; }
+}
+
+/* =========================================================
+   BREAK SCENE — Header + Hero + Tables (broadcast quality)
+   All scoped to .breakOverlay
+   ========================================================= */
+
+/* ── Header ── */
+.breakOverlay .breakTop {
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding-bottom: 14px; margin-bottom: 14px;
+}
+.breakOverlay .breakKicker {
+  display: inline-block;
+  background: rgba(106,228,255,.12); border: 1px solid rgba(106,228,255,.25);
+  color: var(--accent); font-size: 10px; font-weight: 800; letter-spacing: 2px;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 999px;
+}
+.breakOverlay .breakTournament {
+  font-size: 22px; font-weight: 800;
+  background: linear-gradient(90deg, #fff 40%, rgba(106,228,255,.80));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.breakOverlay .breakClock {
+  font-size: 24px; font-weight: 900; font-family: var(--mono);
+  color: rgba(255,255,255,.55);
+}
+
+/* ── Background glow layers ── */
+.breakOverlay {
+  background:
+    radial-gradient(ellipse 700px 400px at 15% 25%, rgba(106,228,255,.07), transparent 70%),
+    radial-gradient(ellipse 600px 500px at 85% 75%, rgba(165,110,255,.05), transparent 65%);
+}
+
+/* ── Hero: next match ── */
+.breakHero:empty { display: none; }
+.breakHero { margin-bottom: 16px; }
+
+.brkProgramBox {
+  background: linear-gradient(135deg, rgba(106,228,255,.09), rgba(165,110,255,.06), rgba(0,0,0,.08));
+  border: 1px solid rgba(106,228,255,.28); border-radius: 20px; padding: 18px 32px;
+  box-shadow: 0 0 50px rgba(106,228,255,.07), 0 20px 60px rgba(0,0,0,.45);
+}
+.brkHeroLabel {
+  font-size: 10px; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--accent); opacity: .85; margin-bottom: 14px;
+}
+.brkHeroBody {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.brkHeroTeam {
+  font-size: 34px; font-weight: 900; flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.brkHeroTeamRight { text-align: right; }
+.brkHeroCenter {
+  display: flex; flex-direction: column; align-items: center;
+  flex-shrink: 0; padding: 0 32px;
+}
+.brkHeroVs {
+  font-size: 48px; font-weight: 900; font-family: var(--mono);
+  color: rgba(255,255,255,.18); letter-spacing: 4px; line-height: 1;
+}
+.brkHeroCourt {
+  font-size: 11px; color: var(--muted); margin-top: 6px; letter-spacing: 1px;
+}
+
+/* ── Group cards ── */
+.brkGroup {
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 14px; padding: 10px 10px 8px; overflow: hidden;
+}
+.brkGroupTitle {
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--accent); opacity: .85; margin: 0 0 8px;
+  display: flex; align-items: center; gap: 7px;
+}
+.brkGroupTitle::before {
+  content: ''; width: 12px; height: 2px; border-radius: 99px;
+  background: var(--accent); flex-shrink: 0;
+}
+
+/* ── Standings table ── */
+.brkTable { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.brkTable thead th {
+  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+  color: rgba(255,255,255,.45); padding: 5px 4px; text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.brkTable tbody td {
+  font-size: 13px; padding: 8px 4px; text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.brkTable th.name, .brkTable td.name {
+  text-align: left; padding-left: 6px; font-weight: 700; font-size: 12px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.brkTable td.pos { color: var(--muted); font-size: 11px; }
+
+/* Rank medal colors */
+.brkTable tbody tr:nth-child(1) td.pos { color: #D4AF37; font-weight: 900; }
+.brkTable tbody tr:nth-child(2) td.pos { color: #B0B8C8; font-weight: 900; }
+.brkTable tbody tr:nth-child(3) td.pos { color: #B87333; font-weight: 900; }
+
+/* PKT column (6th): gold accent */
+.brkTable thead th:nth-child(6), .brkTable tbody td:nth-child(6) { color: #d7ff5e; font-weight: 900; }
+
+/* Top row tints */
+.brkTable tbody tr:nth-child(1) td { background: rgba(212,175,55,.07); }
+.brkTable tbody tr:nth-child(2) td { background: rgba(176,184,200,.04); }
+
+/* ── List items (last results / next matches) ── */
+.brkItem {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px; border-radius: 10px; margin-bottom: 4px;
+  background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.04);
+  font-size: 12px;
+}
+.brkItem span {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; color: rgba(255,255,255,.75);
+}
+.brkItem b { font-size: 13px; font-weight: 900; color: var(--accent); flex-shrink: 0; margin-left: 8px; }
+.brkTableEmpty { font-size: 11px; color: var(--muted); text-align: center; padding: 12px 0; }

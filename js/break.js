@@ -4,8 +4,7 @@
   const ENG  = window.VPEngine;
   const STORE = window.VPState;
 
-  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
-    ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const { esc } = UI;
 
   const slug = UI.getSlug();
   const $    = (id) => document.getElementById(id);
@@ -16,7 +15,7 @@
     tables:  $("breakTables"),
     last:    $("breakLast"),
     next:    $("breakNext"),
-    program: $("breakProgram"),
+    hero:    $("breakProgram"),
     notice:  $("breakNotice"),
   };
 
@@ -44,15 +43,9 @@
   function renderTables(st) {
     if (!el.tables) return;
     const groups = ENG.computeStandings(st) || {};
-    const keys   = Object.keys(groups).filter(k => k !== "")
-                         .sort((a, b) => String(a).localeCompare(String(b), "pl"));
+    const GROUPS = ["A", "B", "C", "D"];
 
-    if (!keys.length) {
-      el.tables.innerHTML = `<div class="muted" style="grid-column:1/-1">Brak danych do tabel (mecze grupowe muszą mieć status <b>confirmed</b>).</div>`;
-      return;
-    }
-
-    el.tables.innerHTML = keys.map(g => {
+    el.tables.innerHTML = GROUPS.map(g => {
       const rows = (groups[g] || []).map((r, i) => `
         <tr>
           <td class="pos">${i + 1}</td>
@@ -65,9 +58,11 @@
           <td>${r.pointsWon}:${r.pointsLost}</td>
         </tr>`).join("");
 
+      const body = rows || `<tr><td colspan="8" class="brkTableEmpty">Brak danych</td></tr>`;
+
       return `
         <div class="brkGroup">
-          <div class="brkGroupTitle">Grupa ${esc(String(g).toUpperCase())}</div>
+          <div class="brkGroupTitle">Grupa ${g}</div>
           <table class="brkTable">
             <thead>
               <tr>
@@ -75,7 +70,7 @@
                 <th>M</th><th>W</th><th>P</th><th>PKT</th><th>Sety</th><th>Małe</th>
               </tr>
             </thead>
-            <tbody>${rows}</tbody>
+            <tbody>${body}</tbody>
           </table>
         </div>`;
     }).join("");
@@ -103,20 +98,27 @@
     ).join("") || `<div class="muted" style="font-size:12px;padding:6px 0">Brak zaplanowanych meczów.</div>`;
   }
 
-  function renderProgram(st) {
-    if (!el.program) return;
-    const pid = st.meta?.programMatchId;
-    const m   = (st.matches || []).find(x => x.id === pid);
-    if (!m) {
-      el.program.innerHTML = `<div class="muted" style="font-size:12px;padding:6px 0">Nie wybrano meczu na transmisję.</div>`;
-      return;
-    }
-    const s = matchScoreNow(m);
-    el.program.innerHTML = `
+  function renderHero(st) {
+    if (!el.hero) return;
+    const matchId = st.meta?.breakNextMatchId;
+    const next = matchId
+      ? (st.matches || []).find(m => m.id === matchId)
+      : (st.matches || []).find(m => m.status === "pending");
+    if (!next) { el.hero.innerHTML = ""; return; }
+    const ta = teamName(st, next.teamAId);
+    const tb = teamName(st, next.teamBId);
+    const court = next.court ? `<div class="brkHeroCourt">Boisko ${esc(String(next.court))}</div>` : "";
+    el.hero.innerHTML = `
       <div class="brkProgramBox">
-        <div class="brkProgramTeams">${esc(matchLabel(st, m))}</div>
-        <div class="brkProgramScore">${s.a} : ${s.b}</div>
-        <div class="brkProgramSets">Sety: ${s.setsA} : ${s.setsB}</div>
+        <div class="brkHeroLabel">NASTĘPNY MECZ</div>
+        <div class="brkHeroBody">
+          <div class="brkHeroTeam">${esc(ta)}</div>
+          <div class="brkHeroCenter">
+            <div class="brkHeroVs">VS</div>
+            ${court}
+          </div>
+          <div class="brkHeroTeam brkHeroTeamRight">${esc(tb)}</div>
+        </div>
       </div>`;
   }
 
@@ -126,11 +128,11 @@
     renderTables(st);
     renderLast(st);
     renderNext(st);
-    renderProgram(st);
+    renderHero(st);
   }
 
   async function start() {
-    setInterval(() => { if (el.btClock) el.btClock.textContent = fmtTime(new Date()); }, 1000);
+    const _clockId = setInterval(() => { if (el.btClock) el.btClock.textContent = fmtTime(new Date()); }, 1000);
 
     if (!slug) {
       if (el.notice) el.notice.textContent = "Brak parametru ?t=... w URL";
@@ -144,9 +146,33 @@
     let current = await STORE.fetchState(slug);
     renderAll(current.state || {});
 
-    STORE.subscribeState(slug, (snap) => {
+    const unsub = STORE.subscribeState(slug, (snap) => {
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
       renderAll(current.state || {});
+    });
+
+    // ── POLLING FALLBACK ──────────────────────────────────────────────────────
+    // OBS browser source i laptopy zrywają WebSocket przy uśpieniu / zmianie sieci.
+    // Co 5s sprawdzamy wersję stanu – jeśli nowsza, odświeżamy UI.
+    let _polling = false;
+    const _pollId = setInterval(async () => {
+      if (_polling) return;
+      _polling = true;
+      try {
+        const fresh = await STORE.fetchState(slug);
+        if (fresh && fresh.version != null && fresh.version !== current?.version) {
+          current = fresh;
+          renderAll(current.state || {});
+        }
+      } catch (_e) { /* ignoruj – WebSocket może nadal działać */ }
+      finally { _polling = false; }
+    }, 5000);
+    // ─────────────────────────────────────────────────────────────────────────
+
+    window.addEventListener("beforeunload", () => {
+      if (unsub) unsub();
+      clearInterval(_clockId);
+      clearInterval(_pollId);
     });
   }
 

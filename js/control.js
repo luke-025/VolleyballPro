@@ -38,6 +38,7 @@
     btnOpenPlayoffs:    document.getElementById("btnOpenPlayoffs"),
     playoffsInfo:       document.getElementById("playoffsInfo"),
     matchesList:        document.getElementById("matchesList"),
+    matchFilters:       document.getElementById("matchFilters"),
     programBox:         document.getElementById("programBox"),
     standingsBox:       document.getElementById("standingsBox"),
   };
@@ -89,7 +90,8 @@
     const opGroup = document.getElementById("opGroup");
     if (opQ && !opQ._vpBound) {
       opQ._vpBound = true;
-      opQ.addEventListener("input",    () => { filterState.q      = opQ.value.trim(); render(); });
+      let _searchTimer;
+      opQ.addEventListener("input",    () => { filterState.q = opQ.value.trim(); clearTimeout(_searchTimer); _searchTimer = setTimeout(render, 150); });
       opSt.addEventListener("change",  () => { filterState.status = opSt.value;        render(); });
       opStage.addEventListener("change",() => { filterState.stage  = opStage.value;    render(); });
       opCourt.addEventListener("change",() => { filterState.court  = opCourt.value;    render(); });
@@ -121,19 +123,17 @@
     document.querySelectorAll(".sceneBtn").forEach(btn => {
       if (btn._vpBound) return;
       btn._vpBound = true;
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", () => {
         const scene = btn.dataset.scene;
         const pin = requirePin(); if (!pin) return;
-        try {
+        UI.withLoading(btn, async () => {
           await STORE.mutate(slug, pin, (st) => {
             st.meta = st.meta || {};
             st.meta.scene = scene;
             return st;
           });
           UI.toast("Scena: " + sceneLabel(scene), "success");
-        } catch (e) {
-          UI.toast(e?.message || "Błąd zmiany sceny", "error");
-        }
+        }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
       });
     });
   }
@@ -151,16 +151,16 @@
     const btnExport = document.getElementById("btnExportState");
     if (btnLock && !btnLock._vpBound) {
       btnLock._vpBound = true;
-      btnLock.addEventListener("click", async () => {
+      btnLock.addEventListener("click", () => {
         const pin = requirePin(); if (!pin) return;
-        try {
+        UI.withLoading(btnLock, async () => {
           const locked = !!current?.state?.meta?.locked;
           await STORE.mutate(slug, pin, (st) => {
             st.meta = st.meta || {};
             st.meta.locked = !locked;
             return st;
           });
-        } catch (e) { UI.toast(e?.message || "Błąd blokady", "error"); }
+        }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
       });
     }
     if (btnExport && !btnExport._vpBound) {
@@ -185,16 +185,16 @@
     const qList = document.getElementById("qList");
     if (qAdd && !qAdd._vpBound) {
       qAdd._vpBound = true;
-      qAdd.addEventListener("click", async () => {
+      qAdd.addEventListener("click", () => {
         const court   = (document.getElementById("qCourt")?.value || "").trim();
         const matchId = (document.getElementById("qMatch")?.value || "").trim();
         if (!court || !matchId) { UI.toast("Wybierz boisko i mecz", "warn"); return; }
         const pin = requirePin(); if (!pin) return;
-        try {
-          const q = getQueue(current?.state?.meta);
-          if (q.some(x => x.matchId === matchId && String(x.court||"") === court)) {
-            UI.toast("Ten mecz już jest w kolejce", "info"); return;
-          }
+        const q = getQueue(current?.state?.meta);
+        if (q.some(x => x.matchId === matchId && String(x.court||"") === court)) {
+          UI.toast("Ten mecz już jest w kolejce", "info"); return;
+        }
+        UI.withLoading(qAdd, async () => {
           await STORE.mutate(slug, pin, (st) => {
             st.meta = st.meta || {};
             const qq = Array.isArray(st.meta.queue) ? st.meta.queue : [];
@@ -203,7 +203,7 @@
             return st;
           });
           UI.toast("Dodano do kolejki", "success");
-        } catch (e) { UI.toast(e?.message || "Błąd kolejki", "error"); }
+        }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
       });
     }
     if (qList && !qList._vpBound) {
@@ -216,7 +216,7 @@
         const pin = requirePin(); if (!pin) return;
         const q = getQueue(current?.state?.meta);
         if (!q[idx]) return;
-        try {
+        UI.withLoading(btn, async () => {
           if (act === "del") {
             const newQ = q.filter((_,i) => i !== idx);
             await STORE.mutate(slug, pin, (st) => { st.meta=st.meta||{}; st.meta.queue=newQ; return st; });
@@ -225,7 +225,7 @@
             [newQ[idx-1], newQ[idx]] = [newQ[idx], newQ[idx-1]];
             await STORE.mutate(slug, pin, (st) => { st.meta=st.meta||{}; st.meta.queue=newQ; return st; });
           }
-        } catch (e) { UI.toast(e?.message || "Błąd kolejki", "error"); }
+        }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
       });
     }
   }
@@ -278,6 +278,39 @@
     if (el) el.innerHTML = `Scena: <span class="kbd">${sceneLabel(s)}</span>`;
   }
 
+  // ── Court input modal ─────────────────────────────────────
+  function showCourtModal(currentValue) {
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "confirmOverlay";
+      overlay.innerHTML = `
+        <div class="confirmModal" style="max-width:320px">
+          <div class="confirmTitle">Ustaw boisko</div>
+          <div style="margin-bottom:12px">
+            <label class="label">Numer / nazwa boiska</label>
+            <input id="cmCourtInp" class="inp" type="text" maxlength="20"
+              placeholder="np. 1" value="${UI.esc(currentValue)}" autocomplete="off">
+          </div>
+          <div style="color:var(--muted);font-size:11px;margin-bottom:12px">Zostaw puste, żeby usunąć boisko.</div>
+          <div class="confirmBtns">
+            <button class="btn btn-ghost cmCancel" type="button">Anuluj</button>
+            <button class="btn btn-primary cmOk" type="button">Zatwierdź</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const inp = overlay.querySelector("#cmCourtInp");
+      const close = (v) => { overlay.remove(); resolve(v); };
+      overlay.querySelector(".cmCancel").addEventListener("click", () => close(null));
+      overlay.querySelector(".cmOk").addEventListener("click", () => close(inp.value.trim()));
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) close(null); });
+      inp.focus(); inp.select();
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") close(inp.value.trim());
+        if (e.key === "Escape") close(null);
+      });
+    });
+  }
+
   // ── Main render ───────────────────────────────────────────
   function render() {
     if (!current) return;
@@ -322,56 +355,124 @@
       }
       return true;
     });
+    const STATUS_ORDER = { live: 0, pending: 1, finished: 2, confirmed: 3 };
+    matches.sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9));
+
+    const statusLabels = { live:"LIVE", pending:"OCZEKUJE", finished:"ZAKOŃCZONE", confirmed:"ZATWIERDZONE" };
+    const statusIcons  = { live:"●", pending:"○", finished:"◑", confirmed:"✓" };
+    let lastGroupStatus = null;
 
     for (const m of matches) {
+      if (m.status !== lastGroupStatus) {
+        lastGroupStatus = m.status;
+        const count = matches.filter(x => x.status === m.status).length;
+        const hdr = document.createElement("div");
+        hdr.className = `matchGroupHeader ${m.status}`;
+        hdr.innerHTML = `${statusIcons[m.status]||"·"} ${statusLabels[m.status]||m.status} <span>${count}</span>`;
+        els.matchesList.appendChild(hdr);
+      }
       const teamA     = (state.teams||[]).find(x=>x.id===m.teamAId);
       const teamB     = (state.teams||[]).find(x=>x.id===m.teamBId);
       const sum       = ENG.scoreSummary(m);
-      const isProgram = state.meta?.programMatchId === m.id;
+      const isProgram   = state.meta?.programMatchId  === m.id;
+      const isBreakNext = state.meta?.breakNextMatchId === m.id;
       const claimed   = m.claimedBy ? "🔒 " : "";
       const canConfirm= m.status === "finished";
       const canReopen = m.status === "finished" || m.status === "confirmed";
       const setPreview= (canConfirm || canReopen) ? formatSetPreview(m) : "";
 
-      const metaParts = [
-        UI.stageLabel(m.stage),
-        m.stage==="group" && m.group ? `Grupa ${m.group}` : "",
-        m.court ? `Boisko ${m.court}` : "",
-        setPreview ? `Przebieg: ${setPreview}` : "",
-        `Sety: ${sum.setsA}:${sum.setsB}`,
-      ].filter(Boolean);
+      const stageChip   = (m.stage && m.stage !== "group") ? `<span class="chip chipStage">${UI.stageLabel(m.stage)}</span>` : "";
+      const groupKey    = m.stage === "group" && m.group ? m.group.trim() : "";
+      const groupChip   = groupKey ? `<span class="chip chipGroup-${groupKey}">Gr. ${groupKey}</span>` : "";
+      const programChip = isProgram ? `<span class="chip chipProgram">📺 NA ŻYWO</span>` : "";
+      const courtChip   = m.court ? `<span class="chip chipCourt">B${m.court}</span>` : "";
+      const setsChip    = setPreview ? `<span class="chipSets">${setPreview}</span>` : "";
+      const metaHtml    = `${stageChip}${groupChip}${programChip}${courtChip}${setsChip}`;
+      const scoreInline = (sum.setsA || sum.setsB)
+        ? `<span class="mcScore">${sum.setsA}:${sum.setsB}</span>`
+        : `<span class="mcVs">vs</span>`;
+
+      const stLabel = { pending:"OCZEKUJE", live:"LIVE", finished:"WYNIK", confirmed:"OK ✓" };
+      const primaryBtns = (() => {
+        if (m.status === "pending")  return `<button class="btn btnLive btn-sm" data-live="${m.id}">▶ Live</button>`;
+        if (m.status === "live")     return `<button class="btn btnStop btn-sm" data-live="${m.id}">⏹ Stop</button>`;
+        if (canConfirm && canReopen) return `<button class="btn btnConfirm btn-sm" data-confirm="${m.id}">✓ Zatwierdź</button>
+                                              <button class="btn btnReopen btn-sm"  data-reopen="${m.id}">↩ Cofnij</button>`;
+        if (canReopen)               return `<button class="btn btnReopen btn-sm" data-reopen="${m.id}">↩ Cofnij</button>`;
+        return "";
+      })();
 
       const card = document.createElement("div");
       card.className = "matchCard";
+      card.dataset.status = m.status;
       card.innerHTML = `
-        <div class="matchInfo">
-          <div class="matchTeams">${claimed}<b>${teamA?.name||"?"}</b> vs <b>${teamB?.name||"?"}</b></div>
-          <div class="matchMeta">${metaParts.join(" · ")}</div>
+        <div class="mcTop">
+          <div class="mcTeams">${claimed}<b>${teamA?.name||"?"}</b>${scoreInline}<b>${teamB?.name||"?"}</b></div>
+          <span class="statusBadge ${m.status}">${stLabel[m.status]||m.status}</span>
         </div>
-        <span class="statusBadge ${m.status}">${m.status}</span>
-        <div class="matchActions">
-          <button class="btn ${isProgram?"btn-primary":""}" data-program="${m.id}">${isProgram?"📺 NA ŻYWO":"TRANSMISJA"}</button>
-          ${canConfirm ? `<button class="btn btn-primary" data-confirm="${m.id}">Zatwierdź</button>` : ""}
-          ${canReopen  ? `<button class="btn btn-ghost"   data-reopen="${m.id}">Cofnij</button>`
-                       : `<button class="btn btn-ghost"   data-live="${m.id}">${m.status==="live"?"⏹ Stop":"▶ Live"}</button>`}
-          <button class="btn btn-ghost"  data-court="${m.id}">Boisko</button>
-          <button class="btn btn-ghost"  data-unclaim="${m.id}">Odblokuj</button>
-          <button class="btn btn-danger" data-del-match="${m.id}">Usuń</button>
+        <div class="mcMeta">${metaHtml}</div>
+        <div class="mcActions">
+          <div class="mcActLeft">${primaryBtns}</div>
+          <div class="mcActRight">
+            <details class="mcMore">
+              <summary class="btn btn-sm btn-ghost">···</summary>
+              <div class="mcMoreMenu">
+                <button class="btn btn-sm ${isProgram?"btn-primary":"btn-ghost"}" data-program="${m.id}">${isProgram?"📺 NA ŻYWO":"📺 Transmisja"}</button>
+                <button class="btn btn-sm ${isBreakNext?"btn-accent":"btn-ghost"}" data-break-next="${m.id}">${isBreakNext?"⏸ Przerwa (aktywna)":"⏸ Następna przerwa"}</button>
+                <button class="btn btn-sm btn-ghost" data-manual-result="${m.id}" data-team-a="${UI.esc(teamA?.name||'')}" data-team-b="${UI.esc(teamB?.name||'')}">Wpisz wynik</button>
+                <button class="btn btn-sm btn-ghost" data-court="${m.id}">Boisko</button>
+                <button class="btn btn-sm btn-ghost" data-unclaim="${m.id}">Odblokuj</button>
+                <button class="btn btn-sm btn-danger" data-del-match="${m.id}">Usuń</button>
+              </div>
+            </details>
+          </div>
         </div>
       `;
       els.matchesList.appendChild(card);
     }
 
+    // ── Active filter indicator ──
+    const isFiltered = filterState.status !== "all" || filterState.stage !== "all"
+      || filterState.court !== "all" || filterState.group !== "all" || filterState.q;
+    let clearRow = document.getElementById("filterClearRow");
+    if (isFiltered) {
+      if (!clearRow) {
+        clearRow = document.createElement("div");
+        clearRow.id = "filterClearRow";
+        clearRow.className = "filterClearRow";
+        clearRow.innerHTML = `<span class="muted">Aktywne filtry</span><button class="btn btn-sm btn-ghost" id="btnClearFilters">× Wyczyść</button>`;
+        els.matchFilters.after(clearRow);
+        document.getElementById("btnClearFilters").addEventListener("click", () => {
+          filterState.q = ""; filterState.status = "all";
+          filterState.stage = "all"; filterState.court = "all"; filterState.group = "all";
+          document.getElementById("opQ").value = "";
+          document.getElementById("opStatus").value = "all";
+          document.getElementById("opStage").value = "all";
+          document.getElementById("opCourt").value = "all";
+          document.getElementById("opGroup").value = "all";
+          render();
+        });
+      }
+    } else {
+      clearRow?.remove();
+    }
+
     // ── Program box ──
     const pm = (state.matches||[]).find(x => x.id===state.meta?.programMatchId);
+    const broadcastProgram = document.getElementById("broadcastProgram");
     if (pm) {
-      const m  = ENG.emptyMatchPatch(pm);
-      const ta = (state.teams||[]).find(x=>x.id===m.teamAId);
-      const tb = (state.teams||[]).find(x=>x.id===m.teamBId);
-      const s  = m.sets[ENG.currentSetIndex(m)];
-      els.programBox.innerHTML = `<b>📺 PROGRAM:</b> ${ta?.name||"?"} vs ${tb?.name||"?"} &nbsp;·&nbsp; <b>${s.a}:${s.b}</b>`;
+      const m    = ENG.emptyMatchPatch(pm);
+      const ta   = (state.teams||[]).find(x=>x.id===m.teamAId);
+      const tb   = (state.teams||[]).find(x=>x.id===m.teamBId);
+      const setIdx = ENG.currentSetIndex(m);
+      const s    = m.sets[setIdx];
+      const sum  = ENG.scoreSummary(m);
+      const html = `<b>📺 PROGRAM:</b> ${ta?.name||"?"} vs ${tb?.name||"?"} &nbsp;·&nbsp; <b>${s.a}:${s.b}</b> &nbsp;·&nbsp; Sety ${sum.setsA}:${sum.setsB} &nbsp;·&nbsp; Set ${setIdx+1}/3`;
+      els.programBox.innerHTML = html;
+      if (broadcastProgram) broadcastProgram.innerHTML = html;
     } else {
       els.programBox.innerHTML = `<span class="muted">Brak ustawionego meczu PROGRAM.</span>`;
+      if (broadcastProgram) broadcastProgram.innerHTML = `<span class="muted">Brak PROGRAM</span>`;
     }
 
     // ── Standings ──
@@ -457,6 +558,7 @@
       current = { tournamentId: snap.tournamentId, version: snap.version, state: snap.state };
       render();
     });
+    window.addEventListener("beforeunload", () => { if (unsub) unsub(); }, { once: true });
   }
 
   // ── Event bindings ────────────────────────────────────────
@@ -464,12 +566,12 @@
     const name = (els.inpName.value||"").trim();
     const pin  = (els.inpPin.value||"").trim();
     if (pin.length < 3) { UI.toast("PIN za krótki (min 3)", "warn"); return; }
-    try {
+    UI.withLoading(els.btnCreate, async () => {
       await STORE.createTournament(slug, name || slug, pin);
       STORE.setPin(slug, pin);
       UI.toast("Turniej utworzony", "success");
       await ensureTournament();
-    } catch (e) { UI.toast("Błąd tworzenia: " + (e.message||e), "error"); }
+    }).catch(e => { UI.toast("Błąd tworzenia: " + UI.fmtError(e), "error"); });
   });
 
   els.btnSetPin.addEventListener("click", () => {
@@ -477,27 +579,28 @@
     if (pin.length < 3) { UI.toast("PIN za krótki (min 3)", "warn"); return; }
     STORE.setPin(slug, pin);
     UI.toast("PIN zapisany na tę sesję", "success");
+    document.getElementById("connectDetails")?.removeAttribute("open");
   });
 
   els.btnChangePin.addEventListener("click", async () => {
     const oldPin = (els.inpOldPin.value||"").trim();
     const newPin = (els.inpNewPin.value||"").trim();
     if (newPin.length < 3) { UI.toast("Nowy PIN za krótki", "warn"); return; }
-    try {
+    UI.withLoading(els.btnChangePin, async () => {
       await STORE.changePin(slug, oldPin, newPin);
       STORE.setPin(slug, newPin);
       els.inpOldPin.value = "";
       els.inpNewPin.value = "";
       UI.toast("PIN zmieniony", "success");
-    } catch (e) { UI.toast("Błąd zmiany PIN: " + (e.message||e), "error"); }
+    }).catch(e => { UI.toast("Błąd zmiany PIN: " + UI.fmtError(e), "error"); });
   });
 
-  els.btnAddTeam.addEventListener("click", async () => {
+  els.btnAddTeam.addEventListener("click", () => {
     const pin   = requirePin(); if (!pin) return;
     const name  = (els.teamName.value||"").trim();
     const group = (els.teamGroup.value||"").trim();
     if (!name) { UI.toast("Podaj nazwę drużyny", "warn"); return; }
-    try {
+    UI.withLoading(els.btnAddTeam, async () => {
       await STORE.mutate(slug, pin, (st) => {
         st.teams = st.teams || [];
         st.teams.push({ id: crypto.randomUUID(), name, group });
@@ -505,10 +608,10 @@
       });
       els.teamName.value = "";
       UI.toast("Dodano drużynę", "success");
-    } catch (e) { UI.toast("Błąd: " + (e.message||e), "error"); }
+    }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
   });
 
-  els.btnAddMatch.addEventListener("click", async () => {
+  els.btnAddMatch.addEventListener("click", () => {
     const pin    = requirePin(); if (!pin) return;
     const stage  = els.matchStage.value;
     const group  = (els.matchGroup.value||"").trim();
@@ -526,7 +629,7 @@
       if (tA && (tA.group||"").trim() !== group) { UI.toast(`${tA.name} nie należy do grupy ${group}`, "warn"); return; }
       if (tB && (tB.group||"").trim() !== group) { UI.toast(`${tB.name} nie należy do grupy ${group}`, "warn"); return; }
     }
-    try {
+    UI.withLoading(els.btnAddMatch, async () => {
       await STORE.mutate(slug, pin, (st) => {
         st.matches = st.matches || [];
         st.matches.push({
@@ -542,7 +645,7 @@
       });
       UI.toast("Dodano mecz" + (court ? ` (boisko ${court})` : ""), "success");
       if (els.matchCourt) els.matchCourt.value = "";
-    } catch (e) { UI.toast("Błąd: " + (e.message||e), "error"); }
+    }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
   });
 
   // Delete team
@@ -553,8 +656,8 @@
     const teamId = btn.getAttribute("data-del-team");
     const state  = current?.state || {};
     const team   = (state.teams||[]).find(t=>t.id===teamId);
-    if (!confirm(`Usunąć "${team?.name||"tę drużynę"}"?\n\nUwaga: usunięte zostaną też mecze z jej udziałem.`)) return;
-    try {
+    if (!await UI.confirmDialog(`Usunąć "${team?.name||"tę drużynę"}"?`, "Uwaga: usunięte zostaną też mecze z jej udziałem.")) return;
+    UI.withLoading(btn, async () => {
       await STORE.mutate(slug, pin, (st) => {
         st.teams   = (st.teams||[]).filter(t=>t.id!==teamId);
         st.matches = (st.matches||[]).filter(m=>m.teamAId!==teamId && m.teamBId!==teamId);
@@ -565,7 +668,7 @@
         return st;
       });
       UI.toast(`Usunięto: ${team?.name}`, "success");
-    } catch (e) { UI.toast(e?.message || "Błąd usuwania drużyny", "error"); }
+    }).catch(e => { UI.toast(UI.fmtError(e), "error"); });
   });
 
   // Match actions
@@ -574,15 +677,37 @@
     if (!btn) return;
     const pin = requirePin(); if (!pin) return;
 
-    const programId = btn.getAttribute("data-program");
-    const liveId    = btn.getAttribute("data-live");
+    const programId   = btn.getAttribute("data-program");
+    const breakNextId = btn.getAttribute("data-break-next");
+    const liveId      = btn.getAttribute("data-live");
     const courtId   = btn.getAttribute("data-court");
     const unclaimId = btn.getAttribute("data-unclaim");
     const delId     = btn.getAttribute("data-del-match");
     const confirmId = btn.getAttribute("data-confirm");
     const reopenId  = btn.getAttribute("data-reopen");
 
-    try {
+    // Actions requiring confirmation/input are handled before withLoading
+    if (confirmId) {
+      if (!await UI.confirmDialog("Zatwierdzić wynik?", "Po zatwierdzeniu mecz wpłynie na tabelę (tylko etap Grupa).")) return;
+    } else if (reopenId) {
+      if (!await UI.confirmDialog("Cofnąć mecz do live?", "Pozwoli to ponownie edytować punkty z telefonu.")) return;
+    } else if (delId) {
+      if (!await UI.confirmDialog("Usuń mecz?", "Ta operacja jest nieodwracalna.")) return;
+    } else if (courtId) {
+      const currentMatch = current?.state?.matches?.find(m => m.id === courtId);
+      const _courtVal = await showCourtModal(currentMatch?.court || "");
+      if (_courtVal === null) return;
+      UI.withLoading(btn, async () => {
+        await STORE.mutate(slug, pin, (st) => {
+          st.matches = (st.matches||[]).map(m => m.id===courtId ? {...m, court: _courtVal} : m);
+          return st;
+        });
+        UI.toast("Zapisano boisko", "success");
+      });
+      return;
+    }
+
+    UI.withLoading(btn, async () => {
       if (programId) {
         await STORE.mutate(slug, pin, (st) => {
           st.meta = st.meta || {};
@@ -591,6 +716,14 @@
           return st;
         });
         UI.toast("Ustawiono PROGRAM", "success");
+
+      } else if (breakNextId) {
+        await STORE.mutate(slug, pin, (st) => {
+          st.meta = st.meta || {};
+          st.meta.breakNextMatchId = (st.meta.breakNextMatchId === breakNextId) ? null : breakNextId;
+          return st;
+        });
+        UI.toast("Ustawiono mecz na przerwę", "success");
 
       } else if (liveId) {
         await STORE.mutate(slug, pin, (st) => {
@@ -605,7 +738,6 @@
         UI.toast(nowLive ? "Cofnięto do pending" : "Ustawiono live", "success");
 
       } else if (confirmId) {
-        if (!UI.confirmDialog("Zatwierdzić wynik?", "Po zatwierdzeniu mecz wpłynie na tabelę (tylko etap Grupa).")) return;
         await STORE.mutate(slug, pin, (st) => {
           const idx = (st.matches||[]).findIndex(m=>m.id===confirmId);
           if (idx===-1) return st;
@@ -619,7 +751,6 @@
         UI.toast("Wynik zatwierdzony", "success");
 
       } else if (reopenId) {
-        if (!UI.confirmDialog("Cofnąć mecz do live?", "Pozwoli to ponownie edytować punkty z telefonu.")) return;
         await STORE.mutate(slug, pin, (st) => {
           const idx = (st.matches||[]).findIndex(m=>m.id===reopenId);
           if (idx===-1) return st;
@@ -632,15 +763,6 @@
         });
         UI.toast("Cofnięto do live", "success");
 
-      } else if (courtId) {
-        const val = prompt("Numer/nazwa boiska (zostaw puste, żeby usunąć):", "");
-        if (val === null) return;
-        await STORE.mutate(slug, pin, (st) => {
-          st.matches = (st.matches||[]).map(m => m.id===courtId ? {...m, court: String(val).trim()} : m);
-          return st;
-        });
-        UI.toast("Zapisano boisko", "success");
-
       } else if (unclaimId) {
         await STORE.mutate(slug, pin, (st) => {
           st.matches = (st.matches||[]).map(m => m.id===unclaimId ? {...m, claimedBy:null, claimedAt:null} : m);
@@ -649,7 +771,6 @@
         UI.toast("Odblokowano mecz", "success");
 
       } else if (delId) {
-        if (!UI.confirmDialog("Usuń mecz?", "Ta operacja jest nieodwracalna.")) return;
         await STORE.mutate(slug, pin, (st) => {
           st.matches = (st.matches||[]).filter(m=>m.id!==delId);
           if (st.meta?.programMatchId === delId) st.meta.programMatchId = null;
@@ -657,25 +778,29 @@
         });
         UI.toast("Usunięto mecz", "success");
       }
-    } catch (e) {
-      UI.toast("Błąd: " + (e.message||e), "error");
+    }).catch(e => {
+      UI.toast(UI.fmtError(e), "error");
       console.error(e);
-    }
+    });
   });
 
   // Stage/group visibility
-  els.matchStage.addEventListener("change", () => {
-    document.getElementById("matchGroupWrap").style.display = els.matchStage.value==="group" ? "" : "none";
-  });
+  if (!els.matchStage._vpGroupBound) {
+    els.matchStage._vpGroupBound = true;
+    els.matchStage.addEventListener("change", () => {
+      document.getElementById("matchGroupWrap").style.display = els.matchStage.value === "group" ? "" : "none";
+    });
+  }
 
   // Playoffs
   if (els.btnOpenPlayoffs) els.btnOpenPlayoffs.href = `playoffs.html?t=${encodeURIComponent(slug)}`;
-  if (els.btnGeneratePlayoffs) {
+  if (els.btnGeneratePlayoffs && !els.btnGeneratePlayoffs._vpBound) {
+    els.btnGeneratePlayoffs._vpBound = true;
     els.btnGeneratePlayoffs.addEventListener("click", async () => {
       const pin = requirePin(); if (!pin) return;
       const already = current?.state?.playoffs?.generated;
-      if (already && !confirm("Playoff już istnieje. Wygenerować ponownie? (nadpisze istniejącą drabinkę)")) return;
-      try {
+      if (already && !await UI.confirmDialog("Wygenerować playoff ponownie?", "Nadpisze istniejącą drabinkę.")) return;
+      UI.withLoading(els.btnGeneratePlayoffs, async () => {
         await STORE.mutate(slug, pin, (state) => {
           let st = JSON.parse(JSON.stringify(state||{}));
           const old = st.playoffs?.bracket;
@@ -688,10 +813,10 @@
           return st;
         });
         UI.toast("Wygenerowano playoff", "success");
-      } catch (e) {
-        UI.toast("Nie udało się wygenerować playoff: " + (e.message||e), "error");
+      }).catch(e => {
+        UI.toast("Nie udało się wygenerować playoff: " + UI.fmtError(e), "error");
         console.error(e);
-      }
+      });
     });
   }
 
@@ -702,6 +827,6 @@
 
   ensureTournament().catch(e => {
     console.error(e);
-    els.status.textContent = "Błąd połączenia: " + (e.message||e);
+    els.status.textContent = "Błąd połączenia: " + UI.fmtError(e);
   });
 })();

@@ -15,6 +15,7 @@ window.VP_UI = {
     const p = new URLSearchParams(location.search);
     return (p.get("t") || "").trim();
   },
+  esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); },
   fmtTeam(team) { return team?.name || "—"; },
   nowISO() { return new Date().toISOString(); },
   toast(msg, kind="info") {
@@ -29,6 +30,40 @@ window.VP_UI = {
     }, 2800);
   },
   confirmDialog(title, message) {
-    return window.confirm(`${title}\n\n${message}`);
+    return new Promise((resolve) => {
+      const overlay = document.createElement("div");
+      overlay.className = "confirmOverlay";
+      overlay.innerHTML = `
+        <div class="confirmModal">
+          <div class="confirmTitle">${title}</div>
+          ${message ? `<div class="confirmMsg">${message}</div>` : ""}
+          <div class="confirmBtns">
+            <button class="btn btn-ghost confirmCancel">Anuluj</button>
+            <button class="btn btn-primary confirmOk">Potwierdź</button>
+          </div>
+        </div>`;
+      document.body.appendChild(overlay);
+      const close = (result) => { overlay.remove(); resolve(result); };
+      overlay.querySelector(".confirmOk").addEventListener("click", () => close(true));
+      overlay.querySelector(".confirmCancel").addEventListener("click", () => close(false));
+      overlay.addEventListener("click", (e) => { if (e.target === overlay) close(false); });
+    });
+  },
+  withLoading(btn, fn) {
+    if (btn.disabled) return Promise.resolve();
+    btn.disabled = true;
+    return Promise.resolve(fn()).finally(() => { btn.disabled = false; });
+  },
+  fmtError(e) {
+    const msg = (e?.message || String(e)).toLowerCase();
+    if (msg.includes("failed to fetch") || msg.includes("networkerror") || msg.includes("load failed"))
+      return "Brak połączenia z serwerem.";
+    if (msg.includes("version conflict"))
+      return "Dane zostały właśnie zmienione. Spróbuj ponownie.";
+    if (msg.includes("invalid pin") || msg.includes("wrong pin") || msg.includes("bad pin"))
+      return "Błędny PIN.";
+    if (msg.includes("tournament not found"))
+      return "Turniej nie istnieje.";
+    return e?.message || "Nieznany błąd.";
   }
 };
