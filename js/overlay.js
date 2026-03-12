@@ -80,11 +80,11 @@
     bScore: $("bScore"),
     metaStage: $("metaStage"),
     metaSet: $("metaSet"),
-    setHistory:   $("setHistory"),
+    setHistory: $("setHistory"),
     momentumWrap: $("momentumWrap"),
-    momentumA:    $("momentumA"),
-    momentumB:    $("momentumB"),
-    momentumLbl:  $("momentumLabel"),
+    momentumA: $("momentumA"),
+    momentumB: $("momentumB"),
+    momentumLbl: $("momentumLabel"),
   };
 
   // ----- BREAK elements -----
@@ -119,6 +119,27 @@
     return `${hh}:${mm}:${ss}`;
   }
 
+  // ----- TICKER -----
+  function renderTicker(state) {
+    if (!elGame.ticker) return;
+    const tickerWrap = elGame.ticker.closest(".ticker") || elGame.ticker.parentElement;
+    const live = (state.matches || []).filter((m) => m.status === "live").slice(0, 2);
+    if (!live.length) {
+      if (tickerWrap) tickerWrap.style.display = "none";
+      return;
+    }
+    if (tickerWrap) tickerWrap.style.display = "";
+    elGame.ticker.innerHTML = live.map((m) => {
+      const pm = ENG.emptyMatchPatch(m);
+      const ta = teamName(state, pm.teamAId);
+      const tb = teamName(state, pm.teamBId);
+      const idx = ENG.currentSetIndex(pm);
+      const s = pm.sets[idx];
+      const sum = ENG.scoreSummary(pm);
+      return `<span class="tickerItem"><b>${ta}</b> ${s.a}:${s.b} <b>${tb}</b> <span class="tickerSets">(${sum.setsA}:${sum.setsB})</span></span>`;
+    }).join('<span class="tickerSep">·</span>');
+  }
+
   // ----- META (stage/set pills) -----
   function renderMeta(state, match) {
     if (elGame.metaSet) {
@@ -141,6 +162,8 @@
     const st = state || {};
     const pmId = st.meta?.programMatchId || null;
     const pm0 = (st.matches || []).find((m) => m.id === pmId) || null;
+
+    renderTicker(st);
 
     if (!pmId || !pm0) {
       renderMeta(st, null);
@@ -172,42 +195,35 @@
     if (elGame.aScore) elGame.aScore.textContent = String(s.a);
     if (elGame.bScore) elGame.bScore.textContent = String(s.b);
 
-    const events = (pm.events || []);
-
-    // ── Historia setów ────────────────────────────────────────────────────
-    let hasHistory = false;
+    // ── Set history pills ──
+    const setVs = pm.sets.slice(0, idx); // completed sets only (not current)
+    const hasHistory = setVs.some(sv => (+sv.a || 0) + (+sv.b || 0) > 0);
     if (elGame.setHistory) {
-      const curSetIdx = ENG.currentSetIndex(pm);
-      const pills = pm.sets.slice(0, curSetIdx).map((sv, i) => {
-        const min = i === 2 ? 15 : 25;
-        if (!(Math.abs(sv.a - sv.b) >= 2 && (sv.a >= min || sv.b >= min))) return "";
-        const winA = sv.a > sv.b;
-        return `<span class="setPill ${winA ? "winA" : "winB"}"><span class="setNum">S${i + 1}</span>${sv.a}:${sv.b}</span>`;
-      }).filter(Boolean);
-      elGame.setHistory.innerHTML = pills.join("") || "";
-      hasHistory = pills.length > 0;
+      elGame.setHistory.innerHTML = hasHistory
+        ? setVs.map((sv, i) => {
+            const winA = (+sv.a || 0) > (+sv.b || 0);
+            return `<span class="setPill ${winA ? "winA" : "winB"}">` +
+                   `<span class="setNum">S${i + 1}</span>${sv.a}:${sv.b}</span>`;
+          }).join("")
+        : "";
     }
 
-    // ── Belka momentum (ostatnie 7 punktów bieżącego seta) ───────────────
-    let hasMomentum = false;
-    if (elGame.momentumA && elGame.momentumB) {
-      const curSetIdx = ENG.currentSetIndex(pm);
-      const setEvs = events.filter(e => e.set === curSetIdx).slice(-7);
-      if (setEvs.length >= 2) {
-        const aCount = setEvs.filter(e => e.side === "a").length;
-        const total  = setEvs.length;
-        const aPct   = Math.round((aCount / total) * 100);
-        elGame.momentumA.style.width = aPct + "%";
-        elGame.momentumB.style.width = (100 - aPct) + "%";
-        if (elGame.momentumWrap) elGame.momentumWrap.style.display = "";
-        if (elGame.momentumLbl) elGame.momentumLbl.textContent = `Ostatnie ${total} pkt`;
-        hasMomentum = true;
-      } else {
-        if (elGame.momentumWrap) elGame.momentumWrap.style.display = "none";
-      }
+    // ── Momentum (ostatnie 7 pkt) ──
+    const evts = Array.isArray(pm.events) ? pm.events : [];
+    const evtsSorted = evts.slice().sort((a, b) => (+a.ts || 0) - (+b.ts || 0));
+    const last7 = evtsSorted.slice(-7);
+    const hasMomentum = last7.length >= 3;
+    if (elGame.momentumWrap) elGame.momentumWrap.style.display = hasMomentum ? "" : "none";
+    if (hasMomentum && elGame.momentumA && elGame.momentumB) {
+      const cntA = last7.filter(e => e.side === "a").length;
+      const cntB = last7.filter(e => e.side === "b").length;
+      const tot = cntA + cntB || 1;
+      elGame.momentumA.style.width = `${Math.round(cntA / tot * 100)}%`;
+      elGame.momentumB.style.width = `${Math.round(cntB / tot * 100)}%`;
+      if (elGame.momentumLbl) elGame.momentumLbl.textContent = `ostatnie ${last7.length} pkt`;
     }
 
-    // ── Pokaż/ukryj bottom strip ──────────────────────────────────────────
+    // ── Bottom strip visibility ──
     const cardBottom = document.getElementById("gameCardBottom");
     if (cardBottom) cardBottom.style.display = (hasHistory || hasMomentum) ? "" : "none";
   }
