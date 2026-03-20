@@ -35,10 +35,12 @@
     }).catch(() => {});
 
     // Subscribe to realtime updates
-    window.VPState.subscribeState(slug, (snap) => {
-      lastState = snap.state;
-      onStateChange(snap.state);
-    });
+	window.VPState.fetchState(slug).then((snap) => {
+  		if (snap && snap.state && !lastState) {
+    			lastState = snap.state;
+    			onStateChange(snap.state);
+  		}
+	}).catch(() => {});
   }
 
   function onStateChange(state) {
