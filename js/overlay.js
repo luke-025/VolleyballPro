@@ -105,6 +105,7 @@
     title: document.getElementById("title") || document.getElementById("techTitle"),
     subtitle: document.getElementById("subtitle") || document.getElementById("techSubtitle"),
     clock: document.getElementById("clock") || document.getElementById("techClock"),
+    brand: document.getElementById("techBrand"),
   };
 
   function teamName(state, id) {
@@ -333,12 +334,17 @@
 
   // ----- TECHNICAL -----
   function renderTechnical(state) {
+    const st = state || {};
     if (elTech.clock) elTech.clock.textContent = fmtTime(new Date());
     if (elTech.subtitle && !elTech.subtitle.textContent) {
       elTech.subtitle.textContent = "Trwają przygotowania do kolejnego meczu";
     }
     if (elTech.title && !elTech.title.textContent) {
       elTech.title.textContent = "ZARAZ WRACAMY";
+    }
+    if (elTech.brand) {
+      const tname = st.meta?.name || slug || "Turniej";
+      elTech.brand.textContent = String(tname);
     }
   }
 

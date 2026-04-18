@@ -358,16 +358,15 @@
       background: rgba(255,255,255,.18);
     }
     #sceneTechnical .techHint {
-      font-size: 13px;
-      color: rgba(255,255,255,.7);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      font-weight: 700;
-    }
-    #sceneTechnical .techHint strong {
+      font-size: 14px;
       color: var(--accent, #6ae4ff);
-      letter-spacing: 1px;
-      margin-right: 2px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-weight: 800;
+      max-width: 520px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* == STAŁE TŁA == */
@@ -566,7 +565,7 @@
           <div class="techBar">
             <div class="techClock" id="techClock">--:--:--</div>
             <div class="techSep"></div>
-            <div class="techHint"><strong>Volleyball</strong>Pro</div>
+            <div class="techHint" id="techBrand">Turniej</div>
           </div>
         </div>
       </div>
