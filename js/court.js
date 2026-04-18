@@ -403,7 +403,18 @@
       if (idx === -1) return st;
       const m = ENG.emptyMatchPatch(st.matches[idx]);
       if (m.claimedBy !== deviceId) throw new Error("Brak kontroli nad meczem");
-      const next = mutator(m);
+      let next = mutator(m);
+      // When the match finishes naturally (2 sets won), auto-confirm so that
+      // Control does not need to zatwierdzić, and playoff progression fires
+      // immediately if the bracket is generated.
+      if (next.status === "finished") {
+        next = ENG.confirmMatch(next);
+        st.matches[idx] = next;
+        if (st.playoffs && st.playoffs.generated) {
+          st = ENG.applyPlayoffsProgression(st);
+        }
+        return st;
+      }
       st.matches[idx] = next;
       return st;
     });

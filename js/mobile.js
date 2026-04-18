@@ -297,7 +297,7 @@
     while (padded.length < 3) padded.push({ a: 0, b: 0 });
 
     try {
-      await STORE.mutate(slug, pin, (st) => {
+      const result = await STORE.mutate(slug, pin, (st) => {
         const m = (st.matches || []).find(x => x.id === matchId);
         if (!m) throw new Error("Nie znaleziono meczu.");
         m.sets = padded;
@@ -320,6 +320,12 @@
         if (st.playoffs?.generated) st = ENG.applyPlayoffsProgression(st);
         return st;
       });
+      // Reflect the write locally immediately so the card on the list repaints
+      // without waiting for realtime/polling to come back around.
+      if (result) {
+        snapshot = result;
+        renderAll();
+      }
       UI.toast("Zapisano.", "success");
       onDone();
     } catch (e) {

@@ -126,6 +126,8 @@
 
     const stageTxt = isPlayoffStage(m.stage) ? UI.stageLabel(m.stage) : "";
 
+    const hasPlayed = (+sum.setsA || 0) + (+sum.setsB || 0) > 0 || playedSets.length > 0;
+
     return `
       <div class="mrow ${cls}">
         ${timeHtml}
@@ -134,10 +136,8 @@
           <div class="tname ${wB ? "winner" : (m.winner && !wB ? "loser" : "")}">${esc(teamName(state, m.teamBId))}</div>
           ${stageTxt ? `<div class="mstage">${esc(stageTxt)}${m.label ? " · " + esc(m.label) : ""}</div>` : ""}
         </div>
-        <div class="mscore">
-          <div class="setwins">${sum.setsA}:${sum.setsB}</div>
-          ${setsDetail ? `<div class="setdetail">${esc(setsDetail)}</div>` : ""}
-        </div>
+        <div class="msets">${hasPlayed ? `${sum.setsA}:${sum.setsB}` : "—"}</div>
+        <div class="mpoints">${setsDetail ? esc(setsDetail) : "—"}</div>
         <div class="mstat ${m.status}">${esc(stat)}</div>
       </div>
     `;

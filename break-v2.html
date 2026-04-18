@@ -158,9 +158,9 @@
     }
     .mrow {
       display: grid;
-      grid-template-columns: 72px 1fr auto;
+      grid-template-columns: 72px 1fr auto auto;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       padding: 8px 12px;
       border-top: 1px solid rgba(255,255,255,.06);
     }
@@ -196,26 +196,24 @@
       text-transform: uppercase;
       letter-spacing: .8px;
     }
-    .mrow .mscore {
+    .mrow .msets {
       font-family: var(--mono);
       font-weight: 800;
-      text-align: right;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-    }
-    .mrow .mscore .setwins {
       font-size: clamp(19px, 1.45vw, 25px);
       letter-spacing: 1.5px;
-      line-height: 1;
+      text-align: center;
+      min-width: 48px;
+      color: var(--text);
     }
-    .mrow .mscore .setdetail {
+    .mrow .mpoints {
+      font-family: var(--mono);
+      font-weight: 700;
       font-size: clamp(13px, 1vw, 16px);
       color: var(--text);
-      font-weight: 700;
       letter-spacing: .3px;
-      opacity: .85;
+      text-align: right;
+      min-width: 130px;
+      opacity: .90;
     }
     /* Hide the stat chip in compact break scene — status is implied by color/opacity. */
     .mrow .mstat { display: none; }
