@@ -116,10 +116,9 @@
       confirmed: "ZATW.",
     }[m.status] || m.status;
 
-    const setsDetail = (m.sets || [])
-      .filter(s => (+s.a||0) + (+s.b||0) > 0)
-      .map(s => `${s.a}:${s.b}`)
-      .join("  ");
+    // Show played sets (anything non-0:0). If nothing played yet, setsDetail is empty.
+    const playedSets = (m.sets || []).filter(s => (+s.a||0) + (+s.b||0) > 0);
+    const setsDetail = playedSets.map(s => `${s.a}:${s.b}`).join(" · ");
 
     const timeHtml = m.scheduledAt
       ? `<div class="mtime">${esc(m.scheduledAt)}</div>`
