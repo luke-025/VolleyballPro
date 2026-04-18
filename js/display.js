@@ -338,8 +338,10 @@
       renderConn(false);
     }
 
-    // Lightweight connection watchdog: if we haven't seen an update for 60s
-    // while the page is visible, pull a fresh snapshot.
+    // Lightweight connection watchdog: pull a fresh snapshot every 8s so that
+    // a silently-dropped Supabase realtime channel can only delay updates by a
+    // few seconds (vs. "never, until someone hits F5"). This is safe because
+    // fetchState is a single SELECT and display.js never mutates state.
     setInterval(async () => {
       try {
         const s = await STORE.fetchState(slug);
@@ -347,7 +349,7 @@
       } catch {
         renderConn(false);
       }
-    }, 60 * 1000);
+    }, 8 * 1000);
   }
 
   // Expose a couple of pure helpers for tests.
