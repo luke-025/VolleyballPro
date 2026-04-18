@@ -131,44 +131,40 @@
       min-height: 0;
     }
 
-    /* ---------- Schedule rows (compact, 2 columns per court) ---------- */
+    /* ---------- Schedule rows (single column per court) ---------- */
     #leftBody {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       height: 100%;
     }
     .courtBlock {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2px 10px;
-      align-content: start;
+      display: flex;
+      flex-direction: column;
     }
     .courtHdr {
-      grid-column: 1 / -1;
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 6px 12px;
-      margin: 4px 0 6px;
+      padding: 5px 12px;
+      margin: 2px 0 4px;
       background: rgba(255,255,255,.05);
       border-left: 3px solid var(--accent);
       border-radius: 8px;
       font-weight: 800;
-      font-size: clamp(12px, 0.9vw, 14px);
+      font-size: clamp(11px, 0.85vw, 13px);
       letter-spacing: .8px;
       text-transform: uppercase;
     }
     .mrow {
       display: grid;
-      grid-template-columns: 58px 1fr auto;
+      grid-template-columns: 56px 1fr auto;
       align-items: center;
       gap: 10px;
-      padding: 6px 8px;
+      padding: 4px 8px;
       border-top: 1px solid rgba(255,255,255,.06);
     }
-    .mrow:first-of-type,
-    .mrow:nth-child(2) { border-top: none; }
+    .mrow:first-of-type { border-top: none; }
     .mrow.live {
       background: linear-gradient(90deg, rgba(255,77,109,.14), transparent 60%);
       border-left: 3px solid var(--danger);
@@ -177,17 +173,17 @@
     .mrow.confirmed { opacity: .78; }
     .mrow .mtime {
       font-family: var(--mono);
-      font-size: clamp(14px, 1.05vw, 17px);
+      font-size: clamp(13px, 0.95vw, 15px);
       font-weight: 700;
       color: var(--accent);
       text-align: center;
     }
-    .mrow .mtime.none { color: var(--muted); font-size: clamp(11px, 0.8vw, 13px); font-weight: 500; }
+    .mrow .mtime.none { color: var(--muted); font-size: clamp(10px, 0.75vw, 12px); font-weight: 500; }
     .mrow .mteams { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
     .mrow .mteams .tname {
-      font-size: clamp(13px, 1vw, 15px);
+      font-size: clamp(12px, 0.9vw, 14px);
       font-weight: 700;
-      line-height: 1.25;
+      line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -195,7 +191,7 @@
     .mrow .mteams .tname.winner { color: var(--ok); }
     .mrow .mteams .tname.loser { color: var(--muted); }
     .mrow .mstage {
-      font-size: clamp(9px, 0.65vw, 11px);
+      font-size: clamp(9px, 0.65vw, 10px);
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .8px;
@@ -207,15 +203,15 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 2px;
+      gap: 1px;
     }
     .mrow .mscore .setwins {
-      font-size: clamp(16px, 1.25vw, 20px);
-      letter-spacing: 1.5px;
+      font-size: clamp(14px, 1.1vw, 18px);
+      letter-spacing: 1.3px;
       line-height: 1;
     }
     .mrow .mscore .setdetail {
-      font-size: clamp(11px, 0.8vw, 13px);
+      font-size: clamp(10px, 0.75vw, 12px);
       color: var(--text);
       font-weight: 700;
       letter-spacing: .3px;
@@ -225,51 +221,48 @@
     .mrow .mstat { display: none; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
-    /* ---------- Standings (2×2 grid so all 4 groups fit) ---------- */
+    /* ---------- Standings (single column, stacked) ---------- */
     #rightBody {
       display: flex;
-      flex-wrap: wrap;
-      gap: 14px 16px;
-      align-content: start;
+      flex-direction: column;
+      gap: 6px;
       height: 100%;
     }
-    /* Two standings per row when they appear; the bracket takes full width. */
-    .group { margin-bottom: 0; flex: 1 1 calc(50% - 8px); min-width: 240px; }
-    .bracket { flex: 1 1 100%; }
+    .group { margin-bottom: 0; }
     .groupTitle {
-      font-size: clamp(12px, 0.95vw, 14px);
+      font-size: clamp(11px, 0.85vw, 13px);
       font-weight: 800;
       letter-spacing: 1px;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 2px;
       color: var(--accent);
     }
     table.stand {
       width: 100%;
       border-collapse: collapse;
-      font-size: clamp(12px, 0.95vw, 14px);
+      font-size: clamp(11px, 0.85vw, 13px);
     }
     table.stand th {
       text-align: right;
-      padding: 4px 5px;
-      font-size: clamp(10px, 0.75vw, 11px);
+      padding: 2px 5px;
+      font-size: clamp(9px, 0.7vw, 10px);
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .7px;
+      letter-spacing: .6px;
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
     table.stand th.l, table.stand td.l { text-align: left; }
     table.stand td {
-      padding: 5px 5px;
+      padding: 2px 5px;
       text-align: right;
       border-bottom: 1px solid rgba(255,255,255,.05);
     }
     table.stand td.l { font-weight: 600; }
     table.stand tr.r1 td { background: rgba(45,255,158,.07); }
     table.stand tr.r2 td { background: rgba(106,228,255,.05); }
-    table.stand .pts { font-family: var(--mono); font-weight: 800; color: var(--text); font-size: clamp(13px, 1vw, 15px); }
-    table.stand .rank { width: 24px; color: var(--muted); font-weight: 700; }
+    table.stand .pts { font-family: var(--mono); font-weight: 800; color: var(--text); font-size: clamp(12px, 0.9vw, 14px); }
+    table.stand .rank { width: 22px; color: var(--muted); font-weight: 700; }
 
 
     /* ---------- Bracket (moderate, viewport-scaled) ---------- */
@@ -327,7 +320,6 @@
     .empty b { color: var(--text); display: block; margin-bottom: 6px; font-size: 16px; }
 
     @media (max-width: 1400px) {
-      .dp-main { grid-template-columns: 1fr 1fr; }
       .bracket { grid-template-columns: 1fr 1fr; }
     }
   </style>
