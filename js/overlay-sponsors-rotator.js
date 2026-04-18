@@ -403,7 +403,7 @@
         <div class="spCorner br"></div>
         <div class="spBadge">
           <span class="dot"></span>
-          <span class="lbl">Partnerzy turnieju</span>
+          <span class="lbl">Turniej odbywa się dzięki</span>
         </div>
         <div class="spStage">
           <div class="spHero" id="spHero">
