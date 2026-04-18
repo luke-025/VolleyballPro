@@ -746,6 +746,7 @@
           st.matches[idx].claimedBy = null;
           st.matches[idx].claimedAt = null;
           if (st.playoffs?.generated) st = ENG.applyPlayoffsProgression(st);
+          else if (ENG.maybeAutoGeneratePlayoffs) st = ENG.maybeAutoGeneratePlayoffs(st);
           return st;
         });
         UI.toast("Wynik zatwierdzony", "success");

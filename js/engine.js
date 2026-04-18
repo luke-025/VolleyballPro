@@ -202,6 +202,30 @@
   }
 
   // ============================================================
+  // Playoff schedule (court + time) — matches the tournament
+  // bracket poster: QF on courts 1–2 @ 14:00/15:15, SF @ 16:30,
+  // Final + 3rd @ 17:15, miejsca 9-12 on court 3.
+  // ============================================================
+  const PLAYOFF_SCHEDULE = {
+    qf:     [
+      { court: "1", scheduledAt: "14:00" }, // QF (1) 1A vs 2C
+      { court: "2", scheduledAt: "14:00" }, // QF (2) 1B vs 2D
+      { court: "1", scheduledAt: "15:15" }, // QF (3) 1C vs 2A
+      { court: "2", scheduledAt: "15:15" }, // QF (4) 1D vs 2B
+    ],
+    sf:     [
+      { court: "1", scheduledAt: "16:30" }, // SF (5) Zw(1) vs Zw(2)
+      { court: "2", scheduledAt: "16:30" }, // SF (6) Zw(3) vs Zw(4)
+    ],
+    final:  { court: "1", scheduledAt: "17:15" }, // Zw(5) vs Zw(6)
+    third:  { court: "2", scheduledAt: "17:15" }, // Prz(5) vs Prz(6)
+    place9: [
+      { court: "3", scheduledAt: "14:00" }, // B3 vs D3
+      { court: "3", scheduledAt: "15:15" }, // A3 vs C3
+    ],
+  };
+
+  // ============================================================
   // generatePlayoffs — nowa logika (QF cross A-D, mecze o 9-12)
   // ============================================================
   function generatePlayoffs(state, opts = {}) {
@@ -223,7 +247,7 @@
 
     const [A, B, C, D] = ["A", "B", "C", "D"];
 
-    function mkMatch(stage, teamAId, teamBId, label) {
+    function mkMatch(stage, teamAId, teamBId, label, slot) {
       return emptyMatchPatch({
         id: crypto.randomUUID(),
         stage,
@@ -231,6 +255,8 @@
         label: label || "",
         teamAId: teamAId || null,
         teamBId: teamBId || null,
+        court: slot?.court || "",
+        scheduledAt: slot?.scheduledAt || "",
         sets: [{ a: 0, b: 0 }, { a: 0, b: 0 }, { a: 0, b: 0 }],
         status: "pending",
         winner: null,
@@ -243,29 +269,29 @@
     const matchesToAdd = [];
     const bracket = { qf: [], sf: [], final: null, third: null, place9: [] };
 
-    // QF1: A1 vs C2, QF2: B1 vs D2, QF3: C1 vs A2, QF4: D1 vs B2
-    const qf1 = mkMatch("quarterfinal", byGroup[A]?.[1], byGroup[C]?.[2], "QF1: A1 vs C2");
-    const qf2 = mkMatch("quarterfinal", byGroup[B]?.[1], byGroup[D]?.[2], "QF2: B1 vs D2");
-    const qf3 = mkMatch("quarterfinal", byGroup[C]?.[1], byGroup[A]?.[2], "QF3: C1 vs A2");
-    const qf4 = mkMatch("quarterfinal", byGroup[D]?.[1], byGroup[B]?.[2], "QF4: D1 vs B2");
+    // QF (1) A1 vs C2, QF (2) B1 vs D2, QF (3) C1 vs A2, QF (4) D1 vs B2
+    const qf1 = mkMatch("quarterfinal", byGroup[A]?.[1], byGroup[C]?.[2], "Ćwierćfinał (1): 1A vs 2C", PLAYOFF_SCHEDULE.qf[0]);
+    const qf2 = mkMatch("quarterfinal", byGroup[B]?.[1], byGroup[D]?.[2], "Ćwierćfinał (2): 1B vs 2D", PLAYOFF_SCHEDULE.qf[1]);
+    const qf3 = mkMatch("quarterfinal", byGroup[C]?.[1], byGroup[A]?.[2], "Ćwierćfinał (3): 1C vs 2A", PLAYOFF_SCHEDULE.qf[2]);
+    const qf4 = mkMatch("quarterfinal", byGroup[D]?.[1], byGroup[B]?.[2], "Ćwierćfinał (4): 1D vs 2B", PLAYOFF_SCHEDULE.qf[3]);
     matchesToAdd.push(qf1, qf2, qf3, qf4);
     bracket.qf.push(qf1.id, qf2.id, qf3.id, qf4.id);
 
-    // SF1: winner(QF1) vs winner(QF2), SF2: winner(QF3) vs winner(QF4)
-    const sf1 = mkMatch("semifinal", null, null, "Półfinał 1 (QF1 vs QF2)");
-    const sf2 = mkMatch("semifinal", null, null, "Półfinał 2 (QF3 vs QF4)");
+    // SF (5) winner(QF1) vs winner(QF2), SF (6) winner(QF3) vs winner(QF4)
+    const sf1 = mkMatch("semifinal", null, null, "Półfinał (5): Zw.(1) vs Zw.(2)", PLAYOFF_SCHEDULE.sf[0]);
+    const sf2 = mkMatch("semifinal", null, null, "Półfinał (6): Zw.(3) vs Zw.(4)", PLAYOFF_SCHEDULE.sf[1]);
     matchesToAdd.push(sf1, sf2);
     bracket.sf.push(sf1.id, sf2.id);
 
-    const fin   = mkMatch("final",      null, null, "Finał");
-    const third = mkMatch("thirdplace", null, null, "Mecz o 3. miejsce");
+    const fin   = mkMatch("final",      null, null, "Finał: Zw.(5) vs Zw.(6)",             PLAYOFF_SCHEDULE.final);
+    const third = mkMatch("thirdplace", null, null, "Mecz o 3. miejsce: Prz.(5) vs Prz.(6)", PLAYOFF_SCHEDULE.third);
     matchesToAdd.push(fin, third);
     bracket.final = fin.id;
     bracket.third = third.id;
 
-    // Miejsca 9-12: B3 vs D3, A3 vs C3
-    const p9a = mkMatch("place9", byGroup[B]?.[3], byGroup[D]?.[3], "Miejsca 9-12: B3 vs D3");
-    const p9b = mkMatch("place9", byGroup[A]?.[3], byGroup[C]?.[3], "Miejsca 9-12: A3 vs C3");
+    // Miejsca 9-12: B3 vs D3 (14:00), A3 vs C3 (15:15)
+    const p9a = mkMatch("place9", byGroup[B]?.[3], byGroup[D]?.[3], "Miejsca 9-12: 3B vs 3D", PLAYOFF_SCHEDULE.place9[0]);
+    const p9b = mkMatch("place9", byGroup[A]?.[3], byGroup[C]?.[3], "Miejsca 9-12: 3A vs 3C", PLAYOFF_SCHEDULE.place9[1]);
     matchesToAdd.push(p9a, p9b);
     bracket.place9.push(p9a.id, p9b.id);
 
@@ -335,6 +361,31 @@
     st.matches = (st.matches || []).map(m => idToMatch.get(m.id) || m);
     st.playoffs.bracket = br;
     return st;
+  }
+
+  // ============================================================
+  // maybeAutoGeneratePlayoffs
+  //   Called after any match mutation. If every group-stage match
+  //   is "confirmed" and playoffs haven't been generated yet, the
+  //   bracket is created automatically (no manual button click).
+  //   Idempotent — returns the same state once generated.
+  // ============================================================
+  function maybeAutoGeneratePlayoffs(state) {
+    const st = state || {};
+    if (st.playoffs && st.playoffs.generated) return state;
+
+    const matches = Array.isArray(st.matches) ? st.matches : [];
+    const groupMatches = matches.filter(m => m && m.stage === "group");
+    if (groupMatches.length === 0) return state; // no group stage at all → nothing to auto-trigger
+
+    const allConfirmed = groupMatches.every(m => m.status === "confirmed");
+    if (!allConfirmed) return state;
+
+    let next = generatePlayoffs(st);
+    next = applyPlayoffsProgression(next);
+    if (!next.playoffs) next.playoffs = {};
+    next.playoffs.autoGenerated = true;
+    return next;
   }
 
   // ===== PRO stats (based on match.events) =====
@@ -412,6 +463,7 @@
     computeStandings,
     generatePlayoffs,
     applyPlayoffsProgression,
+    maybeAutoGeneratePlayoffs,
     computeStreaks,
     computeMaxLead,
     computeLastPointsTimeline,

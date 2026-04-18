@@ -412,6 +412,9 @@
         st.matches[idx] = next;
         if (st.playoffs && st.playoffs.generated) {
           st = ENG.applyPlayoffsProgression(st);
+        } else if (ENG.maybeAutoGeneratePlayoffs) {
+          // This may have been the last outstanding group match — auto-build the bracket.
+          st = ENG.maybeAutoGeneratePlayoffs(st);
         }
         return st;
       }

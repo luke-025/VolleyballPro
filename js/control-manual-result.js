@@ -201,6 +201,7 @@
       // NIE resetujemy playoffs.generated — ręczny wynik nie niszczy drabinki
       // Propagujemy zwycięzców do kolejnej rundy (QF → SF → Finał itd.)
       if (st.playoffs?.generated) st = ENG.applyPlayoffsProgression(st);
+      else if (ENG.maybeAutoGeneratePlayoffs) st = ENG.maybeAutoGeneratePlayoffs(st);
 
       return st;
     });

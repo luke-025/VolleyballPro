@@ -318,6 +318,7 @@
         m.updatedAt = new Date().toISOString();
 
         if (st.playoffs?.generated) st = ENG.applyPlayoffsProgression(st);
+        else if (ENG.maybeAutoGeneratePlayoffs) st = ENG.maybeAutoGeneratePlayoffs(st);
         return st;
       });
       // Reflect the write locally immediately so the card on the list repaints
