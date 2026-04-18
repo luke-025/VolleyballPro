@@ -188,7 +188,10 @@
       }
       #sceneSponsors .spDots{
         display:flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 8px;
+        max-width: 60vw;
       }
       #sceneSponsors .spDots span{
         width: 8px; height: 8px; border-radius: 50%;
@@ -425,10 +428,9 @@
   function updateDots(total, activeIdx) {
     const el = document.getElementById("spDots");
     if (!el) return;
-    if (total <= 1) { el.innerHTML = ""; return; }
-    const capped = Math.min(total, 12);
+    if (!total || total < 1) { el.innerHTML = ""; return; }
     const parts = [];
-    for (let i = 0; i < capped; i++) {
+    for (let i = 0; i < total; i++) {
       parts.push(`<span class="${i === activeIdx ? "active" : ""}"></span>`);
     }
     el.innerHTML = parts.join("");
