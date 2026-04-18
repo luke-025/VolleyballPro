@@ -269,29 +269,29 @@
     const matchesToAdd = [];
     const bracket = { qf: [], sf: [], final: null, third: null, place9: [] };
 
-    // QF (1) A1 vs C2, QF (2) B1 vs D2, QF (3) C1 vs A2, QF (4) D1 vs B2
-    const qf1 = mkMatch("quarterfinal", byGroup[A]?.[1], byGroup[C]?.[2], "Ćwierćfinał (1): 1A vs 2C", PLAYOFF_SCHEDULE.qf[0]);
-    const qf2 = mkMatch("quarterfinal", byGroup[B]?.[1], byGroup[D]?.[2], "Ćwierćfinał (2): 1B vs 2D", PLAYOFF_SCHEDULE.qf[1]);
-    const qf3 = mkMatch("quarterfinal", byGroup[C]?.[1], byGroup[A]?.[2], "Ćwierćfinał (3): 1C vs 2A", PLAYOFF_SCHEDULE.qf[2]);
-    const qf4 = mkMatch("quarterfinal", byGroup[D]?.[1], byGroup[B]?.[2], "Ćwierćfinał (4): 1D vs 2B", PLAYOFF_SCHEDULE.qf[3]);
+    // QF1: 1A vs 2C, QF2: 1B vs 2D, QF3: 1C vs 2A, QF4: 1D vs 2B
+    const qf1 = mkMatch("quarterfinal", byGroup[A]?.[1], byGroup[C]?.[2], "QF1: 1A vs 2C", PLAYOFF_SCHEDULE.qf[0]);
+    const qf2 = mkMatch("quarterfinal", byGroup[B]?.[1], byGroup[D]?.[2], "QF2: 1B vs 2D", PLAYOFF_SCHEDULE.qf[1]);
+    const qf3 = mkMatch("quarterfinal", byGroup[C]?.[1], byGroup[A]?.[2], "QF3: 1C vs 2A", PLAYOFF_SCHEDULE.qf[2]);
+    const qf4 = mkMatch("quarterfinal", byGroup[D]?.[1], byGroup[B]?.[2], "QF4: 1D vs 2B", PLAYOFF_SCHEDULE.qf[3]);
     matchesToAdd.push(qf1, qf2, qf3, qf4);
     bracket.qf.push(qf1.id, qf2.id, qf3.id, qf4.id);
 
-    // SF (5) winner(QF1) vs winner(QF2), SF (6) winner(QF3) vs winner(QF4)
-    const sf1 = mkMatch("semifinal", null, null, "Półfinał (5): Zw.(1) vs Zw.(2)", PLAYOFF_SCHEDULE.sf[0]);
-    const sf2 = mkMatch("semifinal", null, null, "Półfinał (6): Zw.(3) vs Zw.(4)", PLAYOFF_SCHEDULE.sf[1]);
+    // SF1: winner(QF1) vs winner(QF2), SF2: winner(QF3) vs winner(QF4)
+    const sf1 = mkMatch("semifinal", null, null, "SF1: Zwycięzca QF1 vs Zwycięzca QF2", PLAYOFF_SCHEDULE.sf[0]);
+    const sf2 = mkMatch("semifinal", null, null, "SF2: Zwycięzca QF3 vs Zwycięzca QF4", PLAYOFF_SCHEDULE.sf[1]);
     matchesToAdd.push(sf1, sf2);
     bracket.sf.push(sf1.id, sf2.id);
 
-    const fin   = mkMatch("final",      null, null, "Finał: Zw.(5) vs Zw.(6)",             PLAYOFF_SCHEDULE.final);
-    const third = mkMatch("thirdplace", null, null, "Mecz o 3. miejsce: Prz.(5) vs Prz.(6)", PLAYOFF_SCHEDULE.third);
+    const fin   = mkMatch("final",      null, null, "Finał: Zwycięzca SF1 vs Zwycięzca SF2",               PLAYOFF_SCHEDULE.final);
+    const third = mkMatch("thirdplace", null, null, "Mecz o 3. miejsce: Przegrany SF1 vs Przegrany SF2",   PLAYOFF_SCHEDULE.third);
     matchesToAdd.push(fin, third);
     bracket.final = fin.id;
     bracket.third = third.id;
 
-    // Miejsca 9-12: B3 vs D3 (14:00), A3 vs C3 (15:15)
-    const p9a = mkMatch("place9", byGroup[B]?.[3], byGroup[D]?.[3], "Miejsca 9-12: 3B vs 3D", PLAYOFF_SCHEDULE.place9[0]);
-    const p9b = mkMatch("place9", byGroup[A]?.[3], byGroup[C]?.[3], "Miejsca 9-12: 3A vs 3C", PLAYOFF_SCHEDULE.place9[1]);
+    // Miejsca 9-12: 3B vs 3D (14:00), 3A vs 3C (15:15)
+    const p9a = mkMatch("place9", byGroup[B]?.[3], byGroup[D]?.[3], "Miejsca 9-12 mecz 1: 3B vs 3D", PLAYOFF_SCHEDULE.place9[0]);
+    const p9b = mkMatch("place9", byGroup[A]?.[3], byGroup[C]?.[3], "Miejsca 9-12 mecz 2: 3A vs 3C", PLAYOFF_SCHEDULE.place9[1]);
     matchesToAdd.push(p9a, p9b);
     bracket.place9.push(p9a.id, p9b.id);
 
