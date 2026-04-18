@@ -1,0 +1,218 @@
+<h2>1/5 — Overlay HUD: Game Scene</h2>
+<p class="subtitle">Scoreboard + info na ekranie podczas meczu. Ktory layout?</p>
+
+<div style="display:flex;flex-direction:column;gap:36px;padding:20px 0;">
+
+  <!-- CONCEPT A: Bottom Bar (CEV style) -->
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:20px;overflow:hidden;background:#0a0a0f;">
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;">
+      <span style="background:#6366f1;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:5px;">A</span>
+      <span style="color:#fff;font-size:14px;font-weight:700;">Bottom Bar — styl CEV / PlusLiga</span>
+    </div>
+    <!-- 16:9 mockup -->
+    <div style="position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#1a2332,#0d1520);overflow:hidden;">
+      <!-- Fake camera feed -->
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,255,255,.03),transparent 70%);"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:rgba(255,255,255,.1);text-transform:uppercase;letter-spacing:.2em;">Camera Feed</div>
+
+      <!-- Sponsor widget top-right -->
+      <div style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;">
+        <div style="width:24px;height:24px;border-radius:6px;background:rgba(99,102,241,.3);display:flex;align-items:center;justify-content:center;font-size:8px;color:#6366f1;font-weight:800;">S</div>
+        <span style="font-size:9px;color:rgba(255,255,255,.5);font-weight:600;">SPONSOR</span>
+      </div>
+
+      <!-- Set indicator top-center -->
+      <div style="position:absolute;top:16px;left:50%;transform:translateX(-50%);display:flex;gap:4px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;"></div>
+        <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);"></div>
+      </div>
+
+      <!-- BOTTOM SCOREBOARD -->
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:0 40px 20px;">
+        <!-- Main scorebar -->
+        <div style="display:flex;align-items:stretch;height:56px;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);">
+          <!-- Team A -->
+          <div style="flex:1;background:linear-gradient(90deg,#6366f1,#4f46e5);display:flex;align-items:center;padding:0 20px;gap:12px;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">T1</div>
+            <span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:.02em;">TYTANI BRAŃSK</span>
+          </div>
+          <!-- Score -->
+          <div style="display:flex;align-items:center;background:#111;gap:0;">
+            <div style="width:64px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;font-family:monospace;">18</div>
+            <div style="width:2px;height:28px;background:rgba(255,255,255,.1);"></div>
+            <div style="width:64px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;font-family:monospace;">21</div>
+          </div>
+          <!-- Team B -->
+          <div style="flex:1;background:linear-gradient(90deg,#dc2626,#b91c1c);display:flex;align-items:center;padding:0 20px;gap:12px;flex-direction:row-reverse;">
+            <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">T2</div>
+            <span style="font-size:15px;font-weight:700;color:#fff;letter-spacing:.02em;">SOLID BIELSK</span>
+          </div>
+        </div>
+        <!-- Sets & info bar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 20px 0;">
+          <span style="font-size:9px;color:rgba(255,255,255,.35);font-weight:600;letter-spacing:.1em;">SETY: 2 - 1</span>
+          <span style="font-size:9px;color:rgba(255,255,255,.35);font-weight:600;letter-spacing:.1em;">SET 4 · GR. A</span>
+          <span style="font-size:9px;color:rgba(255,255,255,.35);font-weight:600;letter-spacing:.1em;">🏐 SERWIS →</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px 20px;font-size:12px;color:rgba(255,255,255,.4);line-height:1.6;">
+      Dolny pasek na calej szerokosci. Kolory druzyn z theme. Czytelny z daleka. Nie zaslania gornej czesci boiska. Animowane wejscie od dolu. Set dots na gorze.
+    </div>
+  </div>
+
+  <!-- CONCEPT B: Side Panels (Esport style) -->
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:20px;overflow:hidden;background:#0a0a0f;">
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;">
+      <span style="background:#6366f1;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:5px;">B</span>
+      <span style="color:#fff;font-size:14px;font-weight:700;">Side Panels — styl esportowy / hybrydowy</span>
+    </div>
+    <div style="position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#1a2332,#0d1520);overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,255,255,.03),transparent 70%);"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:rgba(255,255,255,.1);text-transform:uppercase;letter-spacing:.2em;">Camera Feed</div>
+
+      <!-- Left panel - Team A -->
+      <div style="position:absolute;top:16px;left:16px;bottom:16px;width:64px;display:flex;flex-direction:column;gap:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);">
+        <div style="flex:1;background:linear-gradient(180deg,#6366f1,#4338ca);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">T1</div>
+          <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,.7);text-align:center;writing-mode:vertical-lr;transform:rotate(180deg);letter-spacing:.08em;">TYTANI</span>
+        </div>
+        <div style="background:#111;padding:10px 0;text-align:center;">
+          <div style="font-size:32px;font-weight:800;color:#fff;font-family:monospace;line-height:1;">18</div>
+          <div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px;">SET 4</div>
+        </div>
+      </div>
+
+      <!-- Right panel - Team B -->
+      <div style="position:absolute;top:16px;right:16px;bottom:16px;width:64px;display:flex;flex-direction:column;gap:0;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);">
+        <div style="flex:1;background:linear-gradient(180deg,#dc2626,#991b1b);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;">T2</div>
+          <span style="font-size:8px;font-weight:700;color:rgba(255,255,255,.7);text-align:center;writing-mode:vertical-lr;transform:rotate(180deg);letter-spacing:.08em;">SOLID</span>
+        </div>
+        <div style="background:#111;padding:10px 0;text-align:center;">
+          <div style="font-size:32px;font-weight:800;color:#fff;font-family:monospace;line-height:1;">21</div>
+          <div style="font-size:8px;color:rgba(255,255,255,.3);margin-top:2px;">SET 4</div>
+        </div>
+      </div>
+
+      <!-- Top center info -->
+      <div style="position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 16px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:9px;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.08em;">SETY 2-1</span>
+        <div style="width:1px;height:12px;background:rgba(255,255,255,.1);"></div>
+        <div style="display:flex;gap:3px;">
+          <div style="width:6px;height:6px;border-radius:50%;background:#6366f1;"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:#6366f1;"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:#dc2626;"></div>
+          <div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);"></div>
+        </div>
+        <div style="width:1px;height:12px;background:rgba(255,255,255,.1);"></div>
+        <span style="font-size:9px;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:.08em;">GR. A</span>
+      </div>
+
+      <!-- Sponsor bottom-right -->
+      <div style="position:absolute;bottom:16px;right:90px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 12px;display:flex;align-items:center;gap:6px;">
+        <div style="width:20px;height:20px;border-radius:4px;background:rgba(99,102,241,.3);"></div>
+        <span style="font-size:8px;color:rgba(255,255,255,.4);font-weight:600;">SPONSOR</span>
+      </div>
+    </div>
+    <div style="padding:14px 20px;font-size:12px;color:rgba(255,255,255,.4);line-height:1.6;">
+      Panele boczne — wynik zawsze widoczny. Nie zaslania boiska (gora/dol wolne). Esportowy look z pionowymi akcentami. Wejscie: slide z bokow. Mniej miejsca na nazwy druzyn.
+    </div>
+  </div>
+
+  <!-- CONCEPT C: Compact Top (Hybrid) -->
+  <div style="border:1px solid rgba(255,255,255,.12);border-radius:20px;overflow:hidden;background:#0a0a0f;">
+    <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;">
+      <span style="background:#6366f1;color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:5px;">C</span>
+      <span style="color:#fff;font-size:14px;font-weight:700;">Compact Top — hybrydowy CEV+esport</span>
+    </div>
+    <div style="position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,#1a2332,#0d1520);overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(255,255,255,.03),transparent 70%);"></div>
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:rgba(255,255,255,.1);text-transform:uppercase;letter-spacing:.2em;">Camera Feed</div>
+
+      <!-- TOP LEFT scoreboard -->
+      <div style="position:absolute;top:16px;left:16px;display:flex;flex-direction:column;gap:2px;filter:drop-shadow(0 4px 20px rgba(0,0,0,.5));">
+        <!-- Team A row -->
+        <div style="display:flex;align-items:stretch;height:36px;border-radius:8px 8px 0 0;overflow:hidden;">
+          <div style="width:36px;background:#6366f1;display:flex;align-items:center;justify-content:center;">
+            <div style="width:22px;height:22px;border-radius:5px;background:rgba(255,255,255,.25);font-size:7px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;">T1</div>
+          </div>
+          <div style="width:180px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:center;padding:0 12px;">
+            <span style="font-size:12px;font-weight:700;color:#fff;letter-spacing:.02em;">TYTANI BRAŃSK</span>
+          </div>
+          <div style="width:44px;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:20px;font-weight:800;color:#fff;font-family:monospace;">18</span>
+          </div>
+          <div style="width:30px;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;gap:2px;">
+            <div style="width:5px;height:5px;border-radius:50%;background:#6366f1;"></div>
+            <div style="width:5px;height:5px;border-radius:50%;background:#6366f1;"></div>
+          </div>
+        </div>
+        <!-- Team B row -->
+        <div style="display:flex;align-items:stretch;height:36px;overflow:hidden;">
+          <div style="width:36px;background:#dc2626;display:flex;align-items:center;justify-content:center;">
+            <div style="width:22px;height:22px;border-radius:5px;background:rgba(255,255,255,.25);font-size:7px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;">T2</div>
+          </div>
+          <div style="width:180px;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);display:flex;align-items:center;padding:0 12px;">
+            <span style="font-size:12px;font-weight:700;color:#fff;letter-spacing:.02em;">SOLID BIELSK</span>
+          </div>
+          <div style="width:44px;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:20px;font-weight:800;color:#fff;font-family:monospace;">21</span>
+          </div>
+          <div style="width:30px;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;gap:2px;">
+            <div style="width:5px;height:5px;border-radius:50%;background:#dc2626;"></div>
+          </div>
+        </div>
+        <!-- Info strip -->
+        <div style="background:rgba(0,0,0,.6);backdrop-filter:blur(8px);border-radius:0 0 8px 8px;padding:4px 12px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:8px;color:rgba(255,255,255,.4);font-weight:700;letter-spacing:.08em;">SET 4</span>
+          <div style="width:1px;height:8px;background:rgba(255,255,255,.1);"></div>
+          <span style="font-size:8px;color:rgba(255,255,255,.4);font-weight:700;letter-spacing:.08em;">GRUPA A</span>
+          <div style="width:1px;height:8px;background:rgba(255,255,255,.1);"></div>
+          <span style="font-size:8px;color:#6366f1;font-weight:700;letter-spacing:.08em;">🏐 SERWIS</span>
+        </div>
+      </div>
+
+      <!-- Sponsor top-right -->
+      <div style="position:absolute;top:16px;right:16px;background:rgba(0,0,0,.5);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px 14px;display:flex;align-items:center;gap:6px;">
+        <div style="width:22px;height:22px;border-radius:5px;background:rgba(99,102,241,.3);"></div>
+        <span style="font-size:9px;color:rgba(255,255,255,.4);font-weight:600;">SPONSOR</span>
+      </div>
+
+      <!-- Lower third area (for announcements) -->
+      <div style="position:absolute;bottom:16px;left:16px;right:16px;">
+        <div style="background:linear-gradient(90deg,rgba(99,102,241,.9),rgba(99,102,241,.0));border-radius:8px;padding:8px 16px;display:flex;align-items:center;gap:10px;opacity:.85;">
+          <span style="font-size:8px;font-weight:800;color:rgba(255,255,255,.7);letter-spacing:.12em;text-transform:uppercase;">LIVE</span>
+          <div style="width:1px;height:12px;background:rgba(255,255,255,.2);"></div>
+          <span style="font-size:10px;color:#fff;font-weight:600;">Kort 2: JARD 14:12 BSBrańsk (set 2)</span>
+          <div style="width:1px;height:12px;background:rgba(255,255,255,.2);"></div>
+          <span style="font-size:10px;color:#fff;font-weight:600;">Kort 3: Zakatek 25:22 NowyKurier (set 3 — koniec)</span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:14px 20px;font-size:12px;color:rgba(255,255,255,.4);line-height:1.6;">
+      Kompaktowy scoreboard gora-lewo (2 rzedy). Dol: lower third ticker z innymi meczami. Gora-prawo: sponsor. Minimal footprint — max widocznosc boiska. Wejscie: slide z lewej. Lower third: slide z dolu. Najlepszy balans miedzy informacja a czystoscia.
+    </div>
+  </div>
+
+</div>
+
+<!-- Selection -->
+<div style="margin-top:24px;">
+  <h2>Ktory layout HUD?</h2>
+  <div class="options">
+    <div class="option" data-choice="hud-a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content"><h3>Bottom Bar</h3><p>CEV/PlusLiga — dolny pasek, pelna szerokosc, czytelny z daleka</p></div>
+    </div>
+    <div class="option" data-choice="hud-b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content"><h3>Side Panels</h3><p>Esportowy — boczne panele, pionowe akcenty, max space gora/dol</p></div>
+    </div>
+    <div class="option" data-choice="hud-c" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content"><h3>Compact Top</h3><p>Hybrid — kompaktowy scoreboard gora-lewo + lower third ticker</p></div>
+    </div>
+  </div>
+</div>
