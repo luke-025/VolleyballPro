@@ -77,7 +77,6 @@
 
   const els = {
     tName: document.getElementById("tName"),
-    tSub: document.getElementById("tSub"),
     clock: document.getElementById("clock"),
     conn: document.getElementById("conn"),
     connLabel: document.getElementById("connLabel"),
@@ -277,8 +276,6 @@
 
   function renderHeader(state) {
     els.tName.textContent = state?.meta?.name || UI.getSlug() || "Turniej";
-    const slug = UI.getSlug();
-    els.tSub.textContent = slug ? `t=${slug}` : "VolleyballPro • Display";
 
     const isPlayoff = !!state?.playoffs?.generated;
     els.modeBadge.classList.toggle("playoff", isPlayoff);
