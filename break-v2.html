@@ -27,27 +27,28 @@
       display: grid;
       grid-template-rows: auto 1fr;
       height: 100vh;
-      padding: 18px 22px 22px;
-      gap: 14px;
+      padding: 12px 16px 16px;
+      gap: 10px;
+      overflow: hidden; /* never allow the page itself to scroll */
     }
 
-    /* ---------- Header — larger, no connection chip ---------- */
+    /* ---------- Header — compact, no connection chip ---------- */
     .dp-header {
       display: grid;
       grid-template-columns: auto 1fr auto auto;
       align-items: center;
-      gap: 22px;
-      padding: 14px 22px;
+      gap: 18px;
+      padding: 10px 18px;
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       border: 1px solid rgba(255,255,255,.12);
-      border-radius: 18px;
+      border-radius: 14px;
       box-shadow: var(--shadow);
     }
     .dp-title h1 {
       margin: 0;
-      font-size: 34px;
+      font-size: 26px;
       font-weight: 800;
-      letter-spacing: .4px;
+      letter-spacing: .3px;
       background: linear-gradient(90deg, var(--text), var(--accent));
       -webkit-background-clip: text;
       background-clip: text;
@@ -61,22 +62,22 @@
     #breakChip {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 10px 18px;
+      gap: 8px;
+      padding: 7px 14px;
       border-radius: 999px;
       background: rgba(255,196,0,.14);
       border: 1px solid rgba(255,196,0,.42);
       color: #ffd37a;
       font-weight: 800;
-      font-size: 14px;
-      letter-spacing: 1.5px;
+      font-size: 12px;
+      letter-spacing: 1.4px;
       text-transform: uppercase;
     }
-    #breakChip::before { content: "⏸"; font-size: 14px; }
+    #breakChip::before { content: "⏸"; font-size: 12px; }
 
     .dp-clock {
       font-family: var(--mono);
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 700;
       letter-spacing: 1px;
       color: var(--text);
@@ -104,10 +105,10 @@
     }
     .dp-pane h2 {
       margin: 0;
-      padding: 16px 22px 12px;
-      font-size: 20px;
+      padding: 10px 16px 8px;
+      font-size: 15px;
       font-weight: 800;
-      letter-spacing: .7px;
+      letter-spacing: .6px;
       text-transform: uppercase;
       color: var(--text);
       border-bottom: 1px solid rgba(255,255,255,.08);
@@ -115,63 +116,78 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
+      flex-shrink: 0;
     }
     .dp-pane h2 .hint {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
       letter-spacing: 1px;
       font-weight: 600;
     }
     .dp-body {
-      padding: 12px 16px 16px;
-      overflow: auto;
+      padding: 8px 12px 10px;
+      overflow: hidden; /* never scroll on break scene */
       flex: 1;
+      min-height: 0;
     }
 
-    /* ---------- Schedule rows (identical to display) ---------- */
-    .courtBlock { margin-bottom: 16px; }
-    .courtBlock:last-child { margin-bottom: 0; }
+    /* ---------- Schedule rows (compact, 2 columns per court) ---------- */
+    #leftBody {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: 100%;
+    }
+    .courtBlock {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px 10px;
+      align-content: start;
+    }
     .courtHdr {
+      grid-column: 1 / -1;
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 8px 12px;
-      margin: 4px 0 10px;
+      padding: 4px 10px;
+      margin: 2px 0 4px;
       background: rgba(255,255,255,.05);
       border-left: 3px solid var(--accent);
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: 800;
-      font-size: 15px;
-      letter-spacing: .8px;
+      font-size: 12px;
+      letter-spacing: .7px;
       text-transform: uppercase;
     }
     .mrow {
       display: grid;
-      grid-template-columns: 72px 1fr auto auto;
+      grid-template-columns: 46px 1fr auto;
       align-items: center;
-      gap: 14px;
-      padding: 12px 10px;
+      gap: 8px;
+      padding: 4px 6px;
       border-top: 1px solid rgba(255,255,255,.06);
     }
-    .mrow:first-of-type { border-top: none; }
+    .mrow:first-of-type,
+    .mrow:nth-child(2) { border-top: none; }
     .mrow.live {
       background: linear-gradient(90deg, rgba(255,77,109,.14), transparent 60%);
       border-left: 3px solid var(--danger);
-      padding-left: 7px;
+      padding-left: 3px;
     }
     .mrow.confirmed { opacity: .78; }
     .mrow .mtime {
       font-family: var(--mono);
-      font-size: 19px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--accent);
       text-align: center;
     }
-    .mrow .mtime.none { color: var(--muted); font-size: 14px; font-weight: 500; }
-    .mrow .mteams { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .mrow .mtime.none { color: var(--muted); font-size: 11px; font-weight: 500; }
+    .mrow .mteams { display: flex; flex-direction: column; gap: 0; min-width: 0; }
     .mrow .mteams .tname {
-      font-size: 17px;
+      font-size: 12px;
       font-weight: 700;
+      line-height: 1.25;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -179,106 +195,95 @@
     .mrow .mteams .tname.winner { color: var(--ok); }
     .mrow .mteams .tname.loser { color: var(--muted); }
     .mrow .mstage {
-      font-size: 12px;
+      font-size: 9px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: .8px;
     }
     .mrow .mscore {
       font-family: var(--mono);
       font-weight: 800;
-      font-size: 22px;
       text-align: right;
-      min-width: 180px;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 4px;
+      gap: 1px;
     }
     .mrow .mscore .setwins {
-      font-size: 26px;
-      letter-spacing: 2px;
+      font-size: 15px;
+      letter-spacing: 1.5px;
       line-height: 1;
     }
     .mrow .mscore .setdetail {
-      font-size: 16px;
+      font-size: 10px;
       color: var(--text);
       font-weight: 700;
-      letter-spacing: .5px;
-      opacity: .85;
+      letter-spacing: .3px;
+      opacity: .75;
     }
-    .mrow .mstat {
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      color: var(--muted);
-      white-space: nowrap;
-    }
-    .mrow .mstat.live {
-      background: rgba(255,77,109,.20);
-      border-color: rgba(255,77,109,.50);
-      color: var(--danger);
-      animation: pulse 1.6s ease-in-out infinite;
-    }
-    .mrow .mstat.finished { background: rgba(45,255,158,.15); border-color: rgba(45,255,158,.35); color: var(--ok); }
-    .mrow .mstat.confirmed { background: rgba(45,255,158,.10); border-color: rgba(45,255,158,.25); color: var(--ok); }
+    /* Hide the stat chip in compact break scene — status is implied by color/opacity. */
+    .mrow .mstat { display: none; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
-    /* ---------- Standings ---------- */
-    .group { margin-bottom: 18px; }
-    .group:last-child { margin-bottom: 0; }
+    /* ---------- Standings (compact 2×2) ---------- */
+    #rightBody {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 12px;
+      align-content: start;
+      height: 100%;
+    }
+    /* Two standings per row when they appear; the bracket takes full width. */
+    .group { margin-bottom: 0; flex: 1 1 calc(50% - 6px); min-width: 0; }
+    .bracket { flex: 1 1 100%; }
     .groupTitle {
-      font-size: 15px;
+      font-size: 11px;
       font-weight: 800;
-      letter-spacing: 1.2px;
+      letter-spacing: 1.1px;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 2px;
       color: var(--accent);
     }
     table.stand {
       width: 100%;
       border-collapse: collapse;
-      font-size: 15px;
+      font-size: 11px;
     }
     table.stand th {
       text-align: right;
-      padding: 7px 6px;
-      font-size: 12px;
+      padding: 2px 3px;
+      font-size: 9px;
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .8px;
+      letter-spacing: .6px;
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
     table.stand th.l, table.stand td.l { text-align: left; }
     table.stand td {
-      padding: 8px 6px;
+      padding: 3px 3px;
       text-align: right;
       border-bottom: 1px solid rgba(255,255,255,.05);
     }
     table.stand td.l { font-weight: 600; }
     table.stand tr.r1 td { background: rgba(45,255,158,.07); }
     table.stand tr.r2 td { background: rgba(106,228,255,.05); }
-    table.stand .pts { font-family: var(--mono); font-weight: 800; color: var(--text); font-size: 16px; }
-    table.stand .rank { width: 30px; color: var(--muted); font-weight: 700; }
+    table.stand .pts { font-family: var(--mono); font-weight: 800; color: var(--text); font-size: 12px; }
+    table.stand .rank { width: 18px; color: var(--muted); font-weight: 700; }
 
-    /* ---------- Bracket ---------- */
+
+    /* ---------- Bracket (compact) ---------- */
     .bracket {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 12px;
+      gap: 8px;
       align-items: stretch;
     }
     .bcol h3 {
-      margin: 0 0 10px;
-      font-size: 13px;
+      margin: 0 0 6px;
+      font-size: 10px;
       font-weight: 800;
-      letter-spacing: 1.2px;
+      letter-spacing: 1.1px;
       text-transform: uppercase;
       color: var(--muted);
       text-align: center;
@@ -286,28 +291,28 @@
     .bmatch {
       background: rgba(255,255,255,.05);
       border: 1px solid rgba(255,255,255,.12);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 14px;
-      font-size: 14px;
+      border-radius: 8px;
+      padding: 6px 8px;
+      margin-bottom: 6px;
+      font-size: 11px;
     }
-    .bmatch.live { border-color: rgba(255,77,109,.6); box-shadow: 0 0 14px rgba(255,77,109,.22); }
+    .bmatch.live { border-color: rgba(255,77,109,.6); box-shadow: 0 0 10px rgba(255,77,109,.2); }
     .bmatch .side {
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      padding: 4px 0;
+      gap: 6px;
+      padding: 2px 0;
     }
     .bmatch .side.winner { color: var(--ok); font-weight: 700; }
     .bmatch .side.loser { color: var(--muted); }
     .bmatch .side .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-    .bmatch .side .sc { font-family: var(--mono); font-weight: 800; min-width: 20px; text-align: right; }
+    .bmatch .side .sc { font-family: var(--mono); font-weight: 800; min-width: 16px; text-align: right; }
     .bmatch .lbl {
-      font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
-      margin-bottom: 5px;
+      font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .8px;
+      margin-bottom: 2px;
     }
-    .place9wrap { margin-top: 20px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,.18); }
-    .place9wrap h3 { text-align: left; margin-bottom: 10px; }
+    .place9wrap { margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,.18); }
+    .place9wrap h3 { text-align: left; margin-bottom: 6px; }
 
     /* ---------- Empty ---------- */
     .empty {
