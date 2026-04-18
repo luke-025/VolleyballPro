@@ -3,139 +3,288 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VolleyballPro • Przerwa</title>
+  <title>VolleyballPro • Przerwa techniczna</title>
   <link rel="stylesheet" href="css/main.css" />
   <style>
     /* ============================================================
-       Break-v2 — the OBS "break" scene, reusing display.js layout
-       (schedule / standings / bracket) but with a break-specific
-       header and no connection indicator (viewers don't care).
-
-       The DOM IDs MATCH display.html exactly, so js/display.js
-       renders into them without modification.
+       Break-v2 — the OBS "technical break" scene.
+       Reuses js/display.js to populate the schedule + standings
+       (same IDs as display.html), but wraps the data with a more
+       cinematic broadcast-style visual design.
        ============================================================ */
+
     html, body { height: 100%; margin: 0; overflow: hidden; }
     body {
       font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      position: relative;
+    }
+
+    /* ---------- Animated mesh background ---------- */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -15%;
+      z-index: -2;
       background:
-        radial-gradient(1400px 800px at 15% 0%, rgba(106,228,255,.22), transparent 60%),
-        radial-gradient(1100px 700px at 85% 100%, rgba(165,110,255,.20), transparent 55%),
-        var(--bg);
+        radial-gradient(900px 600px at 12% 10%, rgba(106,228,255,.28), transparent 55%),
+        radial-gradient(800px 520px at 88% 85%, rgba(165,110,255,.26), transparent 55%),
+        radial-gradient(520px 320px at 50% 55%, rgba(255,196,0,.10), transparent 60%);
+      filter: blur(4px);
+      animation: drift 38s ease-in-out infinite alternate;
+    }
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(-1.5%, 1.5%) scale(1.04); }
+      100% { transform: translate(1.5%, -1%) scale(1); }
+    }
+    /* Faint grid overlay for a broadcast/sports feel */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 85%);
     }
 
     .dp {
       display: grid;
       grid-template-rows: auto 1fr;
       height: 100vh;
-      padding: 12px 16px 16px;
-      gap: 10px;
-      overflow: hidden; /* never allow the page itself to scroll */
+      padding: 14px 18px 16px;
+      gap: 12px;
+      overflow: hidden;
     }
 
-    /* ---------- Header — compact, no connection chip ---------- */
-    .dp-header {
+    /* ========================================================
+       HERO — the dramatic "technical break" banner at the top.
+       ======================================================== */
+    .dp-hero {
       display: grid;
-      grid-template-columns: auto 1fr auto auto;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 28px;
+      padding: 18px 28px;
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, rgba(255,196,0,.07) 0%, rgba(255,77,109,.05) 50%, rgba(165,110,255,.09) 100%),
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,196,0,.22);
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 0 60px rgba(255,196,0,.04);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Top accent line across the hero */
+    .dp-hero::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #ffc400 25%, #ff6b9d 50%, #a56eff 75%, transparent 100%);
+      opacity: .7;
+      animation: shimmer 5s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%, 100% { opacity: .4; }
+      50% { opacity: .9; }
+    }
+    /* Diagonal stripe shimmer behind the hero content */
+    .dp-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        -45deg,
+        transparent 0px,
+        transparent 22px,
+        rgba(255,255,255,.015) 22px,
+        rgba(255,255,255,.015) 44px
+      );
+      pointer-events: none;
+    }
+
+    .hero-left {
+      display: flex;
       align-items: center;
       gap: 18px;
-      padding: 10px 18px;
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 1;
     }
-    .dp-title h1 {
+    .hero-dot {
+      width: clamp(14px, 1.1vw, 18px);
+      height: clamp(14px, 1.1vw, 18px);
+      border-radius: 50%;
+      background: #ffc400;
+      box-shadow:
+        0 0 18px rgba(255,196,0,.85),
+        0 0 40px rgba(255,196,0,.45);
+      animation: heroPulse 1.5s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes heroPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.3); opacity: .7; box-shadow: 0 0 30px rgba(255,196,0,1), 0 0 70px rgba(255,196,0,.6); }
+    }
+    .hero-label {
+      font-size: clamp(22px, 2.1vw, 34px);
+      font-weight: 900;
+      letter-spacing: clamp(3px, 0.35vw, 5px);
+      text-transform: uppercase;
+      color: #ffd37a;
+      text-shadow: 0 0 30px rgba(255,196,0,.35);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .hero-center {
+      min-width: 0;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-tname {
       margin: 0;
-      font-size: 26px;
+      font-size: clamp(20px, 1.7vw, 28px);
       font-weight: 800;
-      letter-spacing: .3px;
-      background: linear-gradient(90deg, var(--text), var(--accent));
+      letter-spacing: .4px;
+      background: linear-gradient(90deg, var(--text), var(--accent) 60%, var(--text));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-
-    /* display.js writes "Faza grupowa"/"Play-off" into #modeBadge. On the
-       break scene we hide it and use a dedicated #breakChip instead. */
-    #modeBadge { display: none !important; }
-
-    #breakChip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: rgba(255,196,0,.14);
-      border: 1px solid rgba(255,196,0,.42);
-      color: #ffd37a;
-      font-weight: 800;
-      font-size: 12px;
-      letter-spacing: 1.4px;
+    .hero-sub {
+      margin-top: 6px;
+      font-size: clamp(10px, 0.82vw, 12px);
+      color: var(--muted);
+      letter-spacing: 2.5px;
       text-transform: uppercase;
-    }
-    #breakChip::before { content: "⏸"; font-size: 12px; }
-
-    .dp-clock {
-      font-family: var(--mono);
-      font-size: 26px;
       font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--text);
+    }
+    .hero-sub::before, .hero-sub::after {
+      content: "•";
+      margin: 0 10px;
+      color: rgba(255,196,0,.55);
     }
 
-    /* OBS viewers don't need to see the Supabase connection badge. */
-    #conn { display: none !important; }
+    .hero-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-clock {
+      font-family: var(--mono);
+      font-size: clamp(28px, 2.4vw, 40px);
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      color: var(--text);
+      line-height: 1;
+      text-shadow: 0 0 24px rgba(106,228,255,.15);
+    }
+    .hero-clock-lbl {
+      font-size: clamp(9px, 0.7vw, 11px);
+      color: var(--muted);
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
 
-    /* ---------- Main split ---------- */
+    /* display.js writes into these — keep them but hide */
+    #modeBadge, #conn { display: none !important; }
+
+    /* ========================================================
+       MAIN — two glass panels, schedule + standings/bracket
+       ======================================================== */
     .dp-main {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
+      grid-template-columns: 1.2fr 1fr;
       gap: 14px;
       min-height: 0;
     }
     .dp-pane {
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 20px;
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255,255,255,.05);
       display: flex;
       flex-direction: column;
       min-height: 0;
       overflow: hidden;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      position: relative;
+    }
+    /* Subtle glow along the top edge of each panel */
+    .dp-pane::before {
+      content: "";
+      position: absolute;
+      left: 10%; right: 10%; top: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(106,228,255,.45), transparent);
     }
     .dp-pane h2 {
       margin: 0;
-      padding: 10px 16px 8px;
-      font-size: 15px;
+      padding: 12px 20px 10px;
+      font-size: clamp(12px, 0.95vw, 14px);
       font-weight: 800;
-      letter-spacing: .6px;
+      letter-spacing: 2.5px;
       text-transform: uppercase;
       color: var(--text);
       border-bottom: 1px solid rgba(255,255,255,.08);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
       flex-shrink: 0;
+      position: relative;
+    }
+    .dp-pane h2::before {
+      content: "";
+      width: 4px;
+      height: 18px;
+      background: linear-gradient(180deg, var(--accent), rgba(106,228,255,.3));
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(106,228,255,.5);
     }
     .dp-pane h2 .hint {
-      font-size: 11px;
+      font-size: clamp(10px, 0.7vw, 11px);
       color: var(--muted);
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       font-weight: 600;
+      margin-left: auto;
     }
     .dp-body {
-      padding: 8px 12px 10px;
-      overflow: hidden; /* never scroll on break scene */
+      padding: 10px 14px 12px;
+      overflow: hidden;
       flex: 1;
       min-height: 0;
     }
 
-    /* ---------- Schedule rows (single column per court) ---------- */
+    /* ========================================================
+       SCHEDULE — court blocks, single column
+       ======================================================== */
     #leftBody {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
       height: 100%;
     }
     .courtBlock {
@@ -145,40 +294,68 @@
     .courtHdr {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 7px 14px;
+      gap: 12px;
+      padding: 8px 14px;
       margin: 4px 0 6px;
-      background: rgba(255,255,255,.05);
+      background:
+        linear-gradient(90deg, rgba(106,228,255,.10), rgba(106,228,255,.02) 70%);
       border-left: 3px solid var(--accent);
-      border-radius: 8px;
+      border-radius: 10px;
       font-weight: 800;
       font-size: clamp(13px, 1vw, 15px);
-      letter-spacing: .8px;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
+      color: var(--text);
+      box-shadow: 0 0 16px rgba(106,228,255,.06);
     }
+    /* Court color rotation: cyan / purple / green / amber */
+    .courtBlock:nth-of-type(2) .courtHdr {
+      background: linear-gradient(90deg, rgba(165,110,255,.10), rgba(165,110,255,.02) 70%);
+      border-left-color: #a56eff;
+      box-shadow: 0 0 16px rgba(165,110,255,.06);
+    }
+    .courtBlock:nth-of-type(3) .courtHdr {
+      background: linear-gradient(90deg, rgba(45,255,158,.10), rgba(45,255,158,.02) 70%);
+      border-left-color: var(--ok);
+      box-shadow: 0 0 16px rgba(45,255,158,.06);
+    }
+    .courtBlock:nth-of-type(4) .courtHdr {
+      background: linear-gradient(90deg, rgba(255,196,0,.10), rgba(255,196,0,.02) 70%);
+      border-left-color: #ffc400;
+      box-shadow: 0 0 16px rgba(255,196,0,.06);
+    }
+
     .mrow {
       display: grid;
       grid-template-columns: 72px 1fr auto;
       align-items: center;
       gap: 12px;
       padding: 8px 12px;
-      border-top: 1px solid rgba(255,255,255,.06);
+      border-top: 1px solid rgba(255,255,255,.05);
+      transition: background .3s ease;
     }
     .mrow:first-of-type { border-top: none; }
     .mrow.live {
-      background: linear-gradient(90deg, rgba(255,77,109,.14), transparent 60%);
+      background: linear-gradient(90deg, rgba(255,77,109,.16), transparent 55%);
       border-left: 3px solid var(--danger);
       padding-left: 5px;
+      box-shadow: inset 0 0 20px rgba(255,77,109,.05);
+      animation: liveRow 2.4s ease-in-out infinite;
     }
-    .mrow.confirmed { opacity: .78; }
+    @keyframes liveRow {
+      0%, 100% { box-shadow: inset 0 0 20px rgba(255,77,109,.05); }
+      50% { box-shadow: inset 0 0 28px rgba(255,77,109,.12); }
+    }
+    .mrow.confirmed { opacity: .72; }
     .mrow .mtime {
       font-family: var(--mono);
       font-size: clamp(16px, 1.2vw, 20px);
-      font-weight: 700;
+      font-weight: 800;
       color: var(--accent);
       text-align: center;
+      text-shadow: 0 0 10px rgba(106,228,255,.3);
     }
-    .mrow .mtime.none { color: var(--muted); font-size: clamp(12px, 0.9vw, 14px); font-weight: 500; }
+    .mrow .mtime.none { color: var(--muted); font-size: clamp(12px, 0.9vw, 14px); font-weight: 500; text-shadow: none; }
     .mrow .mteams { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .mrow .mteams .tname {
       font-size: clamp(15px, 1.15vw, 18px);
@@ -188,13 +365,16 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .mrow .mteams .tname.winner { color: var(--ok); }
+    .mrow .mteams .tname.winner {
+      color: var(--ok);
+      text-shadow: 0 0 14px rgba(45,255,158,.25);
+    }
     .mrow .mteams .tname.loser { color: var(--muted); }
     .mrow .mstage {
       font-size: clamp(10px, 0.75vw, 12px);
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .8px;
+      letter-spacing: 1px;
     }
     .mrow .mscore {
       font-family: var(--mono);
@@ -209,34 +389,62 @@
       font-size: clamp(19px, 1.45vw, 25px);
       letter-spacing: 1.5px;
       line-height: 1;
+      color: var(--text);
+      text-shadow: 0 0 12px rgba(106,228,255,.12);
     }
     .mrow .mscore .setdetail {
       font-size: clamp(13px, 1vw, 16px);
       color: var(--text);
       font-weight: 700;
       letter-spacing: .3px;
-      opacity: .85;
+      opacity: .82;
     }
-    /* Hide the stat chip in compact break scene — status is implied by color/opacity. */
     .mrow .mstat { display: none; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
-    /* ---------- Standings (single column, stacked) ---------- */
+    /* ========================================================
+       STANDINGS — one column of group cards
+       ======================================================== */
     #rightBody {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       height: 100%;
     }
-    .group { margin-bottom: 0; }
+    .group {
+      margin-bottom: 0;
+      padding: 6px 10px 8px;
+      background: rgba(255,255,255,.025);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.06);
+    }
     .groupTitle {
       font-size: clamp(13px, 1vw, 15px);
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       margin-bottom: 4px;
+      padding-bottom: 4px;
       color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    .groupTitle::before {
+      content: "";
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    /* Group color rotation to match courts */
+    .group:nth-of-type(2) .groupTitle { color: #c49bff; }
+    .group:nth-of-type(2) .groupTitle::before { background: #a56eff; box-shadow: 0 0 10px #a56eff; }
+    .group:nth-of-type(3) .groupTitle { color: var(--ok); }
+    .group:nth-of-type(3) .groupTitle::before { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+    .group:nth-of-type(4) .groupTitle { color: #ffd37a; }
+    .group:nth-of-type(4) .groupTitle::before { background: #ffc400; box-shadow: 0 0 10px #ffc400; }
+
     table.stand {
       width: 100%;
       border-collapse: collapse;
@@ -249,23 +457,40 @@
       font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .7px;
+      letter-spacing: 1px;
       border-bottom: 1px solid rgba(255,255,255,.08);
     }
     table.stand th.l, table.stand td.l { text-align: left; }
     table.stand td {
       padding: 4px 7px;
       text-align: right;
-      border-bottom: 1px solid rgba(255,255,255,.05);
+      border-bottom: 1px solid rgba(255,255,255,.04);
     }
     table.stand td.l { font-weight: 600; }
-    table.stand tr.r1 td { background: rgba(45,255,158,.07); }
-    table.stand tr.r2 td { background: rgba(106,228,255,.05); }
-    table.stand .pts { font-family: var(--mono); font-weight: 800; color: var(--text); font-size: clamp(14px, 1.1vw, 17px); }
-    table.stand .rank { width: 26px; color: var(--muted); font-weight: 700; }
+    table.stand tr.r1 td {
+      background: linear-gradient(90deg, rgba(45,255,158,.10), rgba(45,255,158,.02));
+    }
+    table.stand tr.r2 td {
+      background: linear-gradient(90deg, rgba(106,228,255,.06), rgba(106,228,255,.01));
+    }
+    table.stand .pts {
+      font-family: var(--mono);
+      font-weight: 800;
+      color: var(--text);
+      font-size: clamp(14px, 1.1vw, 17px);
+    }
+    table.stand .rank {
+      width: 26px;
+      font-weight: 800;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+    table.stand tr.r1 .rank { color: var(--ok); }
+    table.stand tr.r2 .rank { color: var(--accent); }
 
-
-    /* ---------- Bracket (moderate, viewport-scaled) ---------- */
+    /* ========================================================
+       BRACKET — same visual language as the panels
+       ======================================================== */
     .bracket {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -276,27 +501,41 @@
       margin: 0 0 8px;
       font-size: clamp(11px, 0.85vw, 13px);
       font-weight: 800;
-      letter-spacing: 1.1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--muted);
       text-align: center;
     }
     .bmatch {
-      background: rgba(255,255,255,.05);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
       border: 1px solid rgba(255,255,255,.12);
-      border-radius: 10px;
-      padding: 8px 10px;
+      border-radius: 12px;
+      padding: 9px 11px;
       margin-bottom: 8px;
       font-size: clamp(12px, 0.95vw, 14px);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
     }
-    .bmatch.live { border-color: rgba(255,77,109,.6); box-shadow: 0 0 10px rgba(255,77,109,.2); }
+    .bmatch.live {
+      border-color: rgba(255,77,109,.55);
+      box-shadow: 0 0 14px rgba(255,77,109,.18), inset 0 1px 0 rgba(255,77,109,.1);
+      animation: bracketLive 2.4s ease-in-out infinite;
+    }
+    @keyframes bracketLive {
+      0%, 100% { box-shadow: 0 0 14px rgba(255,77,109,.18), inset 0 1px 0 rgba(255,77,109,.1); }
+      50% { box-shadow: 0 0 22px rgba(255,77,109,.35), inset 0 1px 0 rgba(255,77,109,.2); }
+    }
     .bmatch .side {
       display: flex;
       justify-content: space-between;
       gap: 8px;
       padding: 3px 0;
     }
-    .bmatch .side.winner { color: var(--ok); font-weight: 700; }
+    .bmatch .side.winner {
+      color: var(--ok);
+      font-weight: 700;
+      text-shadow: 0 0 10px rgba(45,255,158,.25);
+    }
     .bmatch .side.loser { color: var(--muted); }
     .bmatch .side .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
     .bmatch .side .sc { font-family: var(--mono); font-weight: 800; min-width: 20px; text-align: right; }
@@ -304,13 +543,15 @@
       font-size: clamp(10px, 0.75vw, 11px);
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: .9px;
+      letter-spacing: 1.1px;
       margin-bottom: 4px;
     }
     .place9wrap { margin-top: 12px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,.18); }
     .place9wrap h3 { text-align: left; margin-bottom: 8px; }
 
-    /* ---------- Empty ---------- */
+    /* ========================================================
+       EMPTY STATE
+       ======================================================== */
     .empty {
       padding: 40px 20px;
       text-align: center;
@@ -326,18 +567,22 @@
 </head>
 <body>
   <div class="dp">
-    <header class="dp-header">
-      <div class="dp-title">
-        <h1 id="tName">—</h1>
+    <header class="dp-hero">
+      <div class="hero-left">
+        <div class="hero-dot"></div>
+        <div class="hero-label">Przerwa techniczna</div>
       </div>
-      <div></div>
-      <div id="breakChip">Przerwa</div>
-      <div style="display:flex; align-items:center; gap:18px;">
-        <div class="dp-clock" id="clock">--:--</div>
-        <!-- Hidden: display.js writes into #modeBadge and #conn; we style them away. -->
-        <span id="modeBadge"></span>
-        <span id="conn"><span class="dot"></span><span id="connLabel"></span></span>
+      <div class="hero-center">
+        <h1 class="hero-tname" id="tName">—</h1>
+        <div class="hero-sub">Wracamy wkrótce</div>
       </div>
+      <div class="hero-right">
+        <div class="hero-clock" id="clock">--:--</div>
+        <div class="hero-clock-lbl">Czas lokalny</div>
+      </div>
+      <!-- display.js writes into these; kept for compatibility, hidden via CSS. -->
+      <span id="modeBadge"></span>
+      <span id="conn"><span class="dot"></span><span id="connLabel"></span></span>
     </header>
 
     <main class="dp-main">
