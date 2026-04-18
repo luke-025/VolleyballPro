@@ -126,8 +126,6 @@
 
     const stageTxt = isPlayoffStage(m.stage) ? UI.stageLabel(m.stage) : "";
 
-    const hasPlayed = (+sum.setsA || 0) + (+sum.setsB || 0) > 0 || playedSets.length > 0;
-
     return `
       <div class="mrow ${cls}">
         ${timeHtml}
@@ -136,8 +134,10 @@
           <div class="tname ${wB ? "winner" : (m.winner && !wB ? "loser" : "")}">${esc(teamName(state, m.teamBId))}</div>
           ${stageTxt ? `<div class="mstage">${esc(stageTxt)}${m.label ? " · " + esc(m.label) : ""}</div>` : ""}
         </div>
-        <div class="msets">${hasPlayed ? `${sum.setsA}:${sum.setsB}` : "—"}</div>
-        <div class="mpoints">${setsDetail ? esc(setsDetail) : "—"}</div>
+        <div class="mscore">
+          <div class="setwins">${sum.setsA}:${sum.setsB}</div>
+          ${setsDetail ? `<div class="setdetail">${esc(setsDetail)}</div>` : ""}
+        </div>
         <div class="mstat ${m.status}">${esc(stat)}</div>
       </div>
     `;
@@ -175,8 +175,10 @@
     els.rightBody.innerHTML = nonEmpty.map(k => {
       const rows = groups[k].map((r, i) => {
         const rankCls = i === 0 ? "r1" : i === 1 ? "r2" : "";
-        const diff = r.setsWon - r.setsLost;
-        const sign = diff > 0 ? "+" : "";
+        const setDiff = r.setsWon - r.setsLost;
+        const setSign = setDiff > 0 ? "+" : "";
+        const ptDiff = (r.pointsWon || 0) - (r.pointsLost || 0);
+        const ptSign = ptDiff > 0 ? "+" : "";
         return `
           <tr class="${rankCls}">
             <td class="rank">${i + 1}</td>
@@ -184,7 +186,8 @@
             <td>${r.played}</td>
             <td>${r.wins}</td>
             <td>${r.losses}</td>
-            <td>${r.setsWon}:${r.setsLost} <span class="muted">(${sign}${diff})</span></td>
+            <td>${r.setsWon}:${r.setsLost} <span class="muted">(${setSign}${setDiff})</span></td>
+            <td>${r.pointsWon || 0}:${r.pointsLost || 0} <span class="muted">(${ptSign}${ptDiff})</span></td>
             <td class="pts">${r.tablePoints}</td>
           </tr>
         `;
@@ -201,6 +204,7 @@
                 <th>W</th>
                 <th>P</th>
                 <th>Sety</th>
+                <th>Punkty</th>
                 <th>Pkt</th>
               </tr>
             </thead>
