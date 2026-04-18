@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VolleyballPro • Terminarz (admin)</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    .container { max-width: 1200px; }
+    .pinRow { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; margin-bottom: 14px; }
+    .pinRow input { font-family: var(--mono); }
+    .scheduleTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .scheduleTable th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .scheduleTable td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      vertical-align: middle;
+    }
+    .scheduleTable td.time input {
+      width: 92px;
+      font-family: var(--mono);
+      text-align: center;
+      padding: 8px 6px;
+    }
+    .scheduleTable td.court {
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .scheduleTable td.stage {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+    .scheduleTable tr.dirty td { background: rgba(106,228,255,.06); }
+    .footer {
+      display: flex; gap: 10px; align-items: center; justify-content: flex-end;
+      margin-top: 14px;
+    }
+    .footer .muted { margin-right: auto; }
+    .btn.btn-primary {
+      background: linear-gradient(180deg, var(--accent) 0%, #4cc7ea 100%);
+      color: #001219;
+      border-color: transparent;
+    }
+    .btn.btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 10px 0 18px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,.03);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="brand">
+        <h1>Terminarz — godziny meczów</h1>
+        <div class="muted">Ustaw godziny dla display.html. Zmiany zapisywane tylko w polu <code>scheduledAt</code>, nie wpływają na wyniki.</div>
+      </div>
+      <div class="badge" id="slugBadge">—</div>
+    </div>
+
+    <div class="card">
+      <div class="pinRow">
+        <div>
+          <label>PIN turnieju</label>
+          <input id="pin" type="password" autocomplete="off" placeholder="PIN nadany przy tworzeniu turnieju" />
+        </div>
+        <button class="btn" id="btnLoad">Wczytaj</button>
+      </div>
+
+      <div class="note">
+        Format godziny: <code>HH:MM</code> (np. <code>10:30</code>). Pole można zostawić puste. Kliknięcie "Zapisz" wyśle tylko te wiersze, które zmieniłeś.
+        Plik <b>nie modyfikuje</b> Control ani wyników — dotyka tylko pola <code>scheduledAt</code>.
+      </div>
+
+      <div id="tableWrap">
+        <div class="muted" style="padding: 20px 0; text-align:center;">Wpisz PIN i kliknij "Wczytaj".</div>
+      </div>
+
+      <div class="footer" id="footerRow" style="display:none;">
+        <span class="muted" id="dirtyCount">Brak zmian.</span>
+        <button class="btn" id="btnReset">Odrzuć zmiany</button>
+        <button class="btn btn-primary" id="btnSave" disabled>Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/ui-shared.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/schedule-admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VolleyballPro • Display</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <style>
+    /* ============================================================
+       Public-facing display for a tournament monitor.
+       Optimized for 1080p landscape (1920x1080).
+       Split layout: schedule (left) + standings/bracket (right).
+       ============================================================ */
+    html, body { height: 100%; margin: 0; overflow: hidden; }
+    body {
+      font-family: var(--sans);
+      background:
+        radial-gradient(1400px 800px at 15% 0%, rgba(106,228,255,.18), transparent 60%),
+        radial-gradient(1100px 700px at 85% 100%, rgba(165,110,255,.16), transparent 55%),
+        var(--bg);
+    }
+
+    .dp {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      padding: 18px 22px 22px;
+      gap: 14px;
+    }
+
+    /* ---------- Header ---------- */
+    .dp-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 22px;
+      padding: 10px 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .dp-title h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: .3px;
+    }
+    .dp-title .sub {
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+    }
+    .dp-mode {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(106,228,255,.14);
+      border: 1px solid rgba(106,228,255,.35);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .dp-mode.playoff {
+      background: rgba(165,110,255,.16);
+      border-color: rgba(165,110,255,.40);
+      color: var(--accent2);
+    }
+    .dp-clock {
+      font-family: var(--mono);
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text);
+    }
+    .dp-conn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dp-conn .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--ok);
+      box-shadow: 0 0 10px var(--ok);
+    }
+    .dp-conn.off .dot { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+    /* ---------- Main split ---------- */
+    .dp-main {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 14px;
+      min-height: 0; /* lets children scroll if needed */
+    }
+    .dp-pane {
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .dp-pane h2 {
+      margin: 0;
+      padding: 14px 18px 10px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .dp-pane h2 .hint {
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .dp-body {
+      padding: 10px 14px 14px;
+      overflow: auto;
+      flex: 1;
+    }
+
+    /* ---------- Schedule rows ---------- */
+    .courtBlock { margin-bottom: 14px; }
+    .courtBlock:last-child { margin-bottom: 0; }
+    .courtHdr {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 10px;
+      margin: 4px 0 8px;
+      background: rgba(255,255,255,.04);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+    .mrow {
+      display: grid;
+      grid-template-columns: 64px 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 10px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      transition: background .2s ease;
+    }
+    .mrow:first-of-type { border-top: none; }
+    .mrow.live {
+      background: linear-gradient(90deg, rgba(255,77,109,.12), transparent 60%);
+      border-left: 3px solid var(--danger);
+      padding-left: 7px;
+    }
+    .mrow.confirmed { opacity: .75; }
+    .mrow .mtime {
+      font-family: var(--mono);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+    }
+    .mrow .mtime.none { color: var(--muted); font-size: 13px; font-weight: 500; }
+    .mrow .mteams {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .mrow .mteams .tname {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mrow .mteams .tname.winner { color: var(--ok); }
+    .mrow .mteams .tname.loser { color: var(--muted); }
+    .mrow .mstage {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .mrow .mscore {
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 20px;
+      text-align: right;
+      min-width: 72px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .mrow .mscore .setwins {
+      font-size: 22px;
+      letter-spacing: 2px;
+    }
+    .mrow .mscore .setdetail {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .mrow .mstat {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .mrow .mstat.live {
+      background: rgba(255,77,109,.18);
+      border-color: rgba(255,77,109,.45);
+      color: var(--danger);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+    .mrow .mstat.finished { background: rgba(45,255,158,.15); border-color: rgba(45,255,158,.35); color: var(--ok); }
+    .mrow .mstat.confirmed { background: rgba(45,255,158,.10); border-color: rgba(45,255,158,.25); color: var(--ok); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .55; }
+    }
+
+    /* ---------- Standings ---------- */
+    .group {
+      margin-bottom: 16px;
+    }
+    .group:last-child { margin-bottom: 0; }
+    .groupTitle {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      color: var(--accent);
+    }
+    table.stand {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    table.stand th {
+      text-align: right;
+      padding: 6px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    table.stand th.l, table.stand td.l { text-align: left; }
+    table.stand td {
+      padding: 7px 6px;
+      text-align: right;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    table.stand td.l { font-weight: 600; }
+    table.stand tr.r1 td { background: rgba(45,255,158,.06); }
+    table.stand tr.r2 td { background: rgba(106,228,255,.05); }
+    table.stand .pts { font-family: var(--mono); font-weight: 800; color: var(--text); font-size: 15px; }
+    table.stand .rank { width: 28px; color: var(--muted); font-weight: 700; }
+
+    /* ---------- Bracket ---------- */
+    .bracket {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .bcol h3 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+    }
+    .bmatch {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 10px;
+      padding: 8px 10px;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .bmatch.live { border-color: rgba(255,77,109,.6); box-shadow: 0 0 12px rgba(255,77,109,.18); }
+    .bmatch .side {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 3px 0;
+    }
+    .bmatch .side.winner { color: var(--ok); font-weight: 700; }
+    .bmatch .side.loser { color: var(--muted); }
+    .bmatch .side .nm {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      flex: 1;
+    }
+    .bmatch .side .sc {
+      font-family: var(--mono); font-weight: 800; min-width: 18px; text-align: right;
+    }
+    .bmatch .lbl {
+      font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+    .place9wrap { margin-top: 18px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,.15); }
+    .place9wrap h3 { text-align: left; margin-bottom: 8px; }
+
+    /* ---------- Empty / loading ---------- */
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .empty b { color: var(--text); display: block; margin-bottom: 6px; font-size: 16px; }
+
+    /* ---------- Print / smaller screens ---------- */
+    @media (max-width: 1400px) {
+      .dp-main { grid-template-columns: 1fr 1fr; }
+      .bracket { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dp">
+    <header class="dp-header">
+      <div class="dp-title">
+        <h1 id="tName">—</h1>
+        <div class="sub" id="tSub">VolleyballPro • Display</div>
+      </div>
+      <div></div>
+      <div id="modeBadge" class="dp-mode">Faza grupowa</div>
+      <div style="display:flex; align-items:center; gap:18px;">
+        <div class="dp-clock" id="clock">--:--</div>
+        <div class="dp-conn" id="conn"><span class="dot"></span><span id="connLabel">łączenie…</span></div>
+      </div>
+    </header>
+
+    <main class="dp-main">
+      <section class="dp-pane" id="leftPane">
+        <h2><span id="leftTitle">Terminarz</span><span class="hint" id="leftHint"></span></h2>
+        <div class="dp-body" id="leftBody">
+          <div class="empty"><b>Ładowanie…</b>Proszę czekać, synchronizacja danych.</div>
+        </div>
+      </section>
+
+      <section class="dp-pane" id="rightPane">
+        <h2><span id="rightTitle">Tabela</span><span class="hint" id="rightHint"></span></h2>
+        <div class="dp-body" id="rightBody">
+          <div class="empty"><b>Ładowanie…</b>Proszę czekać, synchronizacja danych.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/ui-shared.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/display.js"></script>
+</body>
+</html>
