@@ -87,9 +87,18 @@
         <button class="btn" id="btnLoad">Wczytaj</button>
       </div>
 
+      <div id="nameSection" style="display:none; margin-top: 6px; padding: 12px 14px; background: rgba(255,255,255,.03); border-radius: 10px;">
+        <label>Nazwa turnieju (wyświetlana na display / overlay / break)</label>
+        <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px;">
+          <input id="tName" type="text" maxlength="80" placeholder="np. Turniej Sokółka 2026" />
+          <button class="btn btn-primary" id="btnSaveName" disabled>Zapisz nazwę</button>
+        </div>
+        <div class="muted small" style="margin-top: 6px;">Jeśli puste — pokaże się slug (<code id="slugHint">—</code>).</div>
+      </div>
+
       <div class="note">
         Format godziny: <code>HH:MM</code> (np. <code>10:30</code>). Pole można zostawić puste. Kliknięcie "Zapisz" wyśle tylko te wiersze, które zmieniłeś.
-        Plik <b>nie modyfikuje</b> Control ani wyników — dotyka tylko pola <code>scheduledAt</code>.
+        Plik <b>nie modyfikuje</b> Control ani wyników — dotyka tylko pola <code>scheduledAt</code> i <code>meta.name</code>.
       </div>
 
       <div id="tableWrap">

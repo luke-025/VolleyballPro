@@ -17,6 +17,10 @@
     dirtyCount: document.getElementById("dirtyCount"),
     btnReset: document.getElementById("btnReset"),
     btnSave: document.getElementById("btnSave"),
+    nameSection: document.getElementById("nameSection"),
+    tName: document.getElementById("tName"),
+    btnSaveName: document.getElementById("btnSaveName"),
+    slugHint: document.getElementById("slugHint"),
   };
 
   const slug = UI.getSlug();
@@ -29,6 +33,7 @@
   let snapshot = null; // { version, state, tournamentId }
   let originalTimes = new Map(); // matchId -> original scheduledAt
   let edits = new Map(); // matchId -> new scheduledAt
+  let originalName = ""; // original tournament name (meta.name)
 
   function stageLabel(key) {
     return UI.stageLabel(key) || key;
@@ -158,6 +163,11 @@
         (snapshot.state?.matches || []).map(m => [m.id, m.scheduledAt || ""])
       );
       edits = new Map();
+      originalName = String(snapshot.state?.meta?.name || "");
+      els.tName.value = originalName;
+      els.slugHint.textContent = slug;
+      els.nameSection.style.display = "block";
+      updateNameDirtyUI();
       renderTable();
       UI.toast("Wczytano terminarz.", "success");
     } catch (e) {
@@ -210,9 +220,46 @@
     UI.toast("Odrzucono lokalne zmiany.", "info");
   }
 
+  function updateNameDirtyUI() {
+    const current = (els.tName.value || "").trim();
+    const isDirty = current !== originalName.trim();
+    els.btnSaveName.disabled = !isDirty;
+  }
+
+  async function saveName() {
+    if (!snapshot) return;
+    const pin = (els.pin.value || "").trim();
+    if (!pin) return UI.toast("Podaj PIN.", "warn");
+
+    const newName = (els.tName.value || "").trim();
+    if (newName === originalName.trim()) return;
+
+    els.btnSaveName.disabled = true;
+    try {
+      await STORE.mutate(slug, pin, (st) => {
+        st.meta = st.meta || {};
+        st.meta.name = newName;
+        return st;
+      });
+      originalName = newName;
+      UI.toast("Zapisano nazwę turnieju.", "success");
+      // Refresh snapshot so subsequent edits see the canonical state.
+      snapshot = await STORE.fetchState(slug);
+    } catch (e) {
+      UI.toast(UI.fmtError(e), "error");
+    } finally {
+      updateNameDirtyUI();
+    }
+  }
+
   els.btnLoad.addEventListener("click", load);
   els.btnSave.addEventListener("click", save);
   els.btnReset.addEventListener("click", resetEdits);
+  els.btnSaveName.addEventListener("click", saveName);
+  els.tName.addEventListener("input", updateNameDirtyUI);
+  els.tName.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !els.btnSaveName.disabled) saveName();
+  });
   els.pin.addEventListener("keydown", (e) => {
     if (e.key === "Enter") load();
   });
