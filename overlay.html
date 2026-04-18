@@ -217,14 +217,20 @@
     #sceneTechnical { background: #070A12 !important; }
     #sceneSponsors  { background: #070A12 !important; }
 
-    /* ── Break scene ── */
+    /* ── Break scene (iframed break-v2.html) ── */
     #sceneBreak {
       position: absolute; inset: 0;
       background: #070A12 !important;
       font-family: var(--sans);
-      display: flex;
-      flex-direction: column;
       overflow: hidden;
+    }
+    #breakFrame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
     }
     .brkHeader {
       display: flex;
@@ -373,35 +379,20 @@
         </div>
       </div>
 
-      <!-- BREAK -->
+      <!-- BREAK — rendered via break-v2.html in an iframe so the scene uses
+           the polished display-style layout. The iframe inherits the ?t=slug
+           from overlay's URL so it subscribes to the same tournament.
+           Old inline break content removed; break.js + overlay.renderBreak()
+           null-check the old IDs and safely no-op. -->
       <div class="scene" id="sceneBreak">
-        <div class="brkHeader">
-          <span class="brkBadge">Przerwa</span>
-          <div class="brkTournament" id="btName"></div>
-          <div class="brkClock" id="btClock">--:--:--</div>
-        </div>
-        <div class="brkBody">
-          <div class="brkLeft">
-            <div class="brkSectionLabel">Tabele grup</div>
-            <div class="brkTablesGrid" id="breakTables"></div>
-          </div>
-          <div class="brkRight">
-            <div class="brkPanel">
-              <div class="brkSectionLabel">Ostatnie wyniki</div>
-              <div id="breakLast"></div>
-            </div>
-            <div class="brkPanel">
-              <div class="brkSectionLabel">Następne mecze</div>
-              <div id="breakNext"></div>
-            </div>
-            <div class="brkPanel">
-              <div class="brkSectionLabel">Na transmisji</div>
-              <div id="breakProgram"></div>
-            </div>
-          </div>
-        </div>
-        <div class="overlayNotice" id="breakNotice" style="display:none"></div>
+        <iframe id="breakFrame" src="about:blank" allow="autoplay" title="Przerwa"></iframe>
       </div>
+      <script>
+        (function () {
+          var f = document.getElementById("breakFrame");
+          if (f) f.src = "break-v2.html" + (window.location.search || "");
+        })();
+      </script>
 
       <!-- TECHNICAL -->
       <div class="scene scene-technical" id="sceneTechnical">
