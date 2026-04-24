@@ -172,11 +172,21 @@
         UI.toast("Zapisano export JSON", "success");
       });
     }
+    const btnXlsx = document.getElementById("btnExportXlsx");
+    if (btnXlsx && window.VPExport && !btnXlsx._vpBound) {
+      window.VPExport.bindExportButton(btnXlsx, () => current?.state || {});
+    }
   }
 
   function renderLockBtn(state) {
     const btnLock = document.getElementById("btnLockToggle");
     if (btnLock) btnLock.textContent = state?.meta?.locked ? "BLOKADA: ON 🔒" : "BLOKADA: OFF";
+  }
+
+  function renderExportXlsxBtn(state) {
+    if (!window.VPExport) return;
+    const btn = document.getElementById("btnExportXlsx");
+    if (btn) window.VPExport.updateExportButton(btn, state || {});
   }
 
   // ── Queue ─────────────────────────────────────────────────
@@ -324,6 +334,7 @@
     renderSceneStatus(state);
     renderSceneBtns(state);
     renderLockBtn(state);
+    renderExportXlsxBtn(state);
     updateFilterOptions(state);
     renderQueue(state);
 

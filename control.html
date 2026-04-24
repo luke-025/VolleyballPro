@@ -348,6 +348,10 @@
       <div class="btnGroup">
         <button class="btn btn-ghost" id="btnLockToggle">BLOKADA: —</button>
         <button class="btn btn-ghost" id="btnExportState">Export JSON</button>
+        <button class="btn btn-accent" id="btnExportXlsx" disabled title="Eksport będzie dostępny po zakończeniu wszystkich meczów.">📥 Pobierz wyniki (XLSX)</button>
+      </div>
+      <div class="muted small" style="margin-top:8px">
+        Raport XLSX zawiera: podsumowanie, listę zespołów, wyniki fazy grupowej, tabele grup, drabinkę playoff i klasyfikację końcową. Dostępny po potwierdzeniu wszystkich meczów.
       </div>
     </div>
   </div>
@@ -377,11 +381,13 @@
 </div><!-- /container -->
 
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/ui-shared.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/state.js"></script>
+<script src="js/export.js"></script>
 <script src="js/control.js"></script>
 <script src="js/control-manual-result.js"></script>
 <script src="js/control-sponsors-addon.js"></script>
